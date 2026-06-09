@@ -1,0 +1,2 @@
+-- 0014_generic_content_hash_title_link.sql - Recompute generic item content_hash as title + link.
+-- SHA-256 is not available in stock SQLite, so runtime/migrator.ts applies the idempotent data backfill.

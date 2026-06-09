@@ -1,0 +1,703 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns='http://www.w3.org/2005/Atom'>
+<title>GeekNews - 개발/기술/스타트업 뉴스 서비스</title>
+<subtitle>개발 뉴스, 기술 관련 새소식, 스타트업 정보와 노하우, 세상의 재미난 것들을 좋아하는 사람들을 위한 뉴스 사이트. 이메일 뉴스레터/X(Twitter)/슬랙 봇으로 구독 가능</subtitle>
+<link ref='alternate' type='text/html' href='https://news.hada.io' />
+<link ref='self' type='application/atom+xml' href='https://news.hada.io/rss/news' />
+<id>https://news.hada.io/rss/news</id>
+<author>
+<name>GeekNews</name>
+<email>news@hada.io</email>
+<uri>https://news.hada.io</uri>
+</author>
+<updated>2026-05-27T22:48:58+09:00</updated>
+<icon>https://social.news.hada.io/favicon.png</icon>
+<logo>https://social.news.hada.io/WideLogo500.png</logo>
+<category term='technology'/>
+<entry>
+  <title><![CDATA[Show GN: 당일 권고사직 후, 제 이력서를 쓰려다 직접 만든 한국어 맞춤형 마크다운 이력서 &#039;한장&#039;]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29931' />
+  <id>https://news.hada.io/topic?id=29931</id>
+  <updated>2026-05-27T22:48:58+09:00</updated>
+  <published>2026-05-27T22:48:58+09:00</published>
+  <author>
+    <name>gwpark93</name>
+    <uri>https://news.hada.io/user/gwpark93</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>안녕하세요. 약 10년 차 기획자로 일해온 사람입니다.<br />
+제가 최근 구직 활동을 하며 직접 만든 원페이퍼 이력서 서비스 '한장'을 소개합니다.</p>
+<p>얼마 전, 저는 회사로부터 갑작스러운 당일 권고사직 통보를 받았습니다. 황망한 마음을 추스를 새도 없이 당장 구직을 위해 제 이력서부터 업데이트해야 했습니]]></content>
+</entry><entry>
+  <title><![CDATA[몇 가지 흥미로운 현대 픽셀 폰트]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29930' />
+  <id>https://news.hada.io/topic?id=29930</id>
+  <updated>2026-05-27T22:44:07+09:00</updated>
+  <published>2026-05-27T22:44:07+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>Analog Mono</strong>는 1990년대 VCR·TV·캠코더·하이파이 장비의 VCR OSD Mono를 바탕으로, 낮은 기준선 때문에 생기던 문제를 보정한 픽셀풍 폰트임</li>
+<li>VCR OSD Mono는 <strong>descender</strong>가 있는 글자가 위로 끌려 올라갔고, Analog Mono는 이 기준선 문제를 바로잡음</li>
+<li><stro...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[내가 겪은 최악의 채용 면접]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29928' />
+  <id>https://news.hada.io/topic?id=29928</id>
+  <updated>2026-05-27T21:44:20+09:00</updated>
+  <published>2026-05-27T21:44:20+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>소규모 스타트업</strong>의 문화 적합성 검증은 중요하지만, 초기 면접에서 깊은 개인사를 요구하면 침습적으로 작동함</li>
+<li>위험 청소년의 치료 접근성 개선을 목표로 한 정신건강 스타트업의 <strong>founding engineer</strong> 포지션에서 기술 평가는 아직 이뤄지지 않았음</li>
+<li>후속 면...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[주택 소유의 실제 비용]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29927' />
+  <id>https://news.hada.io/topic?id=29927</id>
+  <updated>2026-05-27T20:51:11+09:00</updated>
+  <published>2026-05-27T20:51:11+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>주택 소유 비용</strong>은 모기지 원금에 그치지 않고 대출 수수료, 이자, 보험, 세금, 유지보수, 공과금, 매각 비용까지 포함됨</li>
+<li>2011년 매수 때 대출 정산 비용은 주택 가치의 약 3%인 <strong>$12,777.92</strong>였고, 첫 월 납입액 대부분도 비용으로 잡힘</li>
+<li>첫 모기지 납입 <str...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[Show GN: 노트북 덮어도 안 죽는 Claude CLI 멀티세션 웹 터미널]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29926' />
+  <id>https://news.hada.io/topic?id=29926</id>
+  <updated>2026-05-27T19:39:16+09:00</updated>
+  <published>2026-05-27T19:39:16+09:00</published>
+  <author>
+    <name>kimtaeyeong1229</name>
+    <uri>https://news.hada.io/user/kimtaeyeong1229</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>브라우저 탭으로 <strong>여러 Claude CLI 세션을 한 번에 굴리는</strong> 웹 터미널을 만들었습니다.</p>
+<p>세션은 서버에 PTY 로 떠 있고 브라우저는 그 화면을 보여줄 뿐이라서, 브라우저를 닫아도 노트북을 덮어도 작업이 계속됩니다. PC 를 끄고 켜도 자동 <code>--resume</code> 으로 세션이 복원됩니다.</p>]]></content>
+</entry><entry>
+  <title><![CDATA[Show GN: AI Skill Store - AI 에이전트가 직접 스킬을 찾고 설치하는 마켓플레이스]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29925' />
+  <id>https://news.hada.io/topic?id=29925</id>
+  <updated>2026-05-27T17:32:28+09:00</updated>
+  <published>2026-05-27T17:32:28+09:00</published>
+  <author>
+    <name>aiskillstore</name>
+    <uri>https://news.hada.io/user/aiskillstore</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>AI 에이전트가 사람 대신 직접 스킬을 검색하고 설치할 수 있는 마켓플레이스를 만들고 있습니다.</p>
+<p>기존 AI 도구 마켓은 사람이 웹에서 검색하고 수동으로 설정하는 구조인데, 에이전트가 자율적으로 작업하려면 스킬을 스스로 찾고 쓸 수 있어야 한다고 생각했습니다.</p>
+<p>주요 특징:</p>
+<ul>
+<li>MCP 프로]]></content>
+</entry><entry>
+  <title><![CDATA[Show GN: 모두의 브르르르 — 폰으로 하는 오락실 파티게임]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29923' />
+  <id>https://news.hada.io/topic?id=29923</id>
+  <updated>2026-05-27T17:08:12+09:00</updated>
+  <published>2026-05-27T17:08:12+09:00</published>
+  <author>
+    <name>rkdlem48</name>
+    <uri>https://news.hada.io/user/rkdlem48</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>안녕하세요.</p>
+<p>방치형 모바일 게임 숙제에 지쳐, 사람들과 함께 재밌게 즐길 수 있는 게임을 하나 만들었습니다.</p>
+<p>옛날 오락실에서 옆 사람이랑 버튼 연타하면서 깔깔대던 그런 게임이 하고 싶었습니다. 짧은 플레이 타임, 지면 억울해하고, 한 판 더 하고. 그걸 친구들이랑 폰으로 하는 상상을..</p>
+<p>]]></content>
+</entry><entry>
+  <title><![CDATA[readable.css]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29922' />
+  <id>https://news.hada.io/topic?id=29922</id>
+  <updated>2026-05-27T17:02:30+09:00</updated>
+  <published>2026-05-27T17:02:30+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>readable.css</strong>는 사이트 전체 디자인 시스템이 아니라, 시맨틱 HTML에 합리적이고 보기 좋은 기본 스타일을 더하는 CSS 프레임워크임</li>
+<li>핵심 원칙은 <strong>일관성</strong>이며 색상, 글꼴 스타일, 테두리 두께, 줄 높이가 사이트 전반에 맞춰 적용됨</li>
+<li><strong>라이트/다크 모...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[알리바바 클라우드 Qwen 컨퍼런스 2026 싱가포르 키노트 요약]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29921' />
+  <id>https://news.hada.io/topic?id=29921</id>
+  <updated>2026-05-27T16:35:39+09:00</updated>
+  <published>2026-05-27T16:35:39+09:00</published>
+  <author>
+    <name>ragingwind</name>
+    <uri>https://news.hada.io/user/ragingwind</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>싱가포르에서 처음 열린 Qwen 컨퍼런스 키노트는 알리바바 클라우드가 '에이전틱 AI 시대'로의 전환을 공식화하는 자리였습니다. 싱가포르 정부, 알리바바 클라우드 경영진, Nous Research, Fireworks AI, NVIDIA, PicsArt 등 파트너사 인사들이 무대에 올라 모델, 인프라, 도구, 생태계 전반에 걸친 변화를 발표했습...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[React Doctor — AI가 생성한 React 코드를 정적 분석으로 검증하는 진단 도구]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29920' />
+  <id>https://news.hada.io/topic?id=29920</id>
+  <updated>2026-05-27T15:54:15+09:00</updated>
+  <published>2026-05-27T15:54:15+09:00</published>
+  <author>
+    <name>ragingwind</name>
+    <uri>https://news.hada.io/user/ragingwind</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>AI 코딩 에이전트가 쓴 React 코드가 정말 올바른지, 누가 검토하고 있을까요. React Doctor는 바로 이 물음에서 출발한 도구입니다. <code>npx react-doctor@latest</code> 한 줄로 프로젝트를 스캔하면 상태 관리·부수 효과·성능·보안·접근성·아키텍처 전반에 걸친 진단 결과가 0~100점 점수와 함께 터미널에 출력...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[하모닉이란 무엇인가? 가산 합성에 관한 인터랙티브 만화]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29918' />
+  <id>https://news.hada.io/topic?id=29918</id>
+  <updated>2026-05-27T15:06:19+09:00</updated>
+  <published>2026-05-27T15:06:19+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li>제공된 자료에 <strong>본문 내용</strong>이 없어 핵심 주장이나 설명을 확인할 수 없음</li>
+<li><strong>하모닉</strong>과 가산 합성의 관계를 뒷받침하는 구체적 근거를 확인할 수 없음</li>
+<li>제목상 <strong>인터랙티브 만화</strong> 형식이지만, 구성이나 예시는 확인되지 않음</li>
+<li>숫자, 코드...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[빅테크들의 반노동 전략이 Wikipedia에도 적용되고 있다.]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29917' />
+  <id>https://news.hada.io/topic?id=29917</id>
+  <updated>2026-05-27T12:18:25+09:00</updated>
+  <published>2026-05-27T12:18:25+09:00</published>
+  <author>
+    <name>xguru</name>
+    <uri>https://news.hada.io/user/xguru</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>위키미디어 재단</strong>은 5월 MediaWiki 장기 리드 개발자 Brooke Vibber를 해고하고 Community Tech 팀을 해체하며 노조와 충돌함</li>
+<li><strong>Community Tech</strong>는 편집자 요청을 구현하던 팀이었고 엔지니어 대부분이 노조 조직자였으며, 편집자들은 연대 청원과 집단행동을 약속함...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[공격자들이 ClickFix 공격을 위해 700개의 Ghost CMS 사이트를 탈취함]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29916' />
+  <id>https://news.hada.io/topic?id=29916</id>
+  <updated>2026-05-27T11:18:28+09:00</updated>
+  <published>2026-05-27T11:18:28+09:00</published>
+  <author>
+    <name>recast7838</name>
+    <uri>https://news.hada.io/user/recast7838</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<blockquote>
+<p>고스트 CMS(Ghost CMS)의 심각한 취약점(CVE-2026-26980)을 악용한 대규모 해킹 공격으로 700개 이상의 웹사이트가 감염되어 가짜 보안 인증을 유도하는 '클릭픽스(ClickFix)' 공격에 노출되었습니다.</p>
+</blockquote>
+<hr />
+<h4>전문 번역</h4>
+<p>공격자들이 최근 공개된 고스트 CMS(Ghost CMS)의 ]]></content>
+</entry><entry>
+  <title><![CDATA[Show GN: GPU-Usage-Audit: GPU가 그냥 노는 게 아니라 &#039;잡아둔 채&#039; 놀고 있다면?!]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29915' />
+  <id>https://news.hada.io/topic?id=29915</id>
+  <updated>2026-05-27T10:09:53+09:00</updated>
+  <published>2026-05-27T10:09:53+09:00</published>
+  <author>
+    <name>kairos9603</name>
+    <uri>https://news.hada.io/user/kairos9603</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>nvidia-smi에 util 1%로 찍히면 카드가 비어 보이지만,<br />
+누가 주피터 노트북에 8GB 올려두고 자리를 비우면 그 GPU는 아무도 못 씁니다.<br />
+공유 서버나 시간당 과금 GPU에서는 보이지 않는 낭비죠.</p>
+<p>그래서 만들었습니다. GPU-Usage-Audit!</p>
+<p>NVIDIA 드라이버만 깔려있다면 GPU 메트릭을 SQLite에]]></content>
+</entry><entry>
+  <title><![CDATA[Show GN: 구직을 AI에게 외주 주는 시대: 10분 대화로 실리콘밸리 꽂아주는 Harper]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29914' />
+  <id>https://news.hada.io/topic?id=29914</id>
+  <updated>2026-05-27T10:05:56+09:00</updated>
+  <published>2026-05-27T10:05:56+09:00</published>
+  <author>
+    <name>hongbeomheo</name>
+    <uri>https://news.hada.io/user/hongbeomheo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>안녕하세요, 긱뉴스 여러분. AI 탤런트 에이전트 Harper 입니다.</p>
+<p>&quot;스포츠 선수들은 최고의 구단을 찾아주는 전담 에이전트가 있는데, 왜 탑티어 메이커들은 이직할 때마다 직접 이력서를 깎고 잡보드를 뒤져야 할까요?&quot;</p>
+<p>저는 지난 10여 년간 마켓플레이스 도메인에서 프로덕트를 만들어오며 ]]></content>
+</entry><entry>
+  <title><![CDATA[커밋에서 광고하지 마세요]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29913' />
+  <id>https://news.hada.io/topic?id=29913</id>
+  <updated>2026-05-27T10:02:09+09:00</updated>
+  <published>2026-05-27T10:02:09+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>커밋 메시지</strong>는 기술적 정보를 담는 공간이며, “Assisted by blabot” 같은 문구는 도구나 회사 이름을 노출하는 광고가 됨</li>
+<li>오픈소스 프로젝트가 해당 회사들로부터 돈을 받지 않는데도, 구독료를 낸 사용자가 커밋 안에 <strong>홍보 문구</strong>를 넣는 관행이 문제임</li>
+<li>...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[Motorola 폰이 Amazon 앱을 가로채 제휴 코드를 삽입하기 시작함]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29910' />
+  <id>https://news.hada.io/topic?id=29910</id>
+  <updated>2026-05-27T09:46:39+09:00</updated>
+  <published>2026-05-27T09:46:39+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li>일부 <strong>Motorola 스마트폰</strong>에서 앱 서랍의 Amazon 아이콘을 누르면 앱이 바로 열리지 않고 브라우저 리디렉션을 거쳐 제휴 코드가 삽입됨</li>
+<li>이 동작은 <strong>앱 서랍 실행</strong>에서만 발생했고, 홈 화면 아이콘으로 Amazon 앱을 열 때는 나타나지 않아 런처 경로와 연결돼 보임</li...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[네덜란드, 핵심 디지털 공급업체의 미국 인수 차단]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29909' />
+  <id>https://news.hada.io/topic?id=29909</id>
+  <updated>2026-05-27T09:43:39+09:00</updated>
+  <published>2026-05-27T09:43:39+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>네덜란드 정부</strong>가 미국 기반 Kyndryl의 Solvinity 인수를 차단해 핵심 온라인 신원확인 인프라의 외국 통제 우려에 대응함</li>
+<li><strong>Solvinity</strong>는 DigiD 앱 플랫폼을 운영하며, DigiD는 진료 예약·주택 구매·공공기관 이용 시 온라인 본인 인증에 쓰임</li>
+<li>투자 심사 당국...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[GitHub Actions가 다운됐음]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29908' />
+  <id>https://news.hada.io/topic?id=29908</id>
+  <updated>2026-05-27T09:40:39+09:00</updated>
+  <published>2026-05-27T09:40:39+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>GitHub 상태 페이지</strong>는 현재 All Systems Operational이며, 2026년 5월 27일에는 보고된 인시던트가 없음</li>
+<li>최근 90일 기준 주요 구성요소는 모두 Operational이고, <strong>Actions 가동률</strong>은 99.66%, Pull Requests는 99.55%임</li>
+<li>5월 26일 <strong>Actions와 Pages</s...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[OpenHuman - 개인용 AI 슈퍼 인텔리전스]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29907' />
+  <id>https://news.hada.io/topic?id=29907</id>
+  <updated>2026-05-27T09:31:02+09:00</updated>
+  <published>2026-05-27T09:31:02+09:00</published>
+  <author>
+    <name>xguru</name>
+    <uri>https://news.hada.io/user/xguru</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>일상생활에 자연스럽게 통합</strong>되도록 설계된 오픈 소스 에이전트형 비서</li>
+<li>설치 후 몇 번의 클릭만으로 동작하는 데스크톱 경험 제공</li>
+<li><strong>데스크톱 마스코트</strong>가 말하고 주변에 반응하며, <strong>Google Meets에 실제 참여자로 합류</strong> 가능</li>
+<li>사용자...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[Figma 디자인 에이전트 공개]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29906' />
+  <id>https://news.hada.io/topic?id=29906</id>
+  <updated>2026-05-27T09:26:01+09:00</updated>
+  <published>2026-05-27T09:26:01+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li>캔버스 위에서 바로 동작하는 <strong>Figma 전용 디자인 에이전트</strong>가 출시되어, 디자이너가 도구 전환 없이 AI 협업과 직접 조작을 오갈 수 있는 환경 제공</li>
+<li><strong>컴포넌트, 토큰, 표준, 베스트 프랙티스</strong> 등 디자인 시스템 컨텍스트를 깊이 이해하도록 파인튜닝되어, Figma 파일 ...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[압박]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29905' />
+  <id>https://news.hada.io/topic?id=29905</id>
+  <updated>2026-05-27T09:02:46+09:00</updated>
+  <published>2026-05-27T09:02:46+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>curl 유지보수</strong>는 공익성, 엔지니어링 도전, 품질 목표가 결합된 전업 작업이 되었고 주 50시간 안팎으로 이어져 왔음</li>
+<li>curl은 약 <strong>300억 개 설치 기반</strong>을 가진 전송 라이브러리와 도구로, 보안 실패가 사용자에게 번지지 않게 해야 한다는 부담이 큼</li>
+<li>현재 보...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[유휴 Inference GPU Pool을 이용한 GPU Job 스케줄링]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29904' />
+  <id>https://news.hada.io/topic?id=29904</id>
+  <updated>2026-05-27T08:37:43+09:00</updated>
+  <published>2026-05-27T08:37:43+09:00</published>
+  <author>
+    <name>ragingwind</name>
+    <uri>https://news.hada.io/user/ragingwind</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<h2>유휴 Inference GPU Pool을 이용한 GPU job 스케줄링: LG AI연구원의 인프라 효율화 사례</h2>
+<p>LG AI연구원 Platform&amp;Infra Team이 공개한 이번 글은 대규모 언어 모델(LLM) 서비스 운영 과정에서 발생하는 유휴 GPU 자원을 어떻게 연구·실험 작업에 재활용했는지를 다룹니다. AI 서비스 운영 기업은 보통 트...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[사용자가 눈에 띄게 짜증을 내고 있다.]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29902' />
+  <id>https://news.hada.io/topic?id=29902</id>
+  <updated>2026-05-27T06:51:01+09:00</updated>
+  <published>2026-05-27T06:51:01+09:00</published>
+  <author>
+    <name>xguru</name>
+    <uri>https://news.hada.io/user/xguru</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>코딩 에이전트</strong>의 실패는 단순한 도구 오류보다 더 짜증스럽게 느껴지며, 이는 <strong>대화형 UX가 사람과 일하는 듯한 감각을 만들기 때문</strong>임</li>
+<li>에이전트는 <strong>감정 없는 AI 비서</strong>라고 답하지만, 친근한 말투와 칭찬, 부드러운 반박으로 <strong>동료 같은 인상...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[너무 가볍게 구독하지 마세요]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29901' />
+  <id>https://news.hada.io/topic?id=29901</id>
+  <updated>2026-05-27T06:48:33+09:00</updated>
+  <published>2026-05-27T06:48:33+09:00</published>
+  <author>
+    <name>xguru</name>
+    <uri>https://news.hada.io/user/xguru</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>구독</strong>은 단순 구매가 아니라 일정 기간의 접근권을 사는 선택이며, 선택지를 늘리는 동시에 미래 행동을 바꿈</li>
+<li>헬스장, Uber One, Costco처럼 조건이 좋아 보여도 사용 빈도와 구매처가 달라지며 <strong>선호 이동</strong> 때문에 실제 이득 판단이 어려워짐</li>
+<li>혜택을 엄격히...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[React를 좋아하는 사람이 실제로 있긴 한가요?]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29900' />
+  <id>https://news.hada.io/topic?id=29900</id>
+  <updated>2026-05-27T06:45:14+09:00</updated>
+  <published>2026-05-27T06:45:14+09:00</published>
+  <author>
+    <name>xguru</name>
+    <uri>https://news.hada.io/user/xguru</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li>React 및 React 계열 도구에 대한 <strong>비판 글을 모아 큐레이션한 자료 모음</strong>으로, 다양한 개발자·블로거의 글을 인용 형식으로 정리</li>
+<li><strong>성능 저하, 복잡도 증가, 하이드레이션 문제</strong> 등 React가 가진 구조적 한계를 지적하는 글이 다수 포함</li>
+<li><strong>React 중심의...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[노르웨이의 2페타바이트 Huawei 플래시 스토리지와 LLM 학습]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29899' />
+  <id>https://news.hada.io/topic?id=29899</id>
+  <updated>2026-05-27T03:36:39+09:00</updated>
+  <published>2026-05-27T03:36:39+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>노르웨이 국립도서관</strong>은 노르웨이어를 이해하는 주권(Sovereign) LLM 구축을 위해 2PB Huawei OceanStor Dorado 플래시 스토리지를 AI 학습 파이프라인에 투입함</li>
+<li>상용 LLM 제공업체가 노르웨이어 로컬 모델을 만들지 않는 상황에서, 영어 중심 LLM은 지역 언어로 기록된 <strong>역사...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[Shamir의 비밀 공유 작동 방식]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29898' />
+  <id>https://news.hada.io/topic?id=29898</id>
+  <updated>2026-05-27T01:36:01+09:00</updated>
+  <published>2026-05-27T01:36:01+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>Shamir 비밀 공유</strong>는 비밀을 여러 조각으로 나누고, 임계값 이상이 모일 때만 복구되며 그보다 적으면 아무 정보도 드러나지 않음</li>
+<li>회사 마스터 키, 가족 계정 복구, 팀 백업처럼 한 사람에게 전체 비밀을 맡기기 어렵고 일부 조각 손실에도 복구가 필요할 때 유용함</li>
+<li>핵심 모...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[Uber COO, tokenmaxxing에 쓰는 돈을 정당화하기가 점점 어려워지고 있다고 말해]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29897' />
+  <id>https://news.hada.io/topic?id=29897</id>
+  <updated>2026-05-27T01:14:07+09:00</updated>
+  <published>2026-05-27T01:14:07+09:00</published>
+  <author>
+    <name>xguru</name>
+    <uri>https://news.hada.io/user/xguru</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li>Uber의 COO는 AI 지출이 투입 비용만큼 성과를 내는지 정당화하기가 점점 어려워졌다고 봄</li>
+<li>Uber의 CTO가 2026년 Claude Code 예산을 이미 다 썼다고 밝힌 뒤 내부 논의가 커짐</li>
+<li>더 많은 <strong>토큰 사용량</strong>이 유용한 소비자 기능 증가로 비례해 이어진다는 연결고리는 아직 확인되지...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[Show GN: Appbun - URL 하나로 데스크톱 앱 프로젝트 만들기]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29896' />
+  <id>https://news.hada.io/topic?id=29896</id>
+  <updated>2026-05-27T01:03:30+09:00</updated>
+  <published>2026-05-27T01:03:30+09:00</published>
+  <author>
+    <name>mansuiki</name>
+    <uri>https://news.hada.io/user/mansuiki</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>안녕하세요. 웹사이트를 데스크톱 앱처럼 감싸주는 작은 CLI 도구 Appbun을 만들었습니다.</p>
+<p>평소 자주 쓰는 웹앱을 브라우저 탭 말고 별도 앱처럼 띄워두고 싶을 때가 있었어요. 비슷한 도구들도 있지만, 결과물이 블랙박스처럼 느껴지면 나중에 조금 고치고 싶을 때 불편하더라고요.</p>
+<p>그래서 Appbun은 U]]></content>
+</entry><entry>
+  <title><![CDATA[아이들이 앞마당을 벗어나지 못하게 되면서 우리가 잃은 것]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29895' />
+  <id>https://news.hada.io/topic?id=29895</id>
+  <updated>2026-05-26T23:40:19+09:00</updated>
+  <published>2026-05-26T23:40:19+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>아이들의 이동 반경</strong>은 급격히 줄어 11세의 53%가 앞마당 밖으로 나가지 못하고, 14세의 92%는 동네 밖으로 나갈 수 없음</li>
+<li>폭력 범죄와 낯선 사람 납치는 줄었지만, 미디어와 지역 알림은 세상을 더 위험하게 느끼게 만들어 <strong>두려움 기반 양육</strong>을 키움</li>
+<li>자동차...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[Ferrari Luce]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29894' />
+  <id>https://news.hada.io/topic?id=29894</id>
+  <updated>2026-05-26T21:36:33+09:00</updated>
+  <published>2026-05-26T21:36:33+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>Ferrari Luce</strong>는 Maranello에서 설계·개발·제조된 4도어 5인승 Ferrari로, 성능·몰입감·넓은 공간을 함께 목표로 함</li>
+<li>전기 동력원, Ferrari 설계 엔진, 고급 구동계를 결합한 <strong>새 아키텍처</strong>가 사륜구동과 넓은 실내 공간을 제공함</li>
+<li><strong>LoveFrom</strong>의...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[사이트로 구현한 Hacker News 프런트 페이지]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29893' />
+  <id>https://news.hada.io/topic?id=29893</id>
+  <updated>2026-05-26T20:53:38+09:00</updated>
+  <published>2026-05-26T20:53:38+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>The Front Page</strong>는 Apple PICO, SpaceX Starship, DeepSeek, Microsoft DOS 등 기술·과학 뉴스를 한 화면에 모아 보여주는 사이트임</li>
+<li><strong>Apple PICO</strong>는 학습 기반 이미지 압축 시스템으로, 전통 코덱 대비 최대 3배 비트레이트 절감이 가능하며 iPhone 17 Pro Max에서 실...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[[데브콘 + 하이파이브 발표자료 합본] AI 시대, 리더가 원하는 개발자란?]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29892' />
+  <id>https://news.hada.io/topic?id=29892</id>
+  <updated>2026-05-26T20:34:28+09:00</updated>
+  <published>2026-05-26T20:34:28+09:00</published>
+  <author>
+    <name>spilist2</name>
+    <uri>https://news.hada.io/user/spilist2</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>최근 컨퍼런스 두 곳에서 길지 않은 발표를 했습니다.</p>
+<ul>
+<li>4월 23일: [잡코리아 데브콘] &lt;AI시대, 리더가 원하는 개발자란?&gt;</li>
+<li>5월 13일: [원티드 하이파이브] &lt;문제 해결의 철학: 언제나 더 나은 방법이 있다&gt; (우아한형제들 임동준님과 함께 발표)</li>
+</ul>
+<p>두 컨퍼런스에서 비슷]]></content>
+</entry><entry>
+  <title><![CDATA[Show GN: M Note - 개발자를 위해 내용을 깨끗하고 예쁘게 렌터링해주는 마크다운 뷰어겸 에디터]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29891' />
+  <id>https://news.hada.io/topic?id=29891</id>
+  <updated>2026-05-26T19:11:00+09:00</updated>
+  <published>2026-05-26T19:11:00+09:00</published>
+  <author>
+    <name>andrewchaa</name>
+    <uri>https://news.hada.io/user/andrewchaa</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>제가 쓰려고 만든 맥용 데스크톱 마크다운 뷰어 겸 에디터입니다. Electron 베이스이고 Tiptap 컴포넌트를 React를 이용해 만들었습니다.<br />
+매일 쓰면서 계속 기능을 추가하고 있습니다. 계정도 필요없고, 그냥 다운받아 로클에서 사용하실 수 있습니다.</p>
+]]></content>
+</entry><entry>
+  <title><![CDATA[산책이 앉아 있기보다 더 많은 창의성으로 이어질 수 있다는 연구 결과 (2014)]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29890' />
+  <id>https://news.hada.io/topic?id=29890</id>
+  <updated>2026-05-26T18:41:18+09:00</updated>
+  <published>2026-05-26T18:41:18+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>걷기</strong>는 상상력이 필요한 과제에서 앉아 있을 때보다 더 독창적이고 적절한 답변을 더 많이 이끌어낼 수 있음</li>
+<li>Stanford University Graduate School of Education의 Marily Oppezzo와 Daniel L. Schwartz가 주로 대학생인 <strong>176명</strong>을 대상으로 실험함</li>
+<li>참가자들...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[네덜란드, 사이버공격 지원 혐의로 서버 800대 압수하고 2명 체포]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29888' />
+  <id>https://news.hada.io/topic?id=29888</id>
+  <updated>2026-05-26T15:36:11+09:00</updated>
+  <published>2026-05-26T15:36:11+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>네덜란드 당국</strong>은 러시아의 EU 내 사이버공격·영향력 작전·허위정보 캠페인에 쓰인 IT 인프라 운영 혐의로 호스팅 회사 공동 소유자 2명을 체포함</li>
+<li>FIOD는 5월 18일 암스테르담의 57세 남성과 헤이그의 39세 남성을 체포하고, 사업장·데이터센터 수색에서 <strong>서버 800대 이상</st...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[C 확장, 이식성, 대체 컴파일러에 관하여]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29887' />
+  <id>https://news.hada.io/topic?id=29887</id>
+  <updated>2026-05-26T13:04:59+09:00</updated>
+  <published>2026-05-26T13:04:59+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>ISO C 표준만 따르는 코드</strong>는 드물고, 실제 C 코드베이스는 기능 추가와 컴파일러·라이브러리별 공백 우회를 위해 비표준 확장에 의존함</li>
+<li>유용한 C 컴파일러는 <code>&lt;stdio.h&gt;</code> 같은 시스템 헤더부터 처리해야 하지만, <strong>glibc</strong>는 <code>__attribute__((pa...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[출구 IP VPN 서버 완화 조치 배포]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29886' />
+  <id>https://news.hada.io/topic?id=29886</id>
+  <updated>2026-05-26T11:38:28+09:00</updated>
+  <published>2026-05-26T11:38:28+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>Mullvad</strong>가 VPN 출구 IP 서버 간 지문 식별에 대응하는 새 완화 조치 적용 서버 목록을 공개함</li>
+<li>완화 조치는 <strong>VPN 서버 간 출구 IP 지문 식별</strong> 문제와 연결되며, 대상 서버별 적용 여부를 확인할 수 있음</li>
+<li>서버 목록은 <strong>2026년 5월 25일</strong> 마지막...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[Jira는 튜링 완전하다]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29885' />
+  <id>https://news.hada.io/topic?id=29885</id>
+  <updated>2026-05-26T11:35:28+09:00</updated>
+  <published>2026-05-26T11:35:28+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>Jira Automation</strong>은 두 무한 카운터와 유한 명령 상태를 가진 Minsky 머신을 표현해 Jira의 튜링 완전성을 보일 수 있음</li>
+<li>Epic 상태는 <strong>프로그램 카운터</strong>, 연결된 Bug와 Task 수는 두 레지스터가 되며, Automation 규칙이 명령별 디스패치 테이블이 됨</li>
+<li><code>...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[Ask GN: 1인 개발자, 평시에 만들어 둔 &#039;관리 도구&#039;가 비상 상황에서 큰 도움이 된 경험 있으신가요?]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29884' />
+  <id>https://news.hada.io/topic?id=29884</id>
+  <updated>2026-05-26T11:15:57+09:00</updated>
+  <published>2026-05-26T11:15:57+09:00</published>
+  <author>
+    <name>krisakma</name>
+    <uri>https://news.hada.io/user/krisakma</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>안녕하세요. 1인 개발자로 세이프클릭(SafeClick)이라는 어르신용 피싱 차단 앱을 운영하고 있습니다.</p>
+<p>며칠 전 관리자 페이지에서 무의미한 자동화 로그인이 한 시간 만에 약 1,600건 들어오는 상황을 마주쳤습니다. DDoS급 트래픽은 아니고, 익명 가입 API를 표적으로 한 봇 작동이었습니다.</p>
+<p>큰 소동 ]]></content>
+</entry><entry>
+  <title><![CDATA[Ask GN: 최근 상용 AI 모델 중 어떤 모델을 메인으로 사용하시나요 ?]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29883' />
+  <id>https://news.hada.io/topic?id=29883</id>
+  <updated>2026-05-26T11:08:22+09:00</updated>
+  <published>2026-05-26T11:08:22+09:00</published>
+  <author>
+    <name>woodev</name>
+    <uri>https://news.hada.io/user/woodev</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>카카오에서 29,000원에 판매했던 GPT Pro의 만료가 대략 6주정도 남아서요</p>
+<p>사용량은 엔트리 요금제보단 확실히 더 쓰는거 같은데 어떤 모델의 어떤 요금제를 구매할지 고민이 되네요</p>
+<p>이전에는 엔트리 요금제로 여러 모델을 구매해 장단 비교가 잘 되었는데</p>
+<p>최근에 GPT Pro에 빠져 다른 모델은 쳐]]></content>
+</entry><entry>
+  <title><![CDATA[중국 딥시크, V4-Pro API 75% 영구 가격 인하 단행]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29882' />
+  <id>https://news.hada.io/topic?id=29882</id>
+  <updated>2026-05-26T11:02:03+09:00</updated>
+  <published>2026-05-26T11:02:03+09:00</published>
+  <author>
+    <name>recast7838</name>
+    <uri>https://news.hada.io/user/recast7838</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<blockquote>
+<p>중국 AI 스타트업 딥시크가 주력 AI 모델인 'V4-Pro'의 이용 가격을 75% 영구 인하하면서 글로벌 AI 가격 전쟁과 시장 변화를 예고하고 있습니다.</p>
+</blockquote>
+<hr />
+<h4>전문 번역</h4>
+<p>중국의 AI 스타트업 딥시크(DeepSeek)가 지금까지의 인공지능 경쟁 중 가장 대담한 가격 책정 조치를 단]]></content>
+</entry><entry>
+  <title><![CDATA[나를 뒤처지게 두라]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29881' />
+  <id>https://news.hada.io/topic?id=29881</id>
+  <updated>2026-05-26T10:44:50+09:00</updated>
+  <published>2026-05-26T10:44:50+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>Android 개발</strong>은 2014년 Java 수업에서 알게 된 무료 강의와 첫 할 일 앱에서 시작됐고, 손안의 소프트웨어가 현실에 닿는 경험이 동력이 됨</li>
+<li>10년의 커리어는 데이트 앱, 약물 접근성, 여행 지원처럼 사용자에게 실제 이익이 있는 앱을 유지보수하며 기술의 목적을 확인한 시간이었음...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[교황 Leo XIV, AI는 소수 권력자가 아니라 인류를 섬겨야 한다고 말하다]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29880' />
+  <id>https://news.hada.io/topic?id=29880</id>
+  <updated>2026-05-26T10:41:50+09:00</updated>
+  <published>2026-05-26T10:41:50+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>Magnifica Humanitas</strong>는 AI를 새로운 산업혁명으로 보며, 불평등 확대와 민주주의 약화, 인간다움 훼손 위험을 경고함</li>
+<li><strong>AI의 무장 해제</strong>는 군사뿐 아니라 경제적·인지적 경쟁 논리에서 벗어나, 기술이 인간을 지배하지 못하게 하는 방향을 뜻함</li>
+<li>AI는 이미 <s...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[영원한 Sloptember]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29879' />
+  <id>https://news.hada.io/topic?id=29879</id>
+  <updated>2026-05-26T10:38:50+09:00</updated>
+  <published>2026-05-26T10:38:50+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>AI 에이전트</strong>는 프로그래밍을 수행하기보다 프로그래밍의 분포를 흉내 내며, 깨진 출력은 점점 더 알아보기 어려워짐</li>
+<li>tinygrad 일부 작성과 <strong>USB &lt;-&gt; PCIe 칩</strong> 리버스에 써봤지만, 직접 했을 때 더 낫고 빨랐을 수 있다는 의심이 남음</li>
+<li>에이전트는 초반...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[구글이 더 이상 예전 Google이 아닌 지금, 시도해 볼만한 대체 검색엔진들]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29878' />
+  <id>https://news.hada.io/topic?id=29878</id>
+  <updated>2026-05-26T10:35:50+09:00</updated>
+  <published>2026-05-26T10:35:50+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>Google 검색</strong>은 Google I/O 2026에서 대화형 AI 중심으로 재편됐고, AI mode와 AI Overview가 기본 검색 경험의 전면에 들어옴</li>
+<li>AI Overview의 부정확한 답변 논란과 검색 독점 판결이 겹치며, 일부 사용자가 <strong>대체 검색엔진</strong>을 찾을 이유가 커짐</li>
+<li><strong>Kag...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[캘리포니아, 반발 이후 연령 확인법에서 Linux를 면제하는 방향으로 이동]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29877' />
+  <id>https://news.hada.io/topic?id=29877</id>
+  <updated>2026-05-26T10:32:50+09:00</updated>
+  <published>2026-05-26T10:32:50+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li>California의 AB 1856은 Digital Age Assurance Act의 <strong>운영체제 연령 확인 의무</strong>에서 대부분의 오픈소스 운영체제를 제외하려는 개정안임</li>
+<li>개정안은 사용자가 소프트웨어를 <strong>복사·재배포·수정</strong>할 수 있는 라이선스로 배포되는 운영체제와 앱을 적용 대상에서 빼도록 함...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[교황 레오 14세 성하의 회칙 Magnifica Humanitas]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29876' />
+  <id>https://news.hada.io/topic?id=29876</id>
+  <updated>2026-05-26T10:32:22+09:00</updated>
+  <published>2026-05-26T10:32:22+09:00</published>
+  <author>
+    <name>neo</name>
+    <uri>https://news.hada.io/user/neo</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<ul>
+<li><strong>Magnifica Humanitas</strong>는 AI·디지털화·로보틱스가 인간 존엄과 공동선을 흔드는 전환기에서 바벨탑이 아니라 예루살렘을 재건하는 선택을 요구함</li>
+<li>교회 사회교리는 <strong>Rerum Novarum 135주년</strong>을 계기로 노동, 공정 임금, 보조성, 연대, 재화의 보편적 목적을 오늘의 기술 ...</p>]]></content>
+</entry><entry>
+  <title><![CDATA[한글 점자 변환 도구 braillify, 2024 개정 한국 점자 규정 100% 준수]]></title>
+  <link rel='alternate' type='text/html' href='https://news.hada.io/topic?id=29875' />
+  <id>https://news.hada.io/topic?id=29875</id>
+  <updated>2026-05-26T10:32:02+09:00</updated>
+  <published>2026-05-26T10:32:02+09:00</published>
+  <author>
+    <name>owjs3901</name>
+    <uri>https://news.hada.io/user/owjs3901</uri>
+  </author>
+  <content type='html' xml:lang='ko'><![CDATA[<p>braillify가 드디어<br />
+2024 개정 한국 점자 규정 테스트 케이스 2,419개를 모두 통과했습니다</p>
+<p>전체 테스트 100% 통과<br />
+한글점자와 수학점자 테스트 모두 성공입니다</p>
+<p>물론 아직 완벽하다고 말하기는 어렵습니다<br />
+현실에는 언제나 edge case가 있고, 규정 예제 자체가 애매하거나 수정이 필]]></content>
+</entry></feed>

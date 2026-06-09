@@ -1,0 +1,14 @@
+{
+  "embeds": [
+    {
+      "title": {{json item.title}},
+      "url": {{json item.link}},
+      "description": {{json (truncate item.summary 200)}},
+      "color": 16737095,
+      "fields": [
+        {{#if item.commentsUrl}}{ "name": "댓글", "value": {{json item.commentsUrl}}, "inline": false }{{/if}}
+      ],
+      "footer": { "text": {{json source.name}} }
+    }
+  ]
+}

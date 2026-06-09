@@ -1,0 +1,19 @@
+<tr id="group-{{id}}" data-id="{{id}}">
+  <td><input form="group-update-{{id}}" name="name" value="{{name}}" required></td>
+  <td>
+    {{#if hasWebhook}}{{maskedWebhookUrl}}{{else}}<span class="badge warn">미설정</span>{{/if}}
+    <input form="group-update-{{id}}" name="webhookUrl" placeholder="새 디스코드 웹훅 URL 입력">
+    <label class="check compact"><input form="group-update-{{id}}" type="checkbox" name="clearWebhook" value="true"> 지우기</label>
+  </td>
+  <td><input form="group-update-{{id}}" name="webhookName" value="{{webhookName}}" placeholder="기본 이름 사용"></td>
+  <td>
+    <span class="avatar-field">
+      <input form="group-update-{{id}}" name="webhookAvatarUrl" value="{{webhookAvatarUrl}}" placeholder="기본 프로필 사용">
+      {{#if webhookAvatarUrl}}<img class="avatar-preview" src="{{webhookAvatarUrl}}" alt="">{{/if}}
+    </span>
+  </td>
+  <td class="row-actions">
+    <form id="group-update-{{id}}" hx-patch="/api/groups/{{id}}" hx-target="#group-{{id}}" hx-swap="outerHTML"><button type="submit">저장</button></form>
+    <button class="danger" hx-delete="/api/groups/{{id}}" hx-confirm="이 그룹을 삭제하시겠습니까?" hx-target="closest tr" hx-swap="delete">삭제</button>
+  </td>
+</tr>

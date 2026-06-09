@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Latest High/Critical Vulnerabilitiy Feed</title><link>https://cvefeed.io/vuln/latest/</link><description>Updates on the latest &lt;strong&gt;high and critical severity&lt;/strong&gt; vulnerabilities.</description><atom:link href="https://cvefeed.io/rssfeed/severity/high.xml" rel="self"/><language>en</language><lastBuildDate>Wed, 27 May 2026 15:16:34 +0000</lastBuildDate><item><title>CVE-2026-6957 - Path traversal in Mattermost Legal Hold plugin via unsanitized file name from federated peer allows arbitrary file write.</title><link>https://cvefeed.io/vuln/detail/CVE-2026-6957</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-6957
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 3:16 p.m. | 1 hour ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Mattermost Plugins versions &lt;=1.1.5 fail to sanitize filenames received from federated peers before using them to construct export destination paths, which allows an administrator of a remote federated Mattermost server to write files to arbitrary locations within the target server's filestore via a malicious filename delivered through the shared-channel attachment sync protocol. Mattermost Advisory ID: MMSA-2026-00659
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 8.0 | HIGH
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 15:16:34 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-6957</guid></item><item><title>CVE-2026-49103 - Webmin File Name Injection Vulnerability</title><link>https://cvefeed.io/vuln/detail/CVE-2026-49103</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-49103
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 3:16 p.m. | 1 hour ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Webmin before 2.640 does not safely construct a filename for saving of an attachment within the mailboxes component. This occurs in mailboxes/detachall.cgi.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.4 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 15:16:34 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-49103</guid></item><item><title>CVE-2026-49046 - WordPress Duplicate Page and Post plugin &lt;= 2.9.5 - SQL Injection vulnerability</title><link>https://cvefeed.io/vuln/detail/CVE-2026-49046</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-49046
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 3:16 p.m. | 1 hour ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') vulnerability in Arjun Thakur Duplicate Page and Post allows Blind SQL Injection.
+
+This issue affects Duplicate Page and Post: from n/a through 2.9.5.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 8.5 | HIGH
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 15:16:33 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-49046</guid></item><item><title>CVE-2026-48544 - Taipy 4.1.1 Path Traversal via ElementLibrary.get_resource()</title><link>https://cvefeed.io/vuln/detail/CVE-2026-48544</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-48544
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 3:16 p.m. | 1 hour ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Taipy 4.1.1, fixed in commit 129fd40, contains a path traversal vulnerability in the ElementLibrary.get_resource() method in taipy/gui/extension/library.py that allows unauthenticated attackers to escape the intended module directory by exploiting an incomplete path containment check using str.startswith() without a trailing path separator. Attackers can send crafted GET requests with path traversal segments targeting a prefix-matching sibling directory on disk, bypassing the directory containment check because Flask's path converter and Werkzeug's WSGI layer preserve the traversal segments while the resolved path still satisfies the flawed startswith comparison, enabling unauthorized file access outside the intended library directory.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 8.7 | HIGH
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 15:16:30 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-48544</guid></item><item><title>CVE-2026-44988 - LibVNCClient Tight Gradient decoding allows malicious server-triggered heap/stack OOB writes</title><link>https://cvefeed.io/vuln/detail/CVE-2026-44988</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-44988
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 3:16 p.m. | 1 hour ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;LibVNCClient is a library for easy implementation of a VNC client. In 0.9.15 and earlier, LibVNCClient's Tight encoding decoder uses fixed-size 2048-pixel scratch buffers for the Gradient filter, but it does not reject Tight rectangles whose width is larger than 2048 pixels. A malicious VNC server can send a crafted FramebufferUpdate rectangle using Tight encoding with NoZlib | ExplicitFilter and the Gradient filter. When a LibVNCClient-based client connects, the client processes the server-controlled rectangle width and writes beyond fixed-size Gradient buffers. This vulnerability is fixed with commit 5b270544b85233668b98161323297d418a8f5fd1.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 8.8 | HIGH
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 15:16:29 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-44988</guid></item><item><title>CVE-2026-44971 - GuardDog: Blind GitHub URL rewrite in remote project scanning causes SSRF and `GH_TOKEN` exfiltration</title><link>https://cvefeed.io/vuln/detail/CVE-2026-44971</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-44971
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 3:16 p.m. | 1 hour ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;GuardDog is a CLI tool to identify malicious PyPI packages. From 1.0.0 to 2.9.0, the programmatic remote project scanning path rewrites attacker-controlled repository URLs using a blind string replacement and then sends the caller's GitHub credentials with the resulting request. This allows an attacker who can influence the scanned repository URL to trigger SSRF and capture the GH_TOKEN used by GuardDog. This vulnerability is fixed in .
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 8.2 | HIGH
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 15:16:29 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-44971</guid></item><item><title>CVE-2026-44830 - Empty API_TOKEN disables authentication on network-reachable HTTP/SSE transport</title><link>https://cvefeed.io/vuln/detail/CVE-2026-44830</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-44830
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 3:16 p.m. | 1 hour, 1 minute ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Nocturne Memory is a lightweight, rollbackable, and visual Long-Term Memory Server for MCP Agents. Prior to 2.4.1, when API_TOKEN is unset or empty, the BearerTokenAuthMiddleware bypasses authentication for all HTTP requests. Combined with the default 0.0.0.0 host binding and CORS allow_origins=["*"], operators following the Docker setup without explicitly setting API_TOKEN expose the full Knowledge-Graph read/write API to any LAN-reachable client. An attacker on the same network can read, write, or delete all memory entries — including system://boot and core://* URIs that auto-load into downstream agent sessions, enabling persistent prompt-injection. This vulnerability is fixed in 2.4.1.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 8.7 | HIGH
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 15:16:28 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-44830</guid></item><item><title>CVE-2026-8179 - Multiple vulnerabilities in Aspera applications.</title><link>https://cvefeed.io/vuln/detail/CVE-2026-8179</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-8179
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 2:17 p.m. | 1 hour, 59 minutes ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;IBM Aspera High-Speed Transfer Endpoint 3.7.4 through 4.4.7 Fix Pack 1 and IBM Aspera High-Speed Transfer Server 3.7.4 through 4.4.7 Fix Pack 1 and IBM Aspera High-Speed Transfer Endpoint are affected by a buffer overflow in the asperahttpd component. This vulnerability could allow an authenticated user to execute arbitrary code on the system.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 8.8 | HIGH
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 14:17:36 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-8179</guid></item><item><title>CVE-2026-8175 - Multiple vulnerabilities in Aspera applications.</title><link>https://cvefeed.io/vuln/detail/CVE-2026-8175</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-8175
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 2:17 p.m. | 1 hour, 59 minutes ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;IBM Aspera High-Speed Transfer Endpoint 3.7.4 through 4.4.7 Fix Pack 1 and IBM Aspera High-Speed Transfer Server 3.7.4 through 4.4.7 Fix Pack 1 and IBM Aspera High-Speed Transfer Endpoint are affected by a buffer overflow in the asperahttpd component. This vulnerability could be exploited to cause a denial of service and potentially lead to authentication bypass or remote code execution.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.8 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 14:17:35 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-8175</guid></item><item><title>CVE-2026-7524 - Path Traversal Vulnerability in File Processing Components Allows Unauthorized File System Access and Potential Remote Code Execution</title><link>https://cvefeed.io/vuln/detail/CVE-2026-7524</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-7524
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 2:17 p.m. | 1 hour, 59 minutes ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;IBM Langflow OSS 1.0.0 through 1.9.1 could allow remote code execution due to improper validation of symbolic links during archive extraction.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.8 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 14:17:35 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-7524</guid></item><item><title>CVE-2026-7365 - IBM Operations Analytics - Log Analysis is affected by Information disclosure due to default passwords not being forced to be changed on post-installation</title><link>https://cvefeed.io/vuln/detail/CVE-2026-7365</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-7365
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 2:17 p.m. | 1 hour, 59 minutes ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;IBM Operations Analytics - Log Analysis  and IBM SmartCloud Analytics - Log Analysis uses default passwords default passwords from the manufacturing process for use during the installation process, which could allow an attacker to bypass authentication.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 8.4 | HIGH
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 14:17:35 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-7365</guid></item><item><title>CVE-2026-5065 - IBM Controller is affected by vulnerabilities</title><link>https://cvefeed.io/vuln/detail/CVE-2026-5065</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-5065
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 2:17 p.m. | 1 hour, 59 minutes ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;IBM Controller 11.0.1, 11.1.0, 11.1.1, and 11.1.2 contains hard-coded credentials, such as a password or cryptographic key, which it uses for its own inbound authentication, outbound communication to external components, or encryption of internal data.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 8.8 | HIGH
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 14:17:33 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-5065</guid></item><item><title>CVE-2026-36044 - Apex OS Command Injection Vulnerability</title><link>https://cvefeed.io/vuln/detail/CVE-2026-36044</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-36044
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 2:16 p.m. | 2 hours ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;@pensar/apex &lt;= 0.0.58 is vulnerable to OS command injection via the smart_enumerate tool. The createSmartEnumerateTool() function in src/core/agent/tools.ts constructs a shell command by concatenating unsanitized values from the extensions array and url parameter into a string passed to Node.js child_process.exec(). Because exec() spawns a shell, shell metacharacters in those values are interpreted by the host shell, resulting in arbitrary OS command execution with the privileges of the running process.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 8.8 | HIGH
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 14:16:45 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-36044</guid></item><item><title>CVE-2026-35090 - Authentication Bypass in Slican telephone exchanges</title><link>https://cvefeed.io/vuln/detail/CVE-2026-35090</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-35090
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 2:16 p.m. | 2 hours ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;In Slican telephone exchanges it is possible to manage the control panel remotely. An unauthenticated attacker can connect to the modem via a telephone with a specific caller ID. This allows them to bypass admin authentication and gain full access to the service protocol and configuration panel. This vulnerability is independent of the telephone exchanges configuration. If remote access is disabled, calling with this caller ID will temporarily enable it.
+
+This issue was fixed in versions below:
+- IPL-256: version 6.61.0040
+- IPM-032: version 6.61.0040
+- CCT-1668: version 6.56.0430
+- MAC-6400: version 6.56.0430
+- CXS-0424: version 6.30.0510
+
+The issue STILL EXISTS in End-Of-Life telephone exchanges in versions 4.xx and below:
+- CCT-1668 (CCT1CPU)
+- MAC-6400
+- CXS-0424
+These products were discontinued in 2011 and 2012 and and will not receive updates. These products require a hardware update in order to receive a software update. The vendor recommends that users of these devices contact the their service department directly to determine the options for upgrading.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.3 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 14:16:45 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-35090</guid></item><item><title>CVE-2026-35089 - Use of Weak Credentials in Slican telephone exchanges</title><link>https://cvefeed.io/vuln/detail/CVE-2026-35089</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-35089
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 2:16 p.m. | 2 hours ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;In Slican telephone exchanges secure key is generated in a predictable manner using properties of the telephone exchange which can be obtained without authentication. An unauthenticated attacker can deduce the secure key and obtain admin credentials.
+
+This issue was fixed in versions below:
+- IPx series: version 6.61.0040
+- CCT-1668: version 6.56.0430
+- MAC-6400: version 6.56.0430
+- CXS-0424: version 6.30.0510
+
+The issue STILL EXISTS in End-Of-Life telephone exchanges in versions 4.xx and below:
+- CCT-1668 (CCT1CPU)
+- MAC-6400
+- CXS-0424
+These products were discontinued in 2011 and 2012 and and will not receive updates. These products require a hardware update in order to receive a software update. The vendor recommends that users of these devices contact the their service department directly to determine the options for upgrading.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 8.7 | HIGH
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 14:16:44 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-35089</guid></item><item><title>CVE-2026-35087 - Authentication Bypass in Slican telephone exchanges</title><link>https://cvefeed.io/vuln/detail/CVE-2026-35087</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-35087
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 2:16 p.m. | 2 hours ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Slican telephone exchanges allow administrative protocol authentication bypass. An attacker can bypass the need to enter login credentials by executing the appropriate command.
+
+
+This issue was fixed in versions below:
+- NCP: version 1.24.0250
+- IPx series: version 6.61.0040
+- CCT-1668: version 6.56.0430
+- MAC-6400: version 6.56.0430
+- CXS-0424: version 6.30.0510
+
+The issue STILL EXISTS in End-Of-Life telephone exchanges in versions 4.xx and below:
+- CCT-1668 (CCT1CPU)
+- MAC-6400
+- CXS-0424
+These products were discontinued in 2011 and 2012 and and will not receive updates. These products require a hardware update in order to receive a software update. The vendor recommends that users of these devices contact the their service department directly to determine the options for upgrading.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.3 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 14:16:44 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-35087</guid></item><item><title>CVE-2026-48906 - Extension - tassos.gr - Arbitrary File Deletion in Novarain/Tassos Framework &lt; 6.1.0 for Joomla</title><link>https://cvefeed.io/vuln/detail/CVE-2026-48906</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-48906
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 11:16 a.m. | 5 hours, 1 minute ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;The vulnerability in the Tassos Framework Plugin allows users to delete arbitrary files on the affected sites.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.3 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 11:16:24 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-48906</guid></item><item><title>CVE-2026-42761 - WordPress Active Products Tables for WooCommerce plugin &lt;= 1.0.9 - SQL Injection vulnerability</title><link>https://cvefeed.io/vuln/detail/CVE-2026-42761</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-42761
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 11:16 a.m. | 5 hours, 1 minute ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') vulnerability in RealMag777 Active Products Tables for WooCommerce profit-products-tables-for-woocommerce allows Blind SQL Injection.This issue affects Active Products Tables for WooCommerce: from n/a through &lt;= 1.0.9.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.3 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 11:16:22 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-42761</guid></item><item><title>CVE-2026-42758 - WordPress WebinarIgnition plugin &lt; 4.08.253 - Privilege Escalation vulnerability</title><link>https://cvefeed.io/vuln/detail/CVE-2026-42758</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-42758
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 11:16 a.m. | 5 hours, 1 minute ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Incorrect Privilege Assignment vulnerability in Saleswonder Team: Tobias WebinarIgnition webinar-ignition allows Privilege Escalation.This issue affects WebinarIgnition: from n/a through &lt; 4.08.253.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.8 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 11:16:22 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-42758</guid></item><item><title>CVE-2026-42757 - WordPress WebinarIgnition plugin &lt; 4.08.253 - Arbitrary File Deletion vulnerability</title><link>https://cvefeed.io/vuln/detail/CVE-2026-42757</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-42757
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 11:16 a.m. | 5 hours, 1 minute ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal') vulnerability in Saleswonder Team: Tobias WebinarIgnition webinar-ignition allows Path Traversal.This issue affects WebinarIgnition: from n/a through &lt; 4.08.253.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.9 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 11:16:22 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-42757</guid></item><item><title>CVE-2026-42756 - WordPress QuickWebP – Compress / Optimize Images &amp; Convert WebP | SEO Friendly plugin &lt;= 3.2.7 - Arbitrary File Deletion vulnerability</title><link>https://cvefeed.io/vuln/detail/CVE-2026-42756</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-42756
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 11:16 a.m. | 5 hours, 1 minute ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal') vulnerability in Ludwig You QuickWebP &amp;#8211; Compress / Optimize Images &amp;amp; Convert WebP | SEO Friendly quickwebp allows Path Traversal.This issue affects QuickWebP &amp;#8211; Compress / Optimize Images &amp;amp; Convert WebP | SEO Friendly: from n/a through &lt;= 3.2.7.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.9 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 11:16:22 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-42756</guid></item><item><title>CVE-2026-42755 - WordPress TableOn plugin &lt;= 1.0.5.1 - SQL Injection vulnerability</title><link>https://cvefeed.io/vuln/detail/CVE-2026-42755</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-42755
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 11:16 a.m. | 5 hours, 1 minute ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') vulnerability in RealMag777 TableOn posts-table-filterable allows Blind SQL Injection.This issue affects TableOn: from n/a through &lt;= 1.0.5.1.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.3 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 11:16:21 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-42755</guid></item><item><title>CVE-2026-42748 - WordPress WPify Woo Czech plugin &lt;= 5.4.1 - Arbitrary File Upload vulnerability</title><link>https://cvefeed.io/vuln/detail/CVE-2026-42748</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-42748
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 11:16 a.m. | 5 hours, 1 minute ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Unrestricted Upload of File with Dangerous Type vulnerability in WPify WPify Woo Czech wpify-woo allows Upload a Web Shell to a Web Server.This issue affects WPify Woo Czech: from n/a through &lt;= 5.4.1.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.9 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 11:16:21 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-42748</guid></item><item><title>CVE-2026-42747 - WordPress Easy Form Builder plugin &lt;= 4.0.6 - SQL Injection vulnerability</title><link>https://cvefeed.io/vuln/detail/CVE-2026-42747</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-42747
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 11:16 a.m. | 5 hours, 1 minute ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') vulnerability in hassantafreshi Easy Form Builder easy-form-builder allows Blind SQL Injection.This issue affects Easy Form Builder: from n/a through &lt;= 4.0.6.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.3 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 11:16:21 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-42747</guid></item><item><title>CVE-2026-42740 - WordPress Tainacan plugin &lt;= 1.0.3 - SQL Injection vulnerability</title><link>https://cvefeed.io/vuln/detail/CVE-2026-42740</link><description>
+  &lt;strong&gt;CVE ID :&lt;/strong&gt;CVE-2026-42740
+  &lt;br /&gt;
+  &lt;strong&gt;Published :&lt;/strong&gt; May 27, 2026, 11:16 a.m. | 5 hours, 1 minute ago
+  &lt;br /&gt;
+  &lt;strong&gt;Description :&lt;/strong&gt;Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') vulnerability in tainacan Tainacan tainacan allows Blind SQL Injection.This issue affects Tainacan: from n/a through &lt;= 1.0.3.
+  &lt;br /&gt;
+  &lt;strong&gt;Severity:&lt;/strong&gt; 9.3 | CRITICAL
+  &lt;br /&gt;
+  Visit the link for more details, such as CVSS details, affected products, timeline, and more...
+
+</description><pubDate>Wed, 27 May 2026 11:16:20 +0000</pubDate><guid>https://cvefeed.io/vuln/detail/CVE-2026-42740</guid></item></channel></rss>

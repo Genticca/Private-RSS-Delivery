@@ -1,0 +1,79 @@
+<header class="page-header">
+  <h1>메시지 템플릿 편집기</h1>
+  <div class="actions">
+    <a class="button secondary" href="/templates">목록으로 돌아가기</a>
+    {{#unless template.isBuiltin}}
+    <button id="template-save" form="template-form" type="submit" class="primary">저장</button>
+    {{/unless}}
+  </div>
+</header>
+
+<section data-page="template-editor" data-template-id="{{template.id}}" class="form-grid-page">
+  <!-- 상단 영역: 시원한 가로폭 전체 에디터 배치 -->
+  <form id="template-form" class="editor-pane panel" hx-patch="/api/templates/{{template.id}}" hx-swap="none" style="margin-bottom: 1.5rem;">
+    <div class="sub-header-container">
+      <h2>📝 메시지 JSON 편집</h2>
+      {{#if template.isBuiltin}}
+      <span class="badge muted" style="margin-left: 1rem;">기본 제공 (수정 불가)</span>
+      {{/if}}
+    </div>
+    
+    {{#if template.isBuiltin}}
+    <p class="callout warn" style="margin-bottom: 1rem;">⚠️ 기본 제공 템플릿은 읽기 전용이라 수정할 수 없습니다. 목록에서 '복제'로 복사본을 만든 뒤 편집하세요.</p>
+    {{/if}}
+    
+    <label style="margin-bottom: 1rem;">표시 이름
+      <input id="template-label" name="label" value="{{template.label}}" {{#if template.isBuiltin}}readonly{{/if}} style="max-width: 400px;">
+    </label>
+    
+    <label>템플릿 본문 (JSON)
+      <textarea id="template-body" name="body" spellcheck="false" {{#if template.isBuiltin}}readonly{{/if}}>{{template.body}}</textarea>
+    </label>
+  </form>
+  
+  <!-- 하단 영역: 2열의 편안하고 가독성 높은 제어/미리보기 배치 -->
+  <div class="split-layout">
+    <!-- 하단 좌측: 치환 변수 목록 -->
+    <aside class="panel">
+      <h2>🔑 사용 가능한 치환 변수</h2>
+      <p class="muted" style="font-size: 0.85rem; margin-bottom: 1rem;">(클릭하면 편집기 커서 위치에 <code>json</code> 포맷으로 삽입됩니다)</p>
+      <div class="var-list">
+        {{#each presetVars}}
+        <button type="button" data-insert-var="{{name}}" title="{{description}}"><code>{{name}}</code></button>
+        {{/each}}
+      </div>
+      
+      <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
+        <h3 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem;">💡 JSON 구문 오류 방지 안내</h3>
+        <p class="muted" style="font-size: 0.8rem; line-height: 1.4;">JSON 구문 오류를 막으려면 일반 텍스트 값은 큰따옴표 없이 <code>\{{json 변수명}}</code> 형태로 쓰세요. (Markdown 링크 안의 URL 등은 예외입니다)</p>
+      </div>
+    </aside>
+    
+    <!-- 하단 우측: 실시간 시뮬레이션 및 디스코드 메시지 미리보기 -->
+    <aside class="panel">
+      <h2>👁️ 디스코드 미리보기</h2>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div>
+          <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">미리보기 모드</label>
+          <fieldset class="segmented" style="margin: 0;">
+            <legend>미리보기 모드 선택</legend>
+            <label><input type="radio" name="previewMode" value="sample" checked> 샘플 데이터</label>
+            <label><input type="radio" name="previewMode" value="live"> 실제 수집된 피드 데이터</label>
+          </fieldset>
+        </div>
+        <div>
+          <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">미리보기에 사용할 소스</label>
+          <select id="preview-source">
+            <option value="">소스를 선택하세요</option>
+            {{#each sources}}
+            <option value="{{id}}">{{name}}</option>
+            {{/each}}
+          </select>
+        </div>
+      </div>
+      
+      <div id="preview" class="preview-box"><p class="muted" style="margin:0;">위 편집기를 수정하면 디스코드 메시지 미리보기가 여기에 표시됩니다.</p></div>
+    </aside>
+  </div>
+</section>

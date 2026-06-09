@@ -1,0 +1,130 @@
+<header class="page-header">
+  <h1>AI 모델 설정</h1>
+</header>
+
+<section data-page="model">
+  <!-- 상단 영역: 가로 폭을 충분히 활용한 번역 구성 폼 -->
+  <form class="panel form-grid" hx-patch="/api/model/config" hx-swap="none" style="margin-bottom: 1.5rem;">
+    <div id="model-config">
+      <h2>⚙️ AI 모델 구성</h2>
+      <p class="muted" style="margin-bottom:1.5rem;">번역이 켜진 소스를 전송할 때 사용할 AI 모델을 설정합니다. 기본 모델이 실패하면 대체 모델로 자동 전환됩니다. 번역은 실제 전송 때만 호출되며 미리보기에는 적용되지 않습니다.</p>
+      <dl class="status-grid" style="margin-bottom: 2rem;">
+        <div class="status-card-primary">
+          <dt>🚀 기본(Primary) 모델 상태</dt>
+          <dd style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; width: 100%;">
+            <div class="status-indicator-wrapper" style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="status-dot-pulse {{status.primary}}"></span>
+              <span class="badge {{status.primary}}">{{status.primary}}</span>
+            </div>
+            <span class="engine-info-label" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
+              설정: {{config.primary.provider}} / {{config.primary.model}}
+            </span>
+          </dd>
+        </div>
+        <div class="status-card-fallback">
+          <dt>🛡️ 대체(Fallback) 모델 상태</dt>
+          <dd style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; width: 100%;">
+            <div class="status-indicator-wrapper" style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="status-dot-pulse {{status.fallback}}"></span>
+              <span class="badge {{status.fallback}}">{{status.fallback}}</span>
+            </div>
+            <span class="engine-info-label" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
+              설정: {{config.fallback.provider}} / {{config.fallback.model}}
+            </span>
+          </dd>
+        </div>
+        <div class="status-card-lang">
+          <dt>🌐 번역 대상 언어</dt>
+          <dd style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="lang-badge" style="background: var(--primary-light); color: var(--primary); font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; text-transform: uppercase;">ko</span>
+              <code style="font-size: 0.95rem; font-weight: 600;">한국어로 고정</code>
+            </div>
+            <span class="engine-info-label" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">한국어로 자동 번역</span>
+          </dd>
+        </div>
+      </dl>
+      <p class="muted" style="margin-bottom: 1.5rem;">API 키는 <code>PRIMARY_MODEL_API_KEY</code> · <code>FALLBACK_MODEL_API_KEY</code> 환경 변수에서 읽습니다. 번역 언어는 한국어(ko)로 고정됩니다.</p>
+      
+      {{#each statusGuidance}}
+      <p class="callout warn"><strong>⚠️ {{role}} 설정 안내</strong>: {{message}}</p>
+      {{/each}}
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+        <!-- 주 모델 설정 -->
+        <fieldset>
+          <legend>🚀 기본 AI 모델 (Primary)</legend>
+          <label>API 제공사
+            <select name="primary.provider" data-current="{{config.primary.provider}}">
+              <option value="gemini">Google Gemini</option>
+              <option value="nvidia-nim">NVIDIA NIM</option>
+            </select>
+          </label>
+          <label>모델 식별자 (Model ID)<input name="primary.model" value="{{config.primary.model}}" placeholder="예: gemini-3.1-flash-lite"></label>
+          <label class="check">
+            <input type="hidden" name="primary.enabled" value="false">
+            <input type="checkbox" name="primary.enabled" value="true" {{#if config.primary.enabled}}checked{{/if}}>
+            기본 모델 사용
+          </label>
+        </fieldset>
+        
+        <!-- 보조 대체 모델 설정 -->
+        <fieldset>
+          <legend>🛡️ 대체 AI 모델 (Fallback)</legend>
+          <label>API 제공사
+            <select name="fallback.provider" data-current="{{config.fallback.provider}}">
+              <option value="gemini">Google Gemini</option>
+              <option value="nvidia-nim">NVIDIA NIM</option>
+            </select>
+          </label>
+          <label>모델 식별자 (Model ID)<input name="fallback.model" value="{{config.fallback.model}}" placeholder="예: qwen3-coder-480b-a35b-instruct"></label>
+          <label class="check">
+            <input type="hidden" name="fallback.enabled" value="false">
+            <input type="checkbox" name="fallback.enabled" value="true" {{#if config.fallback.enabled}}checked{{/if}}>
+            대체 모델 사용
+          </label>
+        </fieldset>
+      </div>
+      
+      <label style="margin-bottom: 1rem;">프롬프트 로그 최대 크기 (Bytes)
+        <input type="number" name="promptLogMaxBytes" min="0" value="{{config.promptLogMaxBytes}}" style="max-width: 320px;">
+      </label>
+    </div>
+    
+    <div>
+      <button type="submit" class="primary">설정 저장</button>
+    </div>
+  </form>
+  
+  <!-- 하단 영역: 실시간 호출 리포트 테이블 -->
+  <section class="panel">
+    <h2>📈 AI 모델 호출 이력 (최근 50건)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>호출 유형</th>
+          <th>제공사 (Provider)</th>
+          <th>모델</th>
+          <th>토큰 (입력/출력)</th>
+          <th>응답 시간 (Latency)</th>
+          <th>오류 내용</th>
+        </tr>
+      </thead>
+      <tbody id="model-usage">
+        {{#each usage.items}}
+        <tr>
+          <td>{{role}}</td>
+          <td>{{provider}}</td>
+          <td>{{model}}</td>
+          <td>{{inputTokens}}/{{outputTokens}}</td>
+          <td>{{latencyMs}}ms</td>
+          <td><span class="muted">{{error}}</span></td>
+        </tr>
+        {{else}}
+        <tr><td colspan="6" class="muted" style="text-align:center; padding:2rem 1rem;">아직 AI 모델 호출 이력이 없습니다. 번역이 켜진 소스가 전송될 때 기록됩니다.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+    <button type="button" id="load-more-usage" class="secondary" style="width: 100%;">더 불러오기</button>
+  </section>
+</section>

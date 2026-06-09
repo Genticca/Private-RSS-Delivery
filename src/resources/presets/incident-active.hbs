@@ -1,0 +1,15 @@
+{
+  "embeds": [
+    {
+      "title": {{json item.title}},
+      "url": {{json item.link}},
+      "description": {{json (truncate item.summary 3500)}},
+      "color": {{stageColor item.incidentStage}},
+      "fields": [
+        { "name": "진행 단계", "value": {{stageLabel item.incidentStage}}, "inline": true },
+        { "name": "업데이트", "value": {{json item.publishedAtFormatted}}, "inline": true }
+      ],
+      "footer": { "text": {{json source.name}} }
+    }
+  ]
+}

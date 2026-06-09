@@ -1,0 +1,18 @@
+<tr id="source-{{id}}" data-id="{{id}}">
+  <td><a href="/sources/{{id}}" hx-get="/sources/{{id}}" hx-target="#source-modal-mount" hx-swap="innerHTML" hx-select="[data-page='source-form']">{{#if name}}{{name}}{{else}}{{feedUrl}}{{/if}}</a></td>
+  <td class="truncate" title="{{feedUrl}}">{{feedUrl}}</td>
+  <td><code>{{profile}}</code></td>
+  <td>{{#if groupNames}}{{groupNames}}{{else}}<span class="muted">없음</span>{{/if}}</td>
+  <td><span class="badge {{#if enabled}}ok{{else}}muted{{/if}}">{{#if enabled}}수집 중{{else}}중지됨{{/if}}</span></td>
+  <td>{{#if translate}}<span class="badge ok">번역</span>{{else}}<span class="muted">—</span>{{/if}}</td>
+  <td class="row-actions">
+    <form hx-patch="/api/sources/{{id}}/enabled" hx-target="#source-{{id}}" hx-swap="outerHTML">
+      <input type="hidden" name="enabled" value="{{#if enabled}}false{{else}}true{{/if}}">
+      <button type="submit">{{#if enabled}}수집 중지{{else}}수집 재개{{/if}}</button>
+    </form>
+    <button hx-post="/api/sources/{{id}}/poll" hx-swap="none">즉시 수집</button>
+    <button hx-post="/api/sources/{{id}}/test" hx-swap="none">테스트 전송</button>
+    <button hx-post="/api/sources/{{id}}/retry-failed" hx-swap="none">실패 항목 재시도</button>
+    <button class="danger" hx-delete="/api/sources/{{id}}" hx-confirm="이 소스를 삭제하시겠습니까?" hx-target="closest tr" hx-swap="delete">삭제</button>
+  </td>
+</tr>

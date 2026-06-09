@@ -1,0 +1,24 @@
+<div id="import-summary" class="panel compact">
+  <h3>가져오기 미리보기</h3>
+  <dl class="metric-grid">
+    <div><dt>추가된 그룹</dt><dd>{{addedGroups}}</dd></div>
+    <div><dt>수정된 그룹</dt><dd>{{updatedGroups}}</dd></div>
+    <div><dt>건너뛴 그룹</dt><dd>{{skippedGroups}}</dd></div>
+    <div><dt>추가된 소스</dt><dd>{{addedSources}}</dd></div>
+    <div><dt>수정된 소스</dt><dd>{{updatedSources}}</dd></div>
+    <div><dt>건너뛴 소스</dt><dd>{{skippedSources}}</dd></div>
+    <div><dt>차단된 소스</dt><dd>{{blockedSources}}</dd></div>
+    <div><dt>연결 실패한 템플릿</dt><dd>{{unresolvedTemplates}}</dd></div>
+    <div><dt>연결 실패한 그룹</dt><dd>{{unresolvedGroups}}</dd></div>
+    <div><dt>웹훅 재입력 필요</dt><dd>{{webhookReentryRequired}}</dd></div>
+  </dl>
+  <form hx-post="/api/import" hx-encoding="multipart/form-data" hx-swap="none" class="inline-form">
+    <input type="file" name="file" accept="application/json" required>
+    <input type="hidden" name="mode" value="{{mode}}">
+    <p class="muted">충돌 처리 방식: {{mode}}. 방식을 바꾸려면 미리보기를 다시 실행하세요.</p>
+    <button type="submit">파일 다시 첨부하여 가져오기</button>
+  </form>
+  {{#if hasBlockedFeedUrls}}<div class="callout warn"><strong>⚠️ 가져오기에서 제외된 항목</strong><ul>{{#each blockedFeedUrls}}<li>{{feedUrl}} - {{reason}}</li>{{/each}}</ul></div>{{/if}}
+  {{#if hasWarnings}}<div class="callout warn"><ul>{{#each warnings}}<li>{{this}}</li>{{/each}}</ul></div>{{else}}<p class="muted">경고 없음.</p>{{/if}}
+  <p class="muted">웹훅 URL은 가져오지 않습니다. 가져오기 후 누락된 그룹·소스 웹훅을 다시 입력하세요.</p>
+</div>

@@ -1,0 +1,1528 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://status.openai.com/</id>
+    <title>OpenAI status</title>
+    <updated>2026-05-27T17:55:48.016Z</updated>
+    <generator>incident.io</generator>
+    <link rel="alternate" href="https://status.openai.com/"/>
+    <subtitle>OpenAI status page updates</subtitle>
+    <icon>https://storage.googleapis.com/incident-io-status-page-logos/01H537TKYPX5W42WRCKR1AGPFT/openai-1/v0bc3jd3.png</icon>
+    <entry>
+        <title type="html"><![CDATA[Elevated Latency and Errors on API]]></title>
+        <id>https://status.openai.com//incidents/01KSMYEEWP0BZYANSMAXWJ3K59</id>
+        <link href="https://status.openai.com//incidents/01KSMYEEWP0BZYANSMAXWJ3K59"/>
+        <updated>2026-05-27T17:54:42.447Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Monitoring</b><br/><br/>We have received additional reports of elevated latency and errors after our previous recovery update. Mitigation remains in place, and we are monitoring recovery while we validate the remaining impact.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Embeddings (Degraded performance)</li>
+<li>Chat Completions (Degraded performance)</li>
+<li>Audio (Degraded performance)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Monitoring</b><br/><br/>We have received additional reports of elevated latency and errors after our previous recovery update. Mitigation remains in place, and we are monitoring recovery while we validate the remaining impact.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Embeddings (Degraded performance)</li>
+<li>Chat Completions (Degraded performance)</li>
+<li>Audio (Degraded performance)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Android ChatGPT Business users having trouble switching workspaces]]></title>
+        <id>https://status.openai.com//incidents/01KSN40TAYQYGAKFA50HNH22YG</id>
+        <link href="https://status.openai.com//incidents/01KSN40TAYQYGAKFA50HNH22YG"/>
+        <updated>2026-05-27T16:24:26.000Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Investigating</b><br/><br/>Android ChatGPT users may have trouble switching workspaces. We are investigating and will provide updates as more information becomes available.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Degraded performance)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Investigating</b><br/><br/>Android ChatGPT users may have trouble switching workspaces. We are investigating and will provide updates as more information becomes available.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Degraded performance)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Login issues for FedRAMP users who recently logged out]]></title>
+        <id>https://status.openai.com//incidents/01KSJKR3EXTMKY0C287HS1BR8P</id>
+        <link href="https://status.openai.com//incidents/01KSJKR3EXTMKY0C287HS1BR8P"/>
+        <updated>2026-05-27T06:01:00.000Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>FedRAMP (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>FedRAMP (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Users unable to access chat support on help center]]></title>
+        <id>https://status.openai.com//incidents/01KSJZHDY7E780KF9J2ZZ8M0GE</id>
+        <link href="https://status.openai.com//incidents/01KSJZHDY7E780KF9J2ZZ8M0GE"/>
+        <updated>2026-05-26T20:30:52.401Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Increase in users hitting Codex rate limits]]></title>
+        <id>https://status.openai.com//incidents/01KS88SRADTWQW27NYRAXMBAQN</id>
+        <link href="https://status.openai.com//incidents/01KS88SRADTWQW27NYRAXMBAQN"/>
+        <updated>2026-05-23T10:58:20.982Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>VS Code extension (Operational)</li>
+<li>Codex API (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>VS Code extension (Operational)</li>
+<li>Codex API (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated latency and error rates for ChatGPT 5.5 Thinking]]></title>
+        <id>https://status.openai.com//incidents/01KS695P8GHC0NCMFE96C34KJ1</id>
+        <link href="https://status.openai.com//incidents/01KS695P8GHC0NCMFE96C34KJ1"/>
+        <updated>2026-05-21T23:22:55.658Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated error rates on ChatGPT paid plans]]></title>
+        <id>https://status.openai.com//incidents/01KS5CYS472SA003BQSXSBM8EW</id>
+        <link href="https://status.openai.com//incidents/01KS5CYS472SA003BQSXSBM8EW"/>
+        <updated>2026-05-21T21:51:10.832Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[API users may see increased error rates for GPT-5.4 and GPT-5.5]]></title>
+        <id>https://status.openai.com//incidents/01KS19AHSEE3DAX1HHKNQB166F</id>
+        <link href="https://status.openai.com//incidents/01KS19AHSEE3DAX1HHKNQB166F"/>
+        <updated>2026-05-20T00:37:42.319Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[GPT5.5 Performance Degradation]]></title>
+        <id>https://status.openai.com//incidents/01KRP6FM6HSKWB3MS1EJTY6AT4</id>
+        <link href="https://status.openai.com//incidents/01KRP6FM6HSKWB3MS1EJTY6AT4"/>
+        <updated>2026-05-17T00:15:05.790Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Codex Cloud and Code Review experiencing high failure rate]]></title>
+        <id>https://status.openai.com//incidents/01KRM4H2T37TNSS7BCSGXVS8RQ</id>
+        <link href="https://status.openai.com//incidents/01KRM4H2T37TNSS7BCSGXVS8RQ"/>
+        <updated>2026-05-14T21:28:20.435Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Issues accessing ChatGPT for logged-out users]]></title>
+        <id>https://status.openai.com//incidents/01KRHSDQP7DZPAVANG3R1RCNVW</id>
+        <link href="https://status.openai.com//incidents/01KRHSDQP7DZPAVANG3R1RCNVW"/>
+        <updated>2026-05-13T23:29:40.872Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Codex 5.5 engines are experiencing high error rate]]></title>
+        <id>https://status.openai.com//incidents/01KRG6MF021JQ997JCR7R8Y9A0</id>
+        <link href="https://status.openai.com//incidents/01KRG6MF021JQ997JCR7R8Y9A0"/>
+        <updated>2026-05-13T10:20:14.926Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+<li>Codex API (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+<li>Codex API (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Realtime API  - SIP/WebRTC flow are down]]></title>
+        <id>https://status.openai.com//incidents/01KRG0AZKH41DV4D9SNJSXM33Q</id>
+        <link href="https://status.openai.com//incidents/01KRG0AZKH41DV4D9SNJSXM33Q"/>
+        <updated>2026-05-13T09:23:49.825Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Audio (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Audio (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated error rates with GPT 5.5]]></title>
+        <id>https://status.openai.com//incidents/01KRBZTV511HR7SWVFZJ0438D6</id>
+        <link href="https://status.openai.com//incidents/01KRBZTV511HR7SWVFZJ0438D6"/>
+        <updated>2026-05-11T17:59:00.000Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+<li>Responses (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+<li>Responses (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Users may experience elevated errors in ChatGPT uploading files and Codex Cloud creating tasks]]></title>
+        <id>https://status.openai.com//incidents/01KRAA341YK58M05V2DFGDRMFB</id>
+        <link href="https://status.openai.com//incidents/01KRAA341YK58M05V2DFGDRMFB"/>
+        <updated>2026-05-11T05:35:41.738Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>File uploads (Operational)</li>
+<li>Codex Web (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>File uploads (Operational)</li>
+<li>Codex Web (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated errors for Responses API]]></title>
+        <id>https://status.openai.com//incidents/01KR50YN2DBMTXGPC6BQSJN48J</id>
+        <link href="https://status.openai.com//incidents/01KR50YN2DBMTXGPC6BQSJN48J"/>
+        <updated>2026-05-09T00:08:01.972Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.
+
+Between 4:05pm and 4:40pm PT on May 8, some customers using the Responses API may have experienced elevated 404 errors. We identified the issue as related to a recent deploy and rolled it back. Responses API traffic has recovered, and we are marking this incident as resolved.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.
+
+Between 4:05pm and 4:40pm PT on May 8, some customers using the Responses API may have experienced elevated 404 errors. We identified the issue as related to a recent deploy and rolled it back. Responses API traffic has recovered, and we are marking this incident as resolved.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Degraded Performance with Codex Cloud Tasks]]></title>
+        <id>https://status.openai.com//incidents/01KR421V8PCTFKA8EJJC2VCGA3</id>
+        <link href="https://status.openai.com//incidents/01KR421V8PCTFKA8EJJC2VCGA3"/>
+        <updated>2026-05-08T16:17:19.433Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+<li>Codex API (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+<li>Codex API (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Increased Error Rate for gpt-5.5 model in the API]]></title>
+        <id>https://status.openai.com//incidents/01KR3S3Q2RE54PVJ7GZPQNEY8Y</id>
+        <link href="https://status.openai.com//incidents/01KR3S3Q2RE54PVJ7GZPQNEY8Y"/>
+        <updated>2026-05-08T14:14:41.840Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+<li>Responses (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+<li>Responses (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated transcription failures affecting ChatGPT & Codex]]></title>
+        <id>https://status.openai.com//incidents/01KR1Q0SWZESWXQVWQRKRDJCHK</id>
+        <link href="https://status.openai.com//incidents/01KR1Q0SWZESWXQVWQRKRDJCHK"/>
+        <updated>2026-05-08T08:31:20.241Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex API (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex API (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Increased error rate with image generation in the API]]></title>
+        <id>https://status.openai.com//incidents/01KR0PY1JN26FEK5829QZ2F59T</id>
+        <link href="https://status.openai.com//incidents/01KR0PY1JN26FEK5829QZ2F59T"/>
+        <updated>2026-05-07T09:38:00.581Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Images (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Images (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Partial Disruption of ChatGPT Workspace Connector Write Actions]]></title>
+        <id>https://status.openai.com//incidents/01KQDM1K1826RP1FFN86ZNA3WG</id>
+        <link href="https://status.openai.com//incidents/01KQDM1K1826RP1FFN86ZNA3WG"/>
+        <updated>2026-05-05T17:00:06.496Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Connectors/Apps (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Connectors/Apps (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Issue affecting some pages on the ChatGPT website]]></title>
+        <id>https://status.openai.com//incidents/01KQSSQK74KJVJVGCS97TV156G</id>
+        <link href="https://status.openai.com//incidents/01KQSSQK74KJVJVGCS97TV156G"/>
+        <updated>2026-05-04T17:10:21.484Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated error rate for Responses API]]></title>
+        <id>https://status.openai.com//incidents/01KQHYX4D53W6GT8FDTT9PHBQ3</id>
+        <link href="https://status.openai.com//incidents/01KQHYX4D53W6GT8FDTT9PHBQ3"/>
+        <updated>2026-05-01T15:38:32.051Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated error rates for image generation]]></title>
+        <id>https://status.openai.com//incidents/01KQHWZ9710V886SZKWE20HFAX</id>
+        <link href="https://status.openai.com//incidents/01KQHWZ9710V886SZKWE20HFAX"/>
+        <updated>2026-05-01T14:53:55.990Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Images (Operational)</li>
+<li>Image Generation (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Images (Operational)</li>
+<li>Image Generation (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated error rates affecting ChatGPT for some users in Europe]]></title>
+        <id>https://status.openai.com//incidents/01KQGTTQ0XNZDK834NBFFQGMG9</id>
+        <link href="https://status.openai.com//incidents/01KQGTTQ0XNZDK834NBFFQGMG9"/>
+        <updated>2026-05-01T04:02:32.883Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated errors for ChatGPT Go (5.3 Thinking)]]></title>
+        <id>https://status.openai.com//incidents/01KQDGQKRTSJ02E03R134H5JFD</id>
+        <link href="https://status.openai.com//incidents/01KQDGQKRTSJ02E03R134H5JFD"/>
+        <updated>2026-04-29T22:24:07.330Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>File uploads (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Deep Research (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Search (Operational)</li>
+<li>Conversations (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>Agent (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>File uploads (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Deep Research (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Search (Operational)</li>
+<li>Conversations (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>Agent (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Users may experience elevated error rate for gpt-4o-mini in the API]]></title>
+        <id>https://status.openai.com//incidents/01KQBTE67HFNEC7R3J3Y22YC3G</id>
+        <link href="https://status.openai.com//incidents/01KQBTE67HFNEC7R3J3Y22YC3G"/>
+        <updated>2026-04-29T05:41:04.908Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+<li>Responses (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+<li>Responses (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[ChatGPT users may encounter issues in conversation]]></title>
+        <id>https://status.openai.com//incidents/01KQBXGR1S2JW48DA0795D4MGZ</id>
+        <link href="https://status.openai.com//incidents/01KQBXGR1S2JW48DA0795D4MGZ"/>
+        <updated>2026-04-29T05:27:00.000Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Fine-tuning (Operational)</li>
+<li>Moderations (Operational)</li>
+<li>Sora (Operational)</li>
+<li>FedRAMP (Operational)</li>
+<li>Audio (Operational)</li>
+<li>Responses (Operational)</li>
+<li>Login (Operational)</li>
+<li>Codex API (Operational)</li>
+<li>Batch (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>Agent (Operational)</li>
+<li>App (Operational)</li>
+<li>Login (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Realtime (Operational)</li>
+<li>Files (Operational)</li>
+<li>Embeddings (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>Deep Research (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Search (Operational)</li>
+<li>Conversations (Operational)</li>
+<li>Images (Operational)</li>
+<li>CLI (Operational)</li>
+<li>File uploads (Operational)</li>
+<li>Chat Completions (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>VS Code extension (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Fine-tuning (Operational)</li>
+<li>Moderations (Operational)</li>
+<li>Sora (Operational)</li>
+<li>FedRAMP (Operational)</li>
+<li>Audio (Operational)</li>
+<li>Responses (Operational)</li>
+<li>Login (Operational)</li>
+<li>Codex API (Operational)</li>
+<li>Batch (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>Agent (Operational)</li>
+<li>App (Operational)</li>
+<li>Login (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Realtime (Operational)</li>
+<li>Files (Operational)</li>
+<li>Embeddings (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>Deep Research (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Search (Operational)</li>
+<li>Conversations (Operational)</li>
+<li>Images (Operational)</li>
+<li>CLI (Operational)</li>
+<li>File uploads (Operational)</li>
+<li>Chat Completions (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>VS Code extension (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Codex stream is disconnecting intermittently]]></title>
+        <id>https://status.openai.com//incidents/01KQB4AMHC9CKFYT863PMXN1YR</id>
+        <link href="https://status.openai.com//incidents/01KQB4AMHC9CKFYT863PMXN1YR"/>
+        <updated>2026-04-28T23:12:55.930Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+<li>Codex API (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+<li>Codex API (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated error rates in Sora API for some users]]></title>
+        <id>https://status.openai.com//incidents/01KQA5SDSC9P4VGBZ9EPPR06MH</id>
+        <link href="https://status.openai.com//incidents/01KQA5SDSC9P4VGBZ9EPPR06MH"/>
+        <updated>2026-04-28T16:10:47.265Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Sora (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Sora (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated errors on model gpt-5.5 in codex]]></title>
+        <id>https://status.openai.com//incidents/01KQ0P3DXVK7YQYB4NJBKSQCZC</id>
+        <link href="https://status.openai.com//incidents/01KQ0P3DXVK7YQYB4NJBKSQCZC"/>
+        <updated>2026-04-24T22:15:07.530Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex API (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex API (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated errors in Codex]]></title>
+        <id>https://status.openai.com//incidents/01KPXS9FY1X6WHYM2K3BQHJZQW</id>
+        <link href="https://status.openai.com//incidents/01KPXS9FY1X6WHYM2K3BQHJZQW"/>
+        <updated>2026-04-23T20:29:59.167Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>GPT-5.5 is now available to all paid users in Codex. If you continue to see access issues, please update to the latest Codex version. Weâ€™ll share another update if needed.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+<li>Codex API (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>GPT-5.5 is now available to all paid users in Codex. If you continue to see access issues, please update to the latest Codex version. Weâ€™ll share another update if needed.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+<li>Codex API (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated error rates and latency for Moderation API]]></title>
+        <id>https://status.openai.com//incidents/01KPXKMRJ72KA5SYTEH509CQA5</id>
+        <link href="https://status.openai.com//incidents/01KPXKMRJ72KA5SYTEH509CQA5"/>
+        <updated>2026-04-23T17:57:19.442Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>Error rates and latency for the Moderation API have returned to normal levels after mitigation.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Moderations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>Error rates and latency for the Moderation API have returned to normal levels after mitigation.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Moderations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Enterprise, business & education workspaces seeing elevated rate of conversation errors]]></title>
+        <id>https://status.openai.com//incidents/01KPTQAPRRSTTSSPDBGNG34FD5</id>
+        <link href="https://status.openai.com//incidents/01KPTQAPRRSTTSSPDBGNG34FD5"/>
+        <updated>2026-04-22T19:23:34.639Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[ChatGPT free users are seeing errors when having conversations]]></title>
+        <id>https://status.openai.com//incidents/01KPSB0GQZ0G7FT3GAV3H2Q8D8</id>
+        <link href="https://status.openai.com//incidents/01KPSB0GQZ0G7FT3GAV3H2Q8D8"/>
+        <updated>2026-04-22T03:35:13.838Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Some users may encounter issues with GPT-5.4-C model in Codex]]></title>
+        <id>https://status.openai.com//incidents/01KPPY7B8PMYHJWDNFY9TMJX33</id>
+        <link href="https://status.openai.com//incidents/01KPPY7B8PMYHJWDNFY9TMJX33"/>
+        <updated>2026-04-21T04:33:18.607Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex API (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex API (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>CLI (Operational)</li>
+<li>App (Operational)</li>
+<li>VS Code extension (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Some users will see higher error rates on Codex]]></title>
+        <id>https://status.openai.com//incidents/01KPPJX4KHFAWS8YQE3KW235X7</id>
+        <link href="https://status.openai.com//incidents/01KPPJX4KHFAWS8YQE3KW235X7"/>
+        <updated>2026-04-20T23:13:00.000Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Users may encounter issue with ChatGPT Business after upgrade or adding new seats for up to an hour]]></title>
+        <id>https://status.openai.com//incidents/01KPMVSSRWY55RX257730KS2FA</id>
+        <link href="https://status.openai.com//incidents/01KPMVSSRWY55RX257730KS2FA"/>
+        <updated>2026-04-20T19:33:19.059Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated errors for ChatGPT conversations in Europe]]></title>
+        <id>https://status.openai.com//incidents/01KPNZ1BW91D4S3V5PWWEVQ5F1</id>
+        <link href="https://status.openai.com//incidents/01KPNZ1BW91D4S3V5PWWEVQ5F1"/>
+        <updated>2026-04-20T19:17:46.564Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Users unable to load ChatGPT, Codex and API Platform]]></title>
+        <id>https://status.openai.com//incidents/01KPNN2V2SMP3TAN3MCJK87W50</id>
+        <link href="https://status.openai.com//incidents/01KPNN2V2SMP3TAN3MCJK87W50"/>
+        <updated>2026-04-20T18:48:04.885Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Search (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Login (Operational)</li>
+<li>File uploads (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Conversations (Operational)</li>
+<li>Agent (Operational)</li>
+<li>Deep Research (Operational)</li>
+<li>App (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Search (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Login (Operational)</li>
+<li>File uploads (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Conversations (Operational)</li>
+<li>Agent (Operational)</li>
+<li>Deep Research (Operational)</li>
+<li>App (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Responses API Streaming Error]]></title>
+        <id>https://status.openai.com//incidents/01KPBWZ18HR2G685X2XMZD78EP</id>
+        <link href="https://status.openai.com//incidents/01KPBWZ18HR2G685X2XMZD78EP"/>
+        <updated>2026-04-16T21:21:07.867Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[ChatGPT FedRAMP workspaces not loading]]></title>
+        <id>https://status.openai.com//incidents/01KP96N94V5AJX22P8APDX6XH2</id>
+        <link href="https://status.openai.com//incidents/01KP96N94V5AJX22P8APDX6XH2"/>
+        <updated>2026-04-15T18:55:03.396Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>FedRAMP (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>FedRAMP (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Account Creation Issues]]></title>
+        <id>https://status.openai.com//incidents/01KP6EBCNE70DBFZ7Z56VG44N8</id>
+        <link href="https://status.openai.com//incidents/01KP6EBCNE70DBFZ7Z56VG44N8"/>
+        <updated>2026-04-14T17:09:21.289Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated 401 errors for API endpoints]]></title>
+        <id>https://status.openai.com//incidents/01KP1PS4WFSH4CVJT0DJBKQ3FT</id>
+        <link href="https://status.openai.com//incidents/01KP1PS4WFSH4CVJT0DJBKQ3FT"/>
+        <updated>2026-04-14T08:41:42.242Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+<li>Embeddings (Operational)</li>
+<li>Responses (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+<li>Embeddings (Operational)</li>
+<li>Responses (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Some users may experience issues accessing ChatGPT]]></title>
+        <id>https://status.openai.com//incidents/01KNX13FBVMC6GJHJ2BQBSRKT8</id>
+        <link href="https://status.openai.com//incidents/01KNX13FBVMC6GJHJ2BQBSRKT8"/>
+        <updated>2026-04-11T01:48:46.419Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Issue with API platform login and account creation]]></title>
+        <id>https://status.openai.com//incidents/01KNTWSXK5MAKGBNNSY093X29H</id>
+        <link href="https://status.openai.com//incidents/01KNTWSXK5MAKGBNNSY093X29H"/>
+        <updated>2026-04-10T05:20:19.429Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Issues with share link creation on web UI]]></title>
+        <id>https://status.openai.com//incidents/01KNTTM5EQY332QC4P7ZQA4X0K</id>
+        <link href="https://status.openai.com//incidents/01KNTTM5EQY332QC4P7ZQA4X0K"/>
+        <updated>2026-04-10T04:46:12.819Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated Errors with Login]]></title>
+        <id>https://status.openai.com//incidents/01KNQ1XDJ1T0NS4P15YNEG5FPV</id>
+        <link href="https://status.openai.com//incidents/01KNQ1XDJ1T0NS4P15YNEG5FPV"/>
+        <updated>2026-04-08T17:44:56.912Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Some users may experience issues accessing the ChatGPT website on VPN]]></title>
+        <id>https://status.openai.com//incidents/01KNKQQ4R06K00RDTNXZVX7SFC</id>
+        <link href="https://status.openai.com//incidents/01KNKQQ4R06K00RDTNXZVX7SFC"/>
+        <updated>2026-04-07T11:49:38.004Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Deep Research (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+<li>File uploads (Operational)</li>
+<li>Search (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Login (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Conversations (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Agent (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Deep Research (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+<li>File uploads (Operational)</li>
+<li>Search (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Login (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Conversations (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Agent (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[GET /v1/responses endpoint is currently down and unable to serve requests]]></title>
+        <id>https://status.openai.com//incidents/01KNH45H33H4J553XBG6TJ3PQF</id>
+        <link href="https://status.openai.com//incidents/01KNH45H33H4J553XBG6TJ3PQF"/>
+        <updated>2026-04-06T10:39:36.830Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Some users may experience empty response from ChatGPT in web]]></title>
+        <id>https://status.openai.com//incidents/01KNGPM84F5G72B8Y7ASYNB11H</id>
+        <link href="https://status.openai.com//incidents/01KNGPM84F5G72B8Y7ASYNB11H"/>
+        <updated>2026-04-06T08:35:49.856Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[ChatGPT Dictation Elevated Error Rate]]></title>
+        <id>https://status.openai.com//incidents/01KN78XN18M5VB6DSRTCWMJRYN</id>
+        <link href="https://status.openai.com//incidents/01KN78XN18M5VB6DSRTCWMJRYN"/>
+        <updated>2026-04-02T17:49:44.404Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Voice mode (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Voice mode (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[High error rate for completionsapi-gpt-5-nano]]></title>
+        <id>https://status.openai.com//incidents/01KN6HYER5GRV8WVNZXCAC5FA3</id>
+        <link href="https://status.openai.com//incidents/01KN6HYER5GRV8WVNZXCAC5FA3"/>
+        <updated>2026-04-02T09:42:05.189Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>The issue is now resolved.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>The issue is now resolved.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Chat Completions (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated failures for some users joining ChatGPT Enterprise and ChatGPT Edu workspaces via SSO.]]></title>
+        <id>https://status.openai.com//incidents/01KN2572VPZRK41ZVAVP9FS5JR</id>
+        <link href="https://status.openai.com//incidents/01KN2572VPZRK41ZVAVP9FS5JR"/>
+        <updated>2026-03-31T15:00:24.566Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Account creation and login are unstable across all surfaces]]></title>
+        <id>https://status.openai.com//incidents/01KMW2RQMDA0395HN282YX5JFC</id>
+        <link href="https://status.openai.com//incidents/01KMW2RQMDA0395HN282YX5JFC"/>
+        <updated>2026-03-29T07:00:23.809Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Responses API and Sora Increased Error Rates]]></title>
+        <id>https://status.openai.com//incidents/01KMP0CDV3T8QX1YPXHQMRN2EP</id>
+        <link href="https://status.openai.com//incidents/01KMP0CDV3T8QX1YPXHQMRN2EP"/>
+        <updated>2026-03-26T23:17:25.337Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Unable to download or preview project files]]></title>
+        <id>https://status.openai.com//incidents/01KMH5C6HVAYJ9SS3REEAWXB6R</id>
+        <link href="https://status.openai.com//incidents/01KMH5C6HVAYJ9SS3REEAWXB6R"/>
+        <updated>2026-03-25T19:58:36.070Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>File uploads (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>File uploads (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated error rates on Realtime API SIP endpoints]]></title>
+        <id>https://status.openai.com//incidents/01KMGE1FY97K34FN718KDBKR12</id>
+        <link href="https://status.openai.com//incidents/01KMGE1FY97K34FN718KDBKR12"/>
+        <updated>2026-03-24T20:20:09.399Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Realtime (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Realtime (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Increased errors creating new sync apps and sync delays with existing apps]]></title>
+        <id>https://status.openai.com//incidents/01KMFPEA68469V3NQAFCZAA6JB</id>
+        <link href="https://status.openai.com//incidents/01KMFPEA68469V3NQAFCZAA6JB"/>
+        <updated>2026-03-24T12:21:05.302Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Connectors/Apps (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Connectors/Apps (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Some customer may encounter errors creating, updating projects, and uploading files]]></title>
+        <id>https://status.openai.com//incidents/01KMEZM1ETZZREZ5N61MSXTH4C</id>
+        <link href="https://status.openai.com//incidents/01KMEZM1ETZZREZ5N61MSXTH4C"/>
+        <updated>2026-03-24T10:51:53.819Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>File uploads (Operational)</li>
+<li>Files (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>File uploads (Operational)</li>
+<li>Files (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Pinned chats are not loading on web browsers for ChatGPT]]></title>
+        <id>https://status.openai.com//incidents/01KM5W5ZPAFRXPRGXDEARXFHJZ</id>
+        <link href="https://status.openai.com//incidents/01KM5W5ZPAFRXPRGXDEARXFHJZ"/>
+        <updated>2026-03-21T00:07:29.965Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Sora video generation failing]]></title>
+        <id>https://status.openai.com//incidents/01KM0T1EX1951XDWA8CN82PEHA</id>
+        <link href="https://status.openai.com//incidents/01KM0T1EX1951XDWA8CN82PEHA"/>
+        <updated>2026-03-18T19:14:09.564Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>Video generation error rates have returned to normal levels and services are functional.]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>Video generation error rates have returned to normal levels and services are functional.]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Excel Plugin is inaccessible for some users]]></title>
+        <id>https://status.openai.com//incidents/01KKYDB848BK4162KR5XFYFZCV</id>
+        <link href="https://status.openai.com//incidents/01KKYDB848BK4162KR5XFYFZCV"/>
+        <updated>2026-03-17T18:50:07.586Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Connectors/Apps (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Connectors/Apps (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[High Error rates with ChatGPT 5.4 Pro]]></title>
+        <id>https://status.openai.com//incidents/01KKYG7H8Y0BAN8MGWER3H17EV</id>
+        <link href="https://status.openai.com//incidents/01KKYG7H8Y0BAN8MGWER3H17EV"/>
+        <updated>2026-03-17T18:40:04.919Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated errors for sign-in and account creation]]></title>
+        <id>https://status.openai.com//incidents/01KKWW47249GJZZP9ZGR1PTHV5</id>
+        <link href="https://status.openai.com//incidents/01KKWW47249GJZZP9ZGR1PTHV5"/>
+        <updated>2026-03-17T16:35:00.805Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated Errors Affecting ChatGPT Free and Guest Plan Users]]></title>
+        <id>https://status.openai.com//incidents/01KKWVN6G352TSSB6XFQCA8H7D</id>
+        <link href="https://status.openai.com//incidents/01KKWVN6G352TSSB6XFQCA8H7D"/>
+        <updated>2026-03-17T05:20:01.357Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Responses API errors when using background mode]]></title>
+        <id>https://status.openai.com//incidents/01KKMB9HWS1B9452FT6BV6KDD6</id>
+        <link href="https://status.openai.com//incidents/01KKMB9HWS1B9452FT6BV6KDD6"/>
+        <updated>2026-03-13T20:03:53.793Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Responses (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Conversation Errors for Logged out Users]]></title>
+        <id>https://status.openai.com//incidents/01KKKQ8SNFFW363KA3HZQFQNA9</id>
+        <link href="https://status.openai.com//incidents/01KKKQ8SNFFW363KA3HZQFQNA9"/>
+        <updated>2026-03-13T15:10:34.176Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Some users seeing "No Accessible Workspaces" when attempting to login via SSO]]></title>
+        <id>https://status.openai.com//incidents/01KKHQ47FEZ3WT1MW8T8PGGF2J</id>
+        <link href="https://status.openai.com//incidents/01KKHQ47FEZ3WT1MW8T8PGGF2J"/>
+        <updated>2026-03-12T23:29:55.513Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Increased errors with ChatGPT file downloads]]></title>
+        <id>https://status.openai.com//incidents/01KKD07DNHFKAWK5JCAMAASYGZ</id>
+        <link href="https://status.openai.com//incidents/01KKD07DNHFKAWK5JCAMAASYGZ"/>
+        <updated>2026-03-12T22:15:52.927Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Increased errors on ChatGPT File Uploads]]></title>
+        <id>https://status.openai.com//incidents/01KKCT34VDK552CSMP286DS9HE</id>
+        <link href="https://status.openai.com//incidents/01KKCT34VDK552CSMP286DS9HE"/>
+        <updated>2026-03-12T00:15:48.331Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>File uploads (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>File uploads (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated login errors]]></title>
+        <id>https://status.openai.com//incidents/01KKFJRH4WP8X9YCX0W57ZXT9D</id>
+        <link href="https://status.openai.com//incidents/01KKFJRH4WP8X9YCX0W57ZXT9D"/>
+        <updated>2026-03-11T23:43:32.882Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated conversation errors for ChatGPT]]></title>
+        <id>https://status.openai.com//incidents/01KKF8E0FPME7NBS95Q8Q0N6AH</id>
+        <link href="https://status.openai.com//incidents/01KKF8E0FPME7NBS95Q8Q0N6AH"/>
+        <updated>2026-03-11T21:59:40.838Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated error rates for Deep Research in Enterprise Workspaces]]></title>
+        <id>https://status.openai.com//incidents/01KKF5RQTSB25839GBZ33S7MWX</id>
+        <link href="https://status.openai.com//incidents/01KKF5RQTSB25839GBZ33S7MWX"/>
+        <updated>2026-03-11T21:47:44.119Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Deep Research (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Deep Research (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Codex unresponsive]]></title>
+        <id>https://status.openai.com//incidents/01KK9JA8JKQKDW1W24T09NHBYH</id>
+        <link href="https://status.openai.com//incidents/01KK9JA8JKQKDW1W24T09NHBYH"/>
+        <updated>2026-03-11T16:17:33.148Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Degraded performance with the Support chat]]></title>
+        <id>https://status.openai.com//incidents/01KKCBMVXANKXVCPE2760437BR</id>
+        <link href="https://status.openai.com//incidents/01KKCBMVXANKXVCPE2760437BR"/>
+        <updated>2026-03-10T23:30:43.184Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Deep Research requests are erroring for LATAM users]]></title>
+        <id>https://status.openai.com//incidents/01KKAD2PHFBC0DP0X6ZQTJJ4D4</id>
+        <link href="https://status.openai.com//incidents/01KKAD2PHFBC0DP0X6ZQTJJ4D4"/>
+        <updated>2026-03-10T05:32:30.050Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Deep Research (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Deep Research (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated conversation errors for Enterprise and Edu users]]></title>
+        <id>https://status.openai.com//incidents/01KK9M0QQJ2WAX76WCHY7M9KQJ</id>
+        <link href="https://status.openai.com//incidents/01KK9M0QQJ2WAX76WCHY7M9KQJ"/>
+        <updated>2026-03-09T16:15:53.997Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Issues with Increased Codex Usage Rate]]></title>
+        <id>https://status.openai.com//incidents/01KK26XE1W536H7DQV2EXM3GHE</id>
+        <link href="https://status.openai.com//incidents/01KK26XE1W536H7DQV2EXM3GHE"/>
+        <updated>2026-03-07T01:00:41.460Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Login Issues]]></title>
+        <id>https://status.openai.com//incidents/01KK2T9TNTF5V3BSJ9T8D2S5CY</id>
+        <link href="https://status.openai.com//incidents/01KK2T9TNTF5V3BSJ9T8D2S5CY"/>
+        <updated>2026-03-07T00:57:23.222Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+<li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Errors with Compliance API]]></title>
+        <id>https://status.openai.com//incidents/01KK2R1TEV8VBRPZA1829N6MDJ</id>
+        <link href="https://status.openai.com//incidents/01KK2R1TEV8VBRPZA1829N6MDJ"/>
+        <updated>2026-03-06T23:59:29.779Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Compliance API (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Compliance API (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[ChatGPT Issues Sending Messages]]></title>
+        <id>https://status.openai.com//incidents/01KJZK6XF3E5M2DRNZQ1EDDMJ4</id>
+        <link href="https://status.openai.com//incidents/01KJZK6XF3E5M2DRNZQ1EDDMJ4"/>
+        <updated>2026-03-05T21:49:57.637Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[High Error Rate in Realtime API (EU)]]></title>
+        <id>https://status.openai.com//incidents/01KJZG0ADWGBF4K6AJ5EDFV52T</id>
+        <link href="https://status.openai.com//incidents/01KJZG0ADWGBF4K6AJ5EDFV52T"/>
+        <updated>2026-03-05T07:19:00.000Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>Batch (Operational)</li>
+<li>Files (Operational)</li>
+<li>Moderations (Operational)</li>
+<li>Login (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Chat Completions (Operational)</li>
+<li>Audio (Operational)</li>
+<li>Fine-tuning (Operational)</li>
+<li>Agent (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Images (Operational)</li>
+<li>File uploads (Operational)</li>
+<li>Search (Operational)</li>
+<li>Realtime (Operational)</li>
+<li>Embeddings (Operational)</li>
+<li>Responses (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Login (Operational)</li>
+<li>Deep Research (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+<li>Sora (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>Batch (Operational)</li>
+<li>Files (Operational)</li>
+<li>Moderations (Operational)</li>
+<li>Login (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Chat Completions (Operational)</li>
+<li>Audio (Operational)</li>
+<li>Fine-tuning (Operational)</li>
+<li>Agent (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Images (Operational)</li>
+<li>File uploads (Operational)</li>
+<li>Search (Operational)</li>
+<li>Realtime (Operational)</li>
+<li>Embeddings (Operational)</li>
+<li>Responses (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Login (Operational)</li>
+<li>Deep Research (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+<li>Sora (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[User may experience errors in ChatGPT]]></title>
+        <id>https://status.openai.com//incidents/01KJXSQH2Y0XHSNCXM9R7T968C</id>
+        <link href="https://status.openai.com//incidents/01KJXSQH2Y0XHSNCXM9R7T968C"/>
+        <updated>2026-03-05T06:27:17.148Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Conversations (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[API Error Rates]]></title>
+        <id>https://status.openai.com//incidents/01KJXQDJ6P1CG5YNXKZRY2H6RX</id>
+        <link href="https://status.openai.com//incidents/01KJXQDJ6P1CG5YNXKZRY2H6RX"/>
+        <updated>2026-03-05T01:12:32.512Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Batch (Operational)</li>
+<li>Realtime (Operational)</li>
+<li>Responses (Operational)</li>
+<li>Images (Operational)</li>
+<li>Chat Completions (Operational)</li>
+<li>Audio (Operational)</li>
+<li>Fine-tuning (Operational)</li>
+<li>Files (Operational)</li>
+<li>Embeddings (Operational)</li>
+<li>Moderations (Operational)</li>
+<li>Codex Web (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Batch (Operational)</li>
+<li>Realtime (Operational)</li>
+<li>Responses (Operational)</li>
+<li>Images (Operational)</li>
+<li>Chat Completions (Operational)</li>
+<li>Audio (Operational)</li>
+<li>Fine-tuning (Operational)</li>
+<li>Files (Operational)</li>
+<li>Embeddings (Operational)</li>
+<li>Moderations (Operational)</li>
+<li>Codex Web (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Elevated errors in ChatGPT file uploads]]></title>
+        <id>https://status.openai.com//incidents/01KJT9GR84M7S3RQJDPSHEQHYE</id>
+        <link href="https://status.openai.com//incidents/01KJT9GR84M7S3RQJDPSHEQHYE"/>
+        <updated>2026-03-03T22:51:50.677Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>File uploads (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>File uploads (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Users may experience elevated error rate in Codex]]></title>
+        <id>https://status.openai.com//incidents/01KJRP6KJKP51AGPA5FW8FWFFM</id>
+        <link href="https://status.openai.com//incidents/01KJRP6KJKP51AGPA5FW8FWFFM"/>
+        <updated>2026-03-03T01:52:29.197Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Codex Web (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[File uploads and file processing failing]]></title>
+        <id>https://status.openai.com//incidents/01KJQJRF7J0CKT82SHDZ85YG4Y</id>
+        <link href="https://status.openai.com//incidents/01KJQJRF7J0CKT82SHDZ85YG4Y"/>
+        <updated>2026-03-02T17:14:48.783Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Search (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>Agent (Operational)</li>
+<li>Deep Research (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Login (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Conversations (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>File uploads (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Search (Operational)</li>
+<li>Image Generation (Operational)</li>
+<li>Agent (Operational)</li>
+<li>Deep Research (Operational)</li>
+<li>Connectors/Apps (Operational)</li>
+<li>ChatGPT Atlas (Operational)</li>
+<li>Login (Operational)</li>
+<li>Voice mode (Operational)</li>
+<li>Conversations (Operational)</li>
+<li>Compliance API (Operational)</li>
+<li>GPTs (Operational)</li>
+<li>Codex Web (Operational)</li>
+<li>File uploads (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Errors in Sora API]]></title>
+        <id>https://status.openai.com//incidents/01KJQMDBTHS18NGB9Q5M0NH7A1</id>
+        <link href="https://status.openai.com//incidents/01KJQMDBTHS18NGB9Q5M0NH7A1"/>
+        <updated>2026-03-02T17:09:41.346Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Sora (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Sora (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Increased Authentication Failures Affecting Some Users]]></title>
+        <id>https://status.openai.com//incidents/01KJM0AYG5PAY9EYRFH4T6JHP6</id>
+        <link href="https://status.openai.com//incidents/01KJM0AYG5PAY9EYRFH4T6JHP6"/>
+        <updated>2026-03-02T02:08:54.617Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Login (Operational)</li>
+          </ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Issue with some ChatGPT Apps]]></title>
+        <id>https://status.openai.com//incidents/01KJD45ZHJHG8XM53V20JKKYNV</id>
+        <link href="https://status.openai.com//incidents/01KJD45ZHJHG8XM53V20JKKYNV"/>
+        <updated>2026-02-26T15:57:57.171Z</updated>
+        <summary type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Connectors/Apps (Operational)</li>
+          </ul>]]></summary>
+        <content type="html"><![CDATA[<b>Status: Resolved</b><br/><br/>All impacted services have now fully recovered.<br/><br/><b>Affected components</b>
+          <ul>
+          <li>Connectors/Apps (Operational)</li>
+          </ul>]]></content>
+    </entry>
+</feed>

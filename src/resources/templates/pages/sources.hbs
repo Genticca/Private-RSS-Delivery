@@ -1,0 +1,90 @@
+<header class="page-header">
+  <h1>수집 소스 관리 <span style="display:none;">Sources</span></h1>
+  <div class="actions">
+    <a class="button primary" href="/sources/new" hx-get="/sources/new" hx-target="#source-modal-mount" hx-swap="innerHTML" hx-select="[data-page='source-form']">+ 소스 추가</a>
+    <button type="button" class="button secondary" onclick="document.getElementById('new-group-modal').style.display='flex'">+ 그룹 추가</button>
+    <a class="button secondary" href="/api/export" download>설정 내보내기 (JSON)</a>
+  </div>
+</header>
+
+<!-- 소스 관리 내부 서브 탭 -->
+<nav class="sub-tabs">
+  <a href="/" class="tab-link">📊 개요 대시보드</a>
+  <a href="/sources" class="tab-link active">📡 수집 소스 관리</a>
+  <a href="/groups" class="tab-link">👥 알림 그룹 관리</a>
+</nav>
+
+<section data-page="sources">
+  <section class="panel compact">
+    <h2>📦 설정 백업 및 가져오기</h2>
+    <p class="muted" style="margin-bottom: 1rem;">백업 파일(.json)에는 수집 소스와 알림 그룹 설정만 저장됩니다. 보안상 웹훅 URL은 제외되므로, 복원 후 각 항목에 웹훅 URL을 다시 입력해야 정상 전송됩니다.</p>
+    <form hx-post="/api/import/dry-run" hx-encoding="multipart/form-data" hx-target="#import-preview" hx-swap="innerHTML" class="inline-form">
+      <input type="file" name="file" accept="application/json" style="width: auto;">
+      <select name="mode" style="width: auto;">
+        <option value="skip">중복 소스 충돌 시 기존 값 유지 (건너뛰기)</option>
+        <option value="overwrite">중복 소스 충돌 시 새 값으로 교체 (덮어쓰기)</option>
+      </select>
+      <button type="submit" class="secondary">가져오기 미리보기</button>
+    </form>
+    <div id="import-preview" class="import-preview" style="margin-top: 1rem;"></div>
+  </section>
+  
+  <div class="panel">
+    <div class="sub-header-container">
+      <h2>📡 등록된 수집 소스</h2>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>소스 이름</th>
+          <th>피드 URL</th>
+          <th>파싱 프로필</th>
+          <th>전송 그룹</th>
+          <th>수집 상태</th>
+          <th>번역</th>
+          <th>작업</th>
+        </tr>
+      </thead>
+      <tbody id="source-table">
+        {{#each sources}}
+        {{> source-row}}
+        {{else}}
+        <tr><td colspan="7" class="muted" style="text-align:center; padding:2.5rem 1rem;">아직 등록된 수집 소스가 없습니다. 오른쪽 위 <strong>+ 소스 추가</strong>로 RSS/Atom 피드를 등록하면 자동 수집이 시작됩니다.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 새 그룹 추가 모달 팝업 (초기 숨김) -->
+  <div class="modal-overlay" id="new-group-modal" style="display: none;">
+    <div class="modal-container" style="display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;">
+      <div class="modal-header">
+        <h2>👥 새 알림 그룹 등록</h2>
+        <a href="javascript:void(0)" class="modal-close" onclick="document.getElementById('new-group-modal').style.display='none'" title="닫기">&times;</a>
+      </div>
+      <form style="display: flex; flex-direction: column; overflow: hidden; flex: 1; margin: 0;" id="new-group-form" hx-post="/api/groups" hx-target="this" hx-swap="none" hx-on::after-request="if(event.detail.successful) { document.getElementById('new-group-modal').style.display='none'; window.location.href = '/groups'; }">
+        <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 1.5rem;">
+          <div class="form-grid">
+            <label>그룹 이름
+              <input name="name" placeholder="예: 개발팀 알림, 인프라 장애 채널 등" required>
+            </label>
+            <label>디스코드 웹훅 URL (선택)
+              <input name="webhookUrl" placeholder="https://discord.com/api/webhooks/...">
+            </label>
+            <label>발신 이름 (선택)
+              <input name="webhookName" placeholder="기본 웹훅 이름을 바꿀 때만 입력하세요">
+            </label>
+            <label>발신 프로필 이미지 (선택)
+              <input name="webhookAvatarUrl" placeholder="기본 프로필 이미지를 바꿀 때만 입력하세요">
+            </label>
+            <p class="muted" style="margin-top: 0.5rem; font-size: 0.8rem; line-height: 1.4;">ℹ️ 웹훅 정보는 선택 입력입니다. 비워 두고 그룹을 먼저 만든 뒤 나중에 입력해도 됩니다.</p>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-surface); display: flex; justify-content: flex-end; gap: 0.5rem; z-index: 10;">
+          <button type="button" class="secondary" onclick="document.getElementById('new-group-modal').style.display='none'">취소</button>
+          <button type="submit" class="primary">그룹 추가</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

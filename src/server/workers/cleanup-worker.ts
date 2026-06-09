@@ -1,0 +1,91 @@
+import type Database from 'better-sqlite3';
+import { nowIso } from '../db/time.js';
+import type { RepositoryRegistry } from '../runtime/container.js';
+
+export interface CleanupWorkerOptions {
+  db: Database.Database;
+  repositories: RepositoryRegistry;
+  retentionDays?: number;
+  now?: () => string;
+  setTimer?: typeof setTimeout;
+  clearTimer?: typeof clearTimeout;
+  onError?: (error: unknown) => void;
+}
+
+export interface CleanupRunResult {
+  deliveryLogs: number;
+  fetchLogs: number;
+  modelUsage: number;
+}
+
+const DEFAULT_RETENTION_DAYS = 90;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export class CleanupWorker {
+  private timer: NodeJS.Timeout | null = null;
+  private running = false;
+
+  constructor(private readonly options: CleanupWorkerOptions) {}
+
+  start(): void {
+    if (this.timer) return;
+    this.runOnce().catch((error: unknown) => this.reportError(error));
+    this.scheduleNext();
+  }
+
+  stop(): void {
+    if (!this.timer) return;
+    (this.options.clearTimer ?? clearTimeout)(this.timer);
+    this.timer = null;
+  }
+
+  async runOnce(baseIso = this.now()): Promise<CleanupRunResult> {
+    if (this.running) return { deliveryLogs: 0, fetchLogs: 0, modelUsage: 0 };
+    this.running = true;
+    try {
+      return this.options.db.transaction(() => ({
+        deliveryLogs: this.options.repositories.deliveryLogs.pruneOlderThan(this.retentionDays(), baseIso),
+        fetchLogs: this.options.repositories.fetchLogs.pruneOlderThan(this.retentionDays(), baseIso),
+        modelUsage: this.options.repositories.modelUsage.pruneOlderThan(this.retentionDays(), baseIso)
+      }))();
+    } finally {
+      this.running = false;
+    }
+  }
+
+  private scheduleNext(): void {
+    const delay = delayUntilNextKstMidnight(this.now());
+    this.timer = (this.options.setTimer ?? setTimeout)(() => {
+      this.timer = null;
+      this.runOnce()
+        .catch((error: unknown) => this.reportError(error))
+        .finally(() => this.scheduleNext());
+    }, delay);
+    this.timer.unref?.();
+  }
+
+  private retentionDays(): number {
+    return this.options.retentionDays ?? DEFAULT_RETENTION_DAYS;
+  }
+
+  private now(): string {
+    return this.options.now?.() ?? nowIso();
+  }
+
+  private reportError(error: unknown): void {
+    try {
+      this.options.onError?.(error);
+    } catch {
+      // Do not let an injected error hook create another unhandled timer rejection.
+    }
+  }
+}
+
+export function delayUntilNextKstMidnight(baseIso: string): number {
+  const base = new Date(baseIso);
+  if (Number.isNaN(base.getTime())) return DAY_MS;
+  const kstMs = base.getTime() + 9 * 60 * 60 * 1000;
+  const kst = new Date(kstMs);
+  const nextKstMidnight = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() + 1, 0, 0, 0, 0);
+  return Math.max(1, nextKstMidnight - kstMs);
+}

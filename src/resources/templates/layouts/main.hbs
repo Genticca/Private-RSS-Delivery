@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{#if title}}{{title}}{{else}}RSS Monite - RSS 디스코드 브릿지{{/if}}</title>
+
+  <link rel="stylesheet" href="/assets/css/app.css">
+  {{#if needsCodeMirror}}<link rel="stylesheet" href="/assets/css/codemirror.css">{{/if}}
+  <script src="/assets/js/htmx.min.js" defer></script>
+  {{#if needsCodeMirror}}<script src="/assets/js/codemirror.js" defer></script>{{/if}}
+  <script src="/assets/js/app.js" defer></script>
+</head>
+<body hx-indicator="#global-indicator">
+  <div class="app-layout">
+    <!-- Left Sidebar Navigator (4 Main Categories) -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="logo-icon">📡</span>
+          <span class="logo-text">RSS Monite</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav" aria-label="주 메뉴">
+        <a href="/" class="nav-item" id="nav-sources">
+          <span class="nav-icon">📡</span>
+          <span class="nav-label">소스 관리</span>
+        </a>
+        <a href="/templates" class="nav-item" id="nav-templates">
+          <span class="nav-icon">📝</span>
+          <span class="nav-label">메시지 템플릿</span>
+        </a>
+        <a href="/logs" class="nav-item" id="nav-logs">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">시스템 로그</span>
+        </a>
+        <a href="/model" class="nav-item" id="nav-model">
+          <span class="nav-icon">🤖</span>
+          <span class="nav-label">AI 모델 설정</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <div class="status-indicator online" id="system-status-indicator"></div>
+          <span class="status-text" id="system-status-text">정상 작동 중</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="main-workspace">
+      <header class="app-header">
+        <div class="header-search">
+          <!-- Subtle header accent -->
+        </div>
+        <div class="header-actions">
+          <div id="global-indicator" class="htmx-indicator" aria-live="polite">
+            <span class="spinner"></span>
+            <span class="indicator-text">처리 중...</span>
+          </div>
+        </div>
+      </header>
+
+      <div id="flash" class="flash" aria-live="polite"></div>
+
+      <main class="page-content">
+        {{{body}}}
+      </main>
+    </div>
+  </div>
+
+  <!-- 소스 추가/수정 폼이 htmx로 주입되는 전역 모달 마운트 (비어 있으면 표시 없음) -->
+  <div id="source-modal-mount"></div>
+</body>
+</html>
+
