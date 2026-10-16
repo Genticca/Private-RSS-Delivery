@@ -8,6 +8,7 @@
     <form style="display: flex; flex-direction: column; overflow: hidden; flex: 1; margin: 0;" {{#if source}}hx-patch="/api/sources/{{source.id}}"{{else}}hx-post="/api/sources"{{/if}} hx-swap="none">
       <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 1.5rem;">
         <p class="muted" style="margin:-0.25rem 0 1rem; font-size:0.85rem; line-height:1.4;">하나의 RSS/Atom 피드를 등록합니다. 피드 URL과 전송할 그룹만 정하면 바로 작동하고, 아래 멘션·스레드·번역 설정은 모두 선택입니다.</p>
+        <p class="callout">새 소스 또는 새 웹훅·스레드 연결은 첫 성공 수집을 기준으로 기존 글을 제외합니다. 연결 직후 첫 수집 전까지 나온 새 글도 제외될 수 있습니다.</p>
         <div class="form-grid">
           <label>수집 소스 이름 (별칭)
             <input name="name" value="{{source.name}}" placeholder="비워 두면 피드 제목을 이름으로 사용합니다" autocomplete="off">
@@ -172,7 +173,7 @@
                   </span>
                   <span class="toggle-label-text" style="font-weight: 500;">🔄 기존 발행 원본 메시지 직접 편집 (In-Place Edit)</span>
                 </label>
-                <p class="muted" style="margin-left: 3.5rem; font-size: 0.8rem; line-height: 1.4; margin-top: -0.25rem;">※ 콘텐츠 변경 시(Status Page Incident 상태 갱신 등) 새 글을 도배하지 않고 디스코드에 이미 전송된 원본 메시지를 실시간 수정 반영합니다.</p>
+                <p class="muted" style="margin-left: 3.5rem; font-size: 0.8rem; line-height: 1.4; margin-top: -0.25rem;">켜면 원래 발송한 메시지를 수정합니다. 끄면 원래 발송한 연결에 변경 알림을 새 메시지로 보냅니다. 새 웹훅·스레드에는 과거 글을 보내지 않습니다.</p>
               </div>
             </div>
           </details>

@@ -21,6 +21,7 @@ export type ModelRole = 'primary' | 'fallback';
 export type ModelStatus = 'ready' | 'disabled' | 'missing-key' | 'invalid-key';
 
 export interface SourceDto {
+  consecutiveFailures?: number;
   id: SourceId;
   feedUrl: string;
   name: string | null;
@@ -170,6 +171,9 @@ export interface ModelStatusResponse {
 }
 
 export interface ModelUsageDto {
+  httpRequested?: boolean;
+  itemId?: number | null;
+  jobId?: number | null;
   id: number;
   role: ModelRole;
   provider: ModelProvider;

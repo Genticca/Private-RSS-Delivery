@@ -14,7 +14,7 @@ afterEach(async () => {
   }
 });
 
-describe('Turn 11 web routes and inbound middleware', () => {
+describe('web routes and inbound middleware', () => {
   it('renders page routes with server view models and serves static assets', async () => {
     const { app, container } = await openApp();
     container.repositories.sources.create({ feedUrl: 'https://example.com/feed.xml', name: 'Example' });

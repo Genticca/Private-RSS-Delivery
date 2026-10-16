@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
-const serverEntry = join(projectRoot, 'dist/server/app.js');
+const serverEntry = join(projectRoot, 'dist/server/main.js');
 const port = await getFreePort();
 const databasePath = join(tmpdir(), `rss-discord-bridge-smoke-${process.pid}.sqlite`);
 const baseUrl = `http://127.0.0.1:${port}`;

@@ -7,10 +7,10 @@ import {
 } from '../dispatcher/resolve-destinations.js';
 import { buildPresetRenderContext, PresetRenderError, renderDiscordPayload } from '../dispatcher/render.js';
 import { DiscordPayloadValidationError, validateDiscordPayload } from '../dispatcher/validate.js';
-import { postDiscordWebhook, type WebhookPostFunction } from '../dispatcher/webhook.js';
+import { postDiscordWebhook, type WebhookPostFunction } from '../dispatcher/discord-client.js';
 import type { SourceRecord } from '../db/index.js';
 import { SecurityError } from '../security/index.js';
-import type { RepositoryRegistry } from '../runtime/container.js';
+import type { SourceRepository, GroupRepository, SourceGroupRepository, TemplateRepository } from '../db/index.js';
 import { notFound, validationError } from './errors.js';
 import type { PreviewService } from './preview.service.js';
 
@@ -20,7 +20,12 @@ const CONTENT_MAX = 2000;
 const MIN_TEST_INTERVAL_MS = 5_000;
 
 export interface TestSendServiceOptions {
-  repositories: RepositoryRegistry;
+  repositories: {
+    sources: Pick<SourceRepository, 'getById'>;
+    groups: Pick<GroupRepository, 'getById'>;
+    sourceGroups: Pick<SourceGroupRepository, 'listGroupIdsForSource'>;
+    templates: Pick<TemplateRepository, 'getById' | 'findByName'>;
+  };
   preview: PreviewService;
   /** 테스트에서 주입 가능 (기본 postDiscordWebhook). */
   postWebhook?: WebhookPostFunction;

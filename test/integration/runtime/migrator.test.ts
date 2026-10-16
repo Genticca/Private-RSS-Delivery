@@ -27,7 +27,10 @@ const PROJECT_MIGRATIONS = [
   '0017_source_destinations_canonical_unique',
   '0018_runtime_timestamp_iso_z_backfill',
   '0019_drop_source_destinations',
-  '0020_scrub_source_webhook_url'
+  '0020_scrub_source_webhook_url',
+  '0021_delivery_jobs',
+  '0022_translation_cache',
+  '0023_source_fetch_revision'
 ];
 
 afterEach(() => {
@@ -513,21 +516,30 @@ describe('createContainer', () => {
 
     try {
       expect(Object.keys(container.repositories).sort()).toEqual([
+        'deliveryBindings',
+        'deliveryJobs',
         'deliveryLogs',
         'fetchLogs',
         'groups',
+        'itemDeliveries',
         'items',
         'modelConfig',
         'modelUsage',
         'sourceGroups',
         'sources',
-        'templates'
+        'templates',
+        'translationCache'
       ]);
       expect(Object.keys(container.services).sort()).toEqual([
+        'delivery',
+        'deliveryBindings',
+        'deliveryManagement',
+        'deliveryPlan',
         'exportImport',
         'groups',
         'logs',
         'model',
+        'poll',
         'preview',
         'scheduler',
         'sources',

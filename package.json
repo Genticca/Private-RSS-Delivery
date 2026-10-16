@@ -7,15 +7,17 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "tsx watch src/server/app.ts",
-    "build": "npm run build:server && npm run build:resources",
+    "dev": "tsx watch src/server/main.ts",
+    "build": "npm run build:clean && npm run build:server && npm run build:resources",
+    "build:clean": "node scripts/clean-dist.mjs",
     "build:server": "tsc -p tsconfig.server.json",
     "build:resources": "copyfiles -u 1 \"src/resources/migrations/**/*\" \"src/resources/config/**/*\" \"src/resources/templates/**/*\" \"src/resources/presets/**/*\" dist",
-    "start": "node dist/server/app.js",
+    "start": "node dist/server/main.js",
     "test": "vitest run",
     "test:unit": "vitest run test/unit",
     "test:integration": "vitest run test/integration",
     "smoke": "npm run build && node scripts/smoke.mjs",
+    "benchmark": "npm run build && node scripts/benchmark.mjs",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.test.json --noEmit"
   },
   "dependencies": {

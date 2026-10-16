@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { basename, extname, join, resolve } from 'node:path';
+import { basename, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify, { type FastifyInstance } from 'fastify';
 import multipartPlugin from '@fastify/multipart';
@@ -55,29 +55,6 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
   });
 
   return app;
-}
-
-async function main(): Promise<void> {
-  const app = createApp();
-
-  await app.listen({ port: app.container.config.port, host: app.container.config.host });
-
-  // 워커는 listen 성공 이후 시작한다.
-  app.container.workers.cleanup.start();
-  app.container.workers.poller.start();
-
-  let closing = false;
-  const shutdown = async (signal: string) => {
-    if (closing) return;
-    closing = true;
-    app.log.info({ signal }, 'shutting down');
-    app.container.workers.poller.stop();
-    app.container.workers.cleanup.stop();
-    await app.close();
-    process.exit(0);
-  };
-  process.on('SIGTERM', () => void shutdown('SIGTERM'));
-  process.on('SIGINT', () => void shutdown('SIGINT'));
 }
 
 const IMPORT_UPLOAD_LIMIT_BYTES = 1_048_576;
@@ -165,16 +142,4 @@ function registerErrorHandlers(app: FastifyInstance): void {
 
 function isMultipartError(error: unknown): error is Error & { code?: string; statusCode?: number } {
   return error instanceof Error && typeof (error as { code?: unknown }).code === 'string' && String((error as { code?: string }).code).startsWith('FST_');
-}
-
-function isEntryPoint(): boolean {
-  const entry = process.argv[1];
-  return entry !== undefined && fileURLToPath(import.meta.url) === resolve(entry);
-}
-
-if (isEntryPoint()) {
-  main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
 }

@@ -1,10 +1,13 @@
-import type { PollSourceResult, Poller } from '../scheduler/index.js';
-import type { RepositoryRegistry } from '../runtime/container.js';
+import type { PollSourceResult } from './poll.service.js';
+import type { PollWorker } from '../workers/poll-worker.js';
+import type { SourceRepository } from '../db/index.js';
 import { notFound } from './errors.js';
 
 export interface SchedulerServiceOptions {
-  repositories: RepositoryRegistry;
-  poller: Poller;
+  repositories: {
+    sources: Pick<SourceRepository, 'getById'>;
+  };
+  poller: Pick<PollWorker, 'triggerPoll'>;
 }
 
 export class SchedulerService {

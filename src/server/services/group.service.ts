@@ -1,7 +1,8 @@
 import type Database from 'better-sqlite3';
 import type { CreateGroupRequest, GroupDto, UpdateGroupRequest } from '../contracts/api.js';
 import { nowIso } from '../db/time.js';
-import type { RepositoryRegistry } from '../runtime/container.js';
+import type { DeliveryBindingService } from './delivery-binding.service.js';
+import type { GroupRepository } from '../db/index.js';
 import { verifyWebhookUrlSafe } from '../security/index.js';
 import { conflict, notFound, validationError } from './errors.js';
 import { toGroupDto } from './serialization.js';
@@ -9,9 +10,12 @@ import { optionalBoolean, optionalString, requireObject, requiredString, validat
 
 export interface GroupServiceOptions {
   db: Database.Database;
-  repositories: RepositoryRegistry;
+  repositories: {
+    groups: Pick<GroupRepository, 'list' | 'findByNameNocase' | 'create' | 'update' | 'delete' | 'getById'>;
+  };
   now?: () => string;
   verifyWebhookUrl?: (value: string) => Promise<unknown>;
+  bindings?: DeliveryBindingService;
 }
 
 export class GroupService {
@@ -56,20 +60,25 @@ export class GroupService {
     }
     if (input.webhookUrl) await this.verifyWebhookUrl(input.webhookUrl);
     const webhookUrl = input.clearWebhook ? null : input.webhookUrl === null ? undefined : input.webhookUrl;
-    return toGroupDto(
-      this.options.repositories.groups.update(id, {
+    return this.options.db.transaction(() => {
+      const updated = this.options.repositories.groups.update(id, {
         name: input.name,
         webhookUrl,
         webhookName: input.webhookName,
         webhookAvatarUrl: input.webhookAvatarUrl,
         updatedAt: this.now()
-      })
-    );
+      });
+      this.options.bindings?.reconcileAll(this.now());
+      return toGroupDto(updated);
+    })();
   }
 
   remove(id: number): void {
     this.requireGroup(id);
-    if (!this.options.repositories.groups.delete(id)) throw notFound('그룹을 찾을 수 없습니다.');
+    this.options.db.transaction(() => {
+      if (!this.options.repositories.groups.delete(id)) throw notFound('그룹을 찾을 수 없습니다.');
+      this.options.bindings?.reconcileAll(this.now());
+    })();
   }
 
   private requireGroup(id: number) {

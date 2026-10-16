@@ -1,10 +1,12 @@
 import type Database from 'better-sqlite3';
 import { nowIso } from '../db/time.js';
-import type { RepositoryRegistry } from '../runtime/container.js';
+import { CleanupService, type CleanupRepositories } from '../services/cleanup.service.js';
+import { TaskTracker } from './task-tracker.js';
 
 export interface CleanupWorkerOptions {
   db: Database.Database;
-  repositories: RepositoryRegistry;
+  repositories: CleanupRepositories;
+  itemContentRetentionDays?: number;
   retentionDays?: number;
   now?: () => string;
   setTimer?: typeof setTimeout;
@@ -24,36 +26,38 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export class CleanupWorker {
   private timer: NodeJS.Timeout | null = null;
   private running = false;
+  private readonly tracker = new TaskTracker();
 
   constructor(private readonly options: CleanupWorkerOptions) {}
 
   start(): void {
-    if (this.timer) return;
+    if (this.timer || this.tracker.stopped) return;
     this.runOnce().catch((error: unknown) => this.reportError(error));
     this.scheduleNext();
   }
 
   stop(): void {
+    this.tracker.stop();
     if (!this.timer) return;
     (this.options.clearTimer ?? clearTimeout)(this.timer);
     this.timer = null;
   }
 
+  drain(): Promise<void> { return this.tracker.drain(); }
+
   async runOnce(baseIso = this.now()): Promise<CleanupRunResult> {
-    if (this.running) return { deliveryLogs: 0, fetchLogs: 0, modelUsage: 0 };
+    if (this.running || this.tracker.stopped) return { deliveryLogs: 0, fetchLogs: 0, modelUsage: 0 };
     this.running = true;
     try {
-      return this.options.db.transaction(() => ({
-        deliveryLogs: this.options.repositories.deliveryLogs.pruneOlderThan(this.retentionDays(), baseIso),
-        fetchLogs: this.options.repositories.fetchLogs.pruneOlderThan(this.retentionDays(), baseIso),
-        modelUsage: this.options.repositories.modelUsage.pruneOlderThan(this.retentionDays(), baseIso)
-      }))();
+      return await this.tracker.track(async () => this.tracker.stopped ? { deliveryLogs: 0, fetchLogs: 0, modelUsage: 0 }
+        : new CleanupService(this.options.db, this.options.repositories).run(baseIso, this.retentionDays(), this.options.itemContentRetentionDays));
     } finally {
       this.running = false;
     }
   }
 
   private scheduleNext(): void {
+    if (this.tracker.stopped) return;
     const delay = delayUntilNextKstMidnight(this.now());
     this.timer = (this.options.setTimer ?? setTimeout)(() => {
       this.timer = null;

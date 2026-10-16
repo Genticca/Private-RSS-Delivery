@@ -2,18 +2,18 @@
 
 RSS 2.0 / Atom 피드를 폴링해 **Discord 웹훅으로 전달**하는 셀프호스트 브리지. 특히 **status page(장애 공지)** 피드를 안정적으로 중계하도록, "등록 후 과거 이벤트가 다시 전송되는" 재전송 버그를 **구조적으로 차단**하는 데 초점을 둔 재작성판이다. 서버 렌더 관리 UI(내부·단일 관리자, loopback 전용)를 포함한다.
 
-> Node ≥ 20 · TypeScript(ESM) · 단일 프로세스 · 설계 확정 + 구현 진행 중
+> Node ≥ 20 · TypeScript(ESM) · SQLite 단일 프로세스 · 목적지별 발송 작업과 공유 번역 캐시
 
 ## 주요 기능
 
 - **RSS 2.0 / Atom 폴링 → Discord 전송** — 소스별 폴 주기, 조건부 GET(etag/last-modified)으로 대역 절감.
 - **2단계 파싱** — Stage 1 Envelope(형식 흡수) / Stage 2 Normalize(순수·결정적 정제 + `contentHash`).
-- **재전송 버그 차단** — identity(`atom_id`) ≠ change(`contentHash`) 분리 + 등록 시 cutoff baseline.
+- **재전송 버그 차단** — identity(`atom_id`) ≠ change(`contentHash`) 분리 + 연결별 첫 수집 baseline + 고정된 목적지별 발송 작업.
 - **Provider Profile 자동 감지** — `generic` / `incident-io` / `atlassian-statuspage`.
 - **Discord 프리셋 4종** — `incident-active`·`news-article`·`link-discussion`·`minimal`. 서버 Handlebars 렌더이고 미리보기는 전송과 동일 경로.
 - **그룹 = 재사용 전송 채널** — 웹훅을 그룹이 보유하고 여러 소스가 공유한다.
 - **메시지 옵션** — 조용히 보내기·멘션·Forum 스레드/태그·수정(edit-in-place).
-- **번역(→ 한국어)** — 소스별 토글, 전송 시점에만. primary = Gemini, fallback = NVIDIA NIM.
+- **번역(→ 한국어)** — 필요한 필드만 번역하고 항목·웹훅 사이에서 입력별 캐시를 공유. primary = Gemini, fallback = NVIDIA NIM. 별도 번역 진단 지원.
 - **Export/Import** — 소스·그룹 설정을 JSON 1파일로 백업/이전(웹훅 URL 등 시크릿 제외).
 - **관리 UI** — 서버 렌더 Handlebars + htmx + CodeMirror + 라이브 로그 SSE. React/번들러 없음.
 
@@ -38,6 +38,14 @@ flowchart LR
 3. **순수·결정적 정규화** — 같은 입력 → 같은 출력 → 해시 안정 → 재전송 버그 차단.
 
 소스 등록 시 `delivery_cutoff_at = now`로 두고, 첫 폴은 기존 항목을 **historical로 저장만**(전송하지 않음) 한 뒤 이후 신규 항목만 전송한다.
+
+새 웹훅·스레드 연결도 첫 성공 수집을 묵음 baseline으로 삼는다. 연결 직후 첫 수집 전까지의 새 글도 제외될 수 있다. 웹훅 교체로 기존 작업을 새 목적지에 옮기지 않는다. POST 결과 불명·PATCH 404는 자동 새 POST 대신 발송 작업(`/delivery-jobs`) 화면에서 검토한다.
+
+실행 진입점은 `src/server/main.ts`(`npm run dev`)와 `dist/server/main.js`(`npm start`)다. `app.ts`는 HTTP 앱 구성, `runtime`은 조립·종료, `workers`는 실행 제어, `services`는 업무 처리, `domain`은 I/O 없는 규칙을 담당한다. 수집과 발송은 별도 워커로 실행하며 종료 시 진행 중 작업을 기다린다.
+
+0021~0023 마이그레이션은 연결·발송 작업·영속 message ID·번역 캐시·설정 버전 추적을 추가한다. 기존 pending/failed는 `legacy_unknown`으로 이관하며 자동 발송하지 않는다. 구형 성공 로그의 message ID는 종료된 이전 연결에 보존한다. 운영 적용은 정지된 DB 사본으로 이관을 확인하고 백업 후 진행한다. 실행 제한과 대량 신규 보류 임계값은 [default.env.example](default.env.example)에 있다.
+
+`npm run benchmark`는 빌드 후 외부 API 없이 25개 피드의 수집·발송과 공유 번역 캐시를 측정한다. 이전 구현과 재현 자료는 [Archive](Archive/README.md)에 보관한다.
 
 ## 기술 스택
 

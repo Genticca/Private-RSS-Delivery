@@ -1,5 +1,6 @@
 import type { ModelProvider, ModelRole } from '../contracts/api.js';
-import type { ItemRecord, ModelConfigRecord, ModelConfigRepository, ModelUsageRepository, SourceRecord, ItemRepository } from '../db/index.js';
+import type { ItemRecord, ModelConfigRecord, ModelConfigRepository, ModelUsageRepository, SourceRecord, ItemRepository, TranslationCacheRepository } from '../db/index.js';
+import { TranslationCacheService } from './translation-cache.service.js';
 import { nowIso } from '../db/time.js';
 import { resolveModelApiKey } from './keys.js';
 import { buildPromptLog, buildTranslationPrompt, parseTranslationResponse } from './prompt.js';
@@ -14,7 +15,9 @@ export interface ModelTranslatorRepositories {
 }
 
 export interface DispatchTranslationRepositories {
-  items: Pick<ItemRepository, 'saveTranslation'>;
+  items: Pick<ItemRepository, 'saveTranslationIfCurrent'>;
+  translationCache: TranslationCacheRepository;
+  modelConfig: Pick<ModelConfigRepository, 'getByRole'>;
 }
 
 export interface ModelTranslatorOptions {
@@ -95,7 +98,7 @@ export class ModelTranslator {
         const errorCode = classifyError(error);
         this.recordUsage(config, {
           input,
-          output: response?.text ?? formatError(error),
+          output: response?.text ?? errorCode,
           response: response ?? undefined,
           startedMs,
           error: errorCode
@@ -113,6 +116,9 @@ export class ModelTranslator {
       provider: config.provider,
       model: config.model,
       error,
+      httpRequested: false,
+      itemId: input.itemId,
+      jobId: input.jobId,
       promptLog,
       createdAt: this.now()
     });
@@ -137,6 +143,9 @@ export class ModelTranslator {
       outputTokens: params.response?.outputTokens ?? null,
       latencyMs: Math.max(0, Date.now() - params.startedMs),
       error: params.error ?? null,
+      httpRequested: true,
+      itemId: params.input.itemId,
+      jobId: params.input.jobId,
       promptLog,
       createdAt: this.now()
     });
@@ -148,17 +157,16 @@ export class ModelTranslator {
 }
 
 export class DispatchTranslationService {
-  constructor(private readonly options: DispatchTranslationServiceOptions) {}
+  private readonly cache: TranslationCacheService;
+  constructor(private readonly options: DispatchTranslationServiceOptions) {
+    this.cache = new TranslationCacheService(options);
+  }
 
-  async translateItemForDispatch(item: ItemRecord, source: SourceRecord, now = this.now()): Promise<ItemRecord> {
+  async translateItemForDispatch(item: ItemRecord, source: SourceRecord, now = this.now(), context: { templateBody?: string; jobId?: number } = {}): Promise<ItemRecord> {
     if (!source.translate) return item;
-    if (item.translatedAt !== null) return item;
-
-    const result = await this.options.translator.translate({
-      title: item.title ?? '',
-      summary: item.summary ?? ''
-    });
-    return this.options.repositories.items.saveTranslation(item.id, result.title, result.summary, now);
+    const result = await this.cache.translate(item, source, { ...context, now });
+    if (result.translated && result.fields.length > 0) this.options.repositories.items.saveTranslationIfCurrent(item, result.title, result.summary, now);
+    return { ...item, translatedTitle: result.title, translatedSummary: result.summary, translatedAt: result.translated ? now : null };
   }
 
   private now(): string {
@@ -219,8 +227,4 @@ function statusFromError(error: unknown): number | null {
     if (typeof status === 'number' && Number.isInteger(status)) return status;
   }
   return null;
-}
-
-function formatError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }

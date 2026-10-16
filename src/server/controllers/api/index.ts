@@ -7,6 +7,7 @@ import { registerModelRoutes } from './model.js';
 import { registerPreviewRoutes } from './preview.js';
 import { registerSourceRoutes } from './sources.js';
 import { registerTemplateRoutes } from './templates.js';
+import { registerDeliveryJobRoutes } from './delivery-jobs.js';
 
 export async function registerApiRoutes(app: FastifyInstance, services: ServiceRegistry): Promise<void> {
   await registerSourceRoutes(app, services);
@@ -16,4 +17,5 @@ export async function registerApiRoutes(app: FastifyInstance, services: ServiceR
   await registerModelRoutes(app, services);
   await registerLogRoutes(app, services);
   await registerExportImportRoutes(app, services);
+  await registerDeliveryJobRoutes(app, services);
 }

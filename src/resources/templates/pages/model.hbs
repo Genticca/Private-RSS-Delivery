@@ -3,6 +3,14 @@
 </header>
 
 <section data-page="model">
+  {{> model-diagnostics diagnostics}}
+  <form class="panel form-grid translation-diagnostic-form" hx-post="/api/model/diagnose" hx-target="#translation-diagnostic" hx-swap="innerHTML">
+    <h2>번역 진단</h2><p>Discord 전송 없이 번역 결과를 확인합니다. API 요청이 발생할 수 있습니다.</p>
+    <label>제목<input name="title" maxlength="1000"></label>
+    <label>본문<textarea name="summary" maxlength="3500"></textarea></label>
+    <label class="check"><input type="checkbox" name="fresh" value="true">성공 캐시 대신 모델에 새로 요청</label>
+    <button type="submit">번역 결과 확인</button><div id="translation-diagnostic"></div>
+  </form>
   <!-- 상단 영역: 가로 폭을 충분히 활용한 번역 구성 폼 -->
   <form class="panel form-grid" hx-patch="/api/model/config" hx-swap="none" style="margin-bottom: 1.5rem;">
     <div id="model-config">
@@ -103,6 +111,7 @@
       <thead>
         <tr>
           <th>호출 유형</th>
+          <th>실제 요청</th>
           <th>제공사 (Provider)</th>
           <th>모델</th>
           <th>토큰 (입력/출력)</th>
@@ -114,6 +123,7 @@
         {{#each usage.items}}
         <tr>
           <td>{{role}}</td>
+          <td>{{#if httpRequested}}요청{{else}}설정 확인{{/if}}</td>
           <td>{{provider}}</td>
           <td>{{model}}</td>
           <td>{{inputTokens}}/{{outputTokens}}</td>
@@ -121,7 +131,7 @@
           <td><span class="muted">{{error}}</span></td>
         </tr>
         {{else}}
-        <tr><td colspan="6" class="muted" style="text-align:center; padding:2rem 1rem;">아직 AI 모델 호출 이력이 없습니다. 번역이 켜진 소스가 전송될 때 기록됩니다.</td></tr>
+        <tr><td colspan="7" class="muted" style="text-align:center; padding:2rem 1rem;">아직 AI 모델 호출 이력이 없습니다. 번역이 켜진 소스가 전송될 때 기록됩니다.</td></tr>
         {{/each}}
       </tbody>
     </table>
