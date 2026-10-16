@@ -28,9 +28,7 @@ export function requiredString(value: unknown, field: string, maxLength: number)
   return text;
 }
 
-export function blankToNull(value: string | null | undefined): string | null {
-  return value !== undefined && value !== null && value.trim() !== '' ? value : null;
-}
+export { blankToNull } from '../domain/text.js';
 
 export function optionalBoolean(value: unknown): boolean | undefined {
   if (value === undefined) return undefined;

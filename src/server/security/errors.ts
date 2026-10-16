@@ -5,6 +5,7 @@ export type SecurityErrorCode =
   | 'http_error'
   | 'timeout'
   | 'fetch_failed'
+  | 'response_too_large'
   | 'unsupported_charset'
   | 'webhook_not_allowed';
 

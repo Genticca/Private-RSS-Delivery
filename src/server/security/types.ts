@@ -8,4 +8,6 @@ export interface FetchOptions {
   headers?: Record<string, string>;
   timeoutMs?: number;
   tlsMaxVersion?: TlsMaxVersion;
+  /** Internal timestamp for automatic compatibility fallback; absent on manual TLS settings. */
+  tlsPinnedAt?: string;
 }

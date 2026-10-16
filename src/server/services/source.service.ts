@@ -1,30 +1,28 @@
 import type Database from 'better-sqlite3';
-import type { CreateSourceRequest, SourceDto, UpdateSourceRequest } from '../contracts/api.js';
+import type { SourceDto } from '../contracts/api.js';
 import { nowIso } from '../db/time.js';
-import type { RepositoryRegistry } from '../runtime/container.js';
+import type { DeliveryBindingService } from './delivery-binding.service.js';
+import type { SourceRepository, SourceGroupRepository, GroupRepository, FetchLogRepository, ItemRepository, DeliveryJobRepository, TemplateRepository } from '../db/index.js';
 import { verifyFeedUrlSafe } from '../security/index.js';
 import { conflict, notFound, validationError } from './errors.js';
 import { toSourceDto } from './serialization.js';
-import {
-  optionalBoolean,
-  optionalInteger,
-  optionalString,
-  parseDiscordId,
-  parseDiscordIdList,
-  parseDiscordTagIds,
-  parseGroupIds,
-  parseSourceProfile,
-  requireObject,
-  validateFeedUrl,
-  validateFetchOptions,
-  validateOptionalHttpUrl
-} from './validation.js';
+import { optionalBoolean, requireObject } from './validation.js';
+import { normalizeSourceCreate, normalizeSourceUpdate } from './source-input.js';
 
 export interface SourceServiceOptions {
   db: Database.Database;
-  repositories: RepositoryRegistry;
+  repositories: {
+    sources: Pick<SourceRepository, 'list' | 'findByFeedUrl' | 'create' | 'update' | 'delete' | 'setEnabled' | 'getById'>;
+    sourceGroups: Pick<SourceGroupRepository, 'listGroupIdsBySourceIds' | 'setGroups' | 'listGroupIdsForSource'>;
+    groups: Pick<GroupRepository, 'listNamesByIds' | 'getById'>;
+    fetchLogs: Pick<FetchLogRepository, 'listLatestOutcomeBySourceIds' | 'list'>;
+    items: Pick<ItemRepository, 'deleteBySourceId'>;
+    deliveryJobs: Pick<DeliveryJobRepository, 'retryFailed'>;
+    templates: Pick<TemplateRepository, 'getById'>;
+  };
   now?: () => string;
   verifyFeedUrl?: (value: string) => Promise<unknown>;
+  bindings?: DeliveryBindingService;
 }
 
 export class SourceService {
@@ -86,6 +84,7 @@ export class SourceService {
         createdAt: timestamp
       });
       this.options.repositories.sourceGroups.setGroups(created.id, input.groupIds ?? []);
+      this.options.bindings?.reconcile(created.id, timestamp);
       return created;
     }));
     return this.toDto(source.id);
@@ -140,6 +139,7 @@ export class SourceService {
       if (input.groupIds !== undefined) {
         this.options.repositories.sourceGroups.setGroups(id, input.groupIds);
       }
+      this.options.bindings?.reconcile(id, timestamp, nextFeedUrl !== current.feedUrl);
     }));
     return this.toDto(id);
   }
@@ -159,14 +159,14 @@ export class SourceService {
     const timestamp = this.now();
     this.transaction(() => {
       this.options.repositories.sources.setEnabled(id, enabled, timestamp);
-      if (enabled) this.options.repositories.items.resetPendingAttemptsForSource(id, timestamp);
+      this.options.bindings?.reconcile(id, timestamp);
     });
     return this.toDto(id);
   }
 
   retryFailed(id: string): number {
     this.requireSource(id);
-    return this.options.repositories.items.requeueFailedBySource(id, this.now());
+    return this.options.repositories.deliveryJobs.retryFailed(id, this.now());
   }
 
   private toDto(id: string): SourceDto {
@@ -231,60 +231,10 @@ export class SourceService {
   }
 }
 
-export function normalizeSourceCreate(value: unknown): Required<Pick<CreateSourceRequest, 'feedUrl'>> & CreateSourceRequest {
-  const body = requireObject(value);
-  return {
-    feedUrl: validateFeedUrl(body.feedUrl),
-    name: optionalString(body.name, 'name', 200),
-    profile: parseSourceProfile(body.profile),
-    pollIntervalSeconds: optionalInteger(body.pollIntervalSeconds, 'pollIntervalSeconds', 60, 86400),
-    translate: optionalBoolean(body.translate),
-    templateId: optionalInteger(body.templateId, 'templateId', 1, Number.MAX_SAFE_INTEGER) ?? null,
-    webhookName: optionalString(body.webhookName, 'webhookName', 80),
-    webhookAvatarUrl: validateOptionalHttpUrl(body.webhookAvatarUrl, 'webhookAvatarUrl', 2048),
-    fetchOptions: validateFetchOptions(body.fetchOptions),
-    groupIds: parseGroupIds(body.groupIds),
-    silent: optionalBoolean(body.silent),
-    mentionRoleIds: parseDiscordIdList(body.mentionRoleIds, 'mentionRoleIds'),
-    mentionUserIds: parseDiscordIdList(body.mentionUserIds, 'mentionUserIds'),
-    mentionEveryone: optionalBoolean(body.mentionEveryone),
-    mentionHere: optionalBoolean(body.mentionHere),
-    threadId: parseDiscordId(body.threadId, 'threadId'),
-    threadName: optionalString(body.threadName, 'threadName', 100),
-    appliedTags: parseDiscordTagIds(body.appliedTags, 'appliedTags', 5),
-    editInPlace: optionalBoolean(body.editInPlace)
-  };
-}
-
 function uniqueNumbers(values: readonly number[]): number[] {
   return [...new Set(values)];
 }
 
 function isSqliteConstraint(error: unknown): boolean {
   return error instanceof Error && String((error as { code?: unknown }).code ?? '').startsWith('SQLITE_CONSTRAINT');
-}
-
-export function normalizeSourceUpdate(value: unknown): UpdateSourceRequest {
-  const body = requireObject(value);
-  return {
-    feedUrl: body.feedUrl === undefined ? undefined : validateFeedUrl(body.feedUrl),
-    name: optionalString(body.name, 'name', 200),
-    profile: parseSourceProfile(body.profile),
-    pollIntervalSeconds: optionalInteger(body.pollIntervalSeconds, 'pollIntervalSeconds', 60, 86400),
-    translate: optionalBoolean(body.translate),
-    templateId: body.templateId === null || body.templateId === '' ? null : optionalInteger(body.templateId, 'templateId', 1, Number.MAX_SAFE_INTEGER),
-    webhookName: optionalString(body.webhookName, 'webhookName', 80),
-    webhookAvatarUrl: validateOptionalHttpUrl(body.webhookAvatarUrl, 'webhookAvatarUrl', 2048),
-    fetchOptions: validateFetchOptions(body.fetchOptions),
-    groupIds: parseGroupIds(body.groupIds),
-    silent: optionalBoolean(body.silent),
-    mentionRoleIds: parseDiscordIdList(body.mentionRoleIds, 'mentionRoleIds'),
-    mentionUserIds: parseDiscordIdList(body.mentionUserIds, 'mentionUserIds'),
-    mentionEveryone: optionalBoolean(body.mentionEveryone),
-    mentionHere: optionalBoolean(body.mentionHere),
-    threadId: parseDiscordId(body.threadId, 'threadId'),
-    threadName: optionalString(body.threadName, 'threadName', 100),
-    appliedTags: parseDiscordTagIds(body.appliedTags, 'appliedTags', 5),
-    editInPlace: optionalBoolean(body.editInPlace)
-  };
 }

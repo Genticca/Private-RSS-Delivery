@@ -2,35 +2,27 @@ import { dirname } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import Database from 'better-sqlite3';
 import { loadConfig, type AppConfig } from '../config.js';
-import {
-  DeliveryLogRepository,
-  FetchLogRepository,
-  GroupRepository,
-  ItemRepository,
-  ModelConfigRepository,
-  ModelUsageRepository,
-  SourceGroupRepository,
-  SourceRepository,
-  TemplateRepository
-} from '../db/index.js';
+import { DeliveryBindingRepository, DeliveryJobRepository, ItemDeliveryRepository, DeliveryLogRepository, FetchLogRepository, GroupRepository, ItemRepository, ModelConfigRepository, ModelUsageRepository, SourceGroupRepository, SourceRepository, TemplateRepository, TranslationCacheRepository } from '../db/index.js';
 import { seedBuiltinPresets } from '../dispatcher/presets.js';
-import { WebhookDispatcher } from '../dispatcher/webhook.js';
-import { Poller } from '../scheduler/index.js';
-import { closeSsrSafeAgents } from '../security/index.js';
-import { CleanupWorker } from '../workers/index.js';
-import {
-  ExportImportService,
-  GroupService,
-  LogService,
-  ModelService,
-  PreviewService,
-  SchedulerService,
-  SourceService,
-  TemplateService,
-  TestSendService
-} from '../services/index.js';
+import type { WebhookEditFunction, WebhookPostFunction } from '../dispatcher/discord-client.js';
+import { closeSsrSafeAgents, type FeedFetchResult, type FeedFetchSource, type FetchFeedOptions } from '../security/index.js';
+import { CleanupWorker } from '../workers/cleanup-worker.js';
+import { PollWorker } from '../workers/poll-worker.js';
+import { DeliveryWorker } from '../workers/delivery-worker.js';
+import { ExportImportService, GroupService, LogService, ModelService, PreviewService, SchedulerService, SourceService, TemplateService, TestSendService } from '../services/index.js';
+import { DeliveryBindingService } from '../services/delivery-binding.service.js';
+import { DeliveryPlanService } from '../services/delivery-plan.service.js';
+import { DeliveryService } from '../services/delivery.service.js';
+import { DeliveryManagementService } from '../services/delivery-management.service.js';
+import { TranslationCacheService } from '../translator/translation-cache.service.js';
+import { PollService } from '../services/poll.service.js';
 import { DispatchTranslationService, ModelTranslator } from '../translator/index.js';
+import type { TranslationProvider } from '../translator/types.js';
+import type { ModelProvider } from '../contracts/api.js';
 import { runMigrations } from './migrator.js';
+import { loadEnvironment } from './environment.js';
+import { loadRuntimeOptions, type RuntimeOptions } from './options.js';
+import { stopAndDrain } from './lifecycle.js';
 
 export interface RepositoryRegistry {
   sources: SourceRepository;
@@ -42,176 +34,117 @@ export interface RepositoryRegistry {
   fetchLogs: FetchLogRepository;
   modelConfig: ModelConfigRepository;
   modelUsage: ModelUsageRepository;
+  deliveryBindings: DeliveryBindingRepository;
+  itemDeliveries: ItemDeliveryRepository;
+  deliveryJobs: DeliveryJobRepository;
+  translationCache: TranslationCacheRepository;
 }
-
-export interface WorkerRegistry {
-  cleanup: CleanupWorker;
-  dispatcher: WebhookDispatcher;
-  poller: Poller;
-}
-
+export interface WorkerRegistry { cleanup: CleanupWorker; dispatcher: DeliveryWorker; poller: PollWorker; }
 export interface ServiceRegistry {
-  sources: SourceService;
-  groups: GroupService;
-  templates: TemplateService;
-  preview: PreviewService;
-  model: ModelService;
-  logs: LogService;
-  scheduler: SchedulerService;
-  exportImport: ExportImportService;
-  testSend: TestSendService;
+  sources: SourceService; groups: GroupService; templates: TemplateService; preview: PreviewService;
+  model: ModelService; logs: LogService; scheduler: SchedulerService; exportImport: ExportImportService; testSend: TestSendService;
+  deliveryBindings: DeliveryBindingService; deliveryPlan: DeliveryPlanService; delivery: DeliveryService; poll: PollService;
+  deliveryManagement: DeliveryManagementService;
 }
-
-export interface ContainerModules {
-  repositories: RepositoryRegistry;
-  services: ServiceRegistry;
-  workers: WorkerRegistry;
-}
-
-// DI 컨테이너: 부팅 시 한 번 조립해 app/worker 가 공유한다.
-export interface Container extends ContainerModules {
-  config: AppConfig;
-  db: Database.Database;
-  close(): Promise<void>;
-}
-
+export interface ContainerModules { repositories: RepositoryRegistry; services: ServiceRegistry; workers: WorkerRegistry; }
+export interface Container extends ContainerModules { config: AppConfig; db: Database.Database; close(): Promise<void>; }
 export interface UrlVerifierOptions {
   verifyFeedUrl?: (value: string) => Promise<unknown>;
   verifyWebhookUrl?: (value: string) => Promise<unknown>;
 }
-
-export interface WorkerErrorContext {
-  worker: 'cleanup' | 'poller';
-}
-
+export interface WorkerErrorContext { worker: 'cleanup' | 'poller' | 'dispatcher'; }
 export interface CreateContainerOptions {
   env?: NodeJS.ProcessEnv;
+  envFilePath?: string;
   config?: AppConfig;
+  runtimeOptions?: Partial<RuntimeOptions>;
   db?: Database.Database;
   runMigrations?: boolean;
   urlVerifiers?: UrlVerifierOptions;
   onWorkerError?: (error: unknown, context: WorkerErrorContext) => void;
+  feedFetcher?: (source: FeedFetchSource, options?: FetchFeedOptions) => Promise<FeedFetchResult>;
+  postWebhook?: WebhookPostFunction;
+  editWebhook?: WebhookEditFunction;
+  translationProviders?: Partial<Record<ModelProvider, TranslationProvider>>;
 }
 
 export function createContainer(options: CreateContainerOptions = {}): Container {
-  const config = options.config ?? loadConfig(options.env);
+  const env = loadEnvironment(options.env, { envFilePath: options.envFilePath });
+  const config = options.config ?? loadConfig(env);
+  const limits = { ...loadRuntimeOptions(env), ...options.runtimeOptions };
   const db = options.db ?? openDatabase(config.databasePath);
-
-  configureDatabase(db);
-
-  if (options.runMigrations !== false) {
-    runMigrations(db);
-  }
-
+  db.pragma('journal_mode = WAL');
+  db.pragma('foreign_keys = ON');
+  db.pragma('busy_timeout = 5000');
+  if (options.runMigrations !== false) runMigrations(db);
   const repositories: RepositoryRegistry = {
-    sources: new SourceRepository(db),
-    sourceGroups: new SourceGroupRepository(db),
-    groups: new GroupRepository(db),
-    templates: new TemplateRepository(db),
-    items: new ItemRepository(db),
-    deliveryLogs: new DeliveryLogRepository(db),
-    fetchLogs: new FetchLogRepository(db),
-    modelConfig: new ModelConfigRepository(db),
-    modelUsage: new ModelUsageRepository(db)
+    sources: new SourceRepository(db), sourceGroups: new SourceGroupRepository(db), groups: new GroupRepository(db),
+    templates: new TemplateRepository(db), items: new ItemRepository(db), deliveryLogs: new DeliveryLogRepository(db),
+    fetchLogs: new FetchLogRepository(db), modelConfig: new ModelConfigRepository(db), modelUsage: new ModelUsageRepository(db),
+    deliveryBindings: new DeliveryBindingRepository(db), itemDeliveries: new ItemDeliveryRepository(db), deliveryJobs: new DeliveryJobRepository(db),
+    translationCache: new TranslationCacheRepository(db)
   };
-
   seedBuiltinPresets(repositories.templates);
-
-  const translator = new ModelTranslator({ repositories, env: options.env });
-  const translationService = new DispatchTranslationService({ repositories, translator });
-  const dispatcher = new WebhookDispatcher({ db, repositories, translationService });
-  const reportWorkerError = createWorkerErrorReporter(options.onWorkerError);
-
+  const bindings = new DeliveryBindingService({ db, repositories });
+  const planner = new DeliveryPlanService(repositories);
+  bindings.reconcileAll(new Date().toISOString());
+  const interrupted = repositories.deliveryJobs.list({ state: 'running', limit: 100_000 });
+  repositories.deliveryJobs.recoverInterrupted(new Date().toISOString());
+  for (const job of interrupted) repositories.deliveryJobs.syncItemState(job.itemId, new Date().toISOString());
+  const translator = new ModelTranslator({ repositories, env, providers: options.translationProviders });
+  const translation = new DispatchTranslationService({ repositories, translator });
+  const delivery = new DeliveryService({ db, repositories, planner, translationService: translation,
+    postWebhook: options.postWebhook, editWebhook: options.editWebhook });
+  const report = (error: unknown, worker: WorkerErrorContext['worker']) => {
+    if (options.onWorkerError) options.onWorkerError(error, { worker });
+    else console.error('Background worker failed:', worker, error);
+  };
+  let poller: PollWorker;
+  const poll = new PollService({ db, repositories, bindings, planner, fetchFeed: options.feedFetcher,
+    fetchOptions: { maxBytes: limits.feedMaxBytes }, holdCount: limits.holdCount, holdMinItems: limits.holdMinItems,
+    holdRatio: limits.holdRatio, isStopping: () => poller?.stopped ?? false });
+  poller = new PollWorker({ sources: repositories.sources, service: poll, concurrency: limits.pollConcurrency,
+    onError: (error) => report(error, 'poller') });
   const workers: WorkerRegistry = {
-    cleanup: new CleanupWorker({
-      db,
-      repositories,
-      onError: (error) => reportWorkerError(error, { worker: 'cleanup' })
-    }),
-    dispatcher,
-    poller: new Poller({
-      db,
-      repositories,
-      deliveryRunner: dispatcher,
-      onError: (error) => reportWorkerError(error, { worker: 'poller' })
-    })
+    poller,
+    dispatcher: new DeliveryWorker({ jobs: repositories.deliveryJobs, bindings: repositories.deliveryBindings,
+      service: delivery, concurrency: limits.deliveryConcurrency, onError: (error) => report(error, 'dispatcher') }),
+    cleanup: new CleanupWorker({ db, repositories, itemContentRetentionDays: limits.itemContentRetentionDays,
+      onError: (error) => report(error, 'cleanup') })
   };
-
   const preview = new PreviewService({ repositories });
-
   const services: ServiceRegistry = {
-    sources: new SourceService({
-      db,
-      repositories,
-      verifyFeedUrl: options.urlVerifiers?.verifyFeedUrl
-    }),
-    groups: new GroupService({ db, repositories, verifyWebhookUrl: options.urlVerifiers?.verifyWebhookUrl }),
-    templates: new TemplateService({ repositories }),
-    preview,
-    model: new ModelService({ repositories, env: options.env }),
-    logs: new LogService({ repositories }),
-    scheduler: new SchedulerService({ repositories, poller: workers.poller }),
-    exportImport: new ExportImportService({
-      db,
-      repositories,
-      verifyFeedUrl: options.urlVerifiers?.verifyFeedUrl,
-      verifyWebhookUrl: options.urlVerifiers?.verifyWebhookUrl
-    }),
-    testSend: new TestSendService({ repositories, preview })
+    sources: new SourceService({ db, repositories, bindings, verifyFeedUrl: options.urlVerifiers?.verifyFeedUrl }),
+    groups: new GroupService({ db, repositories, bindings, verifyWebhookUrl: options.urlVerifiers?.verifyWebhookUrl }),
+    templates: new TemplateService({ repositories }), preview,
+    model: new ModelService({ repositories, env, translation: new TranslationCacheService({ repositories, translator }) }), logs: new LogService({ repositories }),
+    scheduler: new SchedulerService({ repositories, poller }),
+    exportImport: new ExportImportService({ db, repositories, bindings,
+      verifyFeedUrl: options.urlVerifiers?.verifyFeedUrl, verifyWebhookUrl: options.urlVerifiers?.verifyWebhookUrl }),
+    testSend: new TestSendService({ repositories, preview }), deliveryBindings: bindings, deliveryPlan: planner, delivery, poll,
+    deliveryManagement: new DeliveryManagementService(db, repositories, planner)
   };
-
-  const modules: ContainerModules = {
-    repositories,
-    services,
-    workers
-  };
-
+  let closePromise: Promise<void> | null = null;
   let closed = false;
-
   return {
-    config,
-    db,
-    ...modules,
-    async close() {
-      if (closed) return;
-      closed = true;
-      workers.poller.stop();
-      workers.cleanup.stop();
-      try {
-        db.pragma('wal_checkpoint(TRUNCATE)');
-      } catch {
-        // best-effort checkpoint during shutdown
-      }
-      db.close();
-      await closeSsrSafeAgents();
+    config, db, repositories, services, workers,
+    close() {
+      if (closed) return Promise.resolve();
+      if (closePromise) return closePromise;
+      closePromise = (async () => {
+        await stopAndDrain([workers.poller, workers.dispatcher, workers.cleanup], limits.shutdownTimeoutMs);
+        await closeSsrSafeAgents();
+        try { db.pragma('wal_checkpoint(TRUNCATE)'); } catch { /* best effort checkpoint */ }
+        db.close();
+        closed = true;
+      })();
+      void closePromise.catch(() => { closePromise = null; });
+      return closePromise;
     }
-  };
-}
-
-function createWorkerErrorReporter(
-  reporter: ((error: unknown, context: WorkerErrorContext) => void) | undefined
-): (error: unknown, context: WorkerErrorContext) => void {
-  return (error, context) => {
-    if (reporter) {
-      reporter(error, context);
-      return;
-    }
-    console.error(`Background worker failed: ${context.worker}`, error);
   };
 }
 
 function openDatabase(databasePath: string): Database.Database {
-  ensureDatabaseDirectory(databasePath);
+  if (databasePath !== ':memory:' && !databasePath.startsWith('file:')) mkdirSync(dirname(databasePath), { recursive: true });
   return new Database(databasePath);
-}
-
-function ensureDatabaseDirectory(databasePath: string): void {
-  if (databasePath === ':memory:' || databasePath.startsWith('file:')) return;
-  mkdirSync(dirname(databasePath), { recursive: true });
-}
-
-function configureDatabase(db: Database.Database): void {
-  db.pragma('journal_mode = WAL'); // data/ 에 -wal/-shm 동반 파일 생성
-  db.pragma('foreign_keys = ON');
-  db.pragma('busy_timeout = 5000');
 }

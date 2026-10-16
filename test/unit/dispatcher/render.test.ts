@@ -76,6 +76,9 @@ function contextFrom(itemPatch: Partial<ItemRecord> = {}) {
 function itemRecord(patch: Partial<ItemRecord> = {}): ItemRecord {
   return {
     id: 1,
+    contentRevision: 1,
+    lastSeenAt: null,
+    contentPruned: false,
     sourceId: 'source-1',
     atomId: 'atom-1',
     title: 'Title',
@@ -105,6 +108,8 @@ function itemRecord(patch: Partial<ItemRecord> = {}): ItemRecord {
 function sourceRecord(patch: Partial<SourceRecord> = {}): SourceRecord {
   return {
     id: 'source-1',
+    configRevision: 1,
+    consecutiveFailures: 0,
     feedUrl: 'https://example.com/feed.xml',
     name: 'Example Feed',
     enabled: true,

@@ -1677,3 +1677,21 @@ button[type="submit"]:hover,
   width: 100%;
 }
 
+.delivery-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.delivery-table-scroll table {
+  min-width: 760px;
+}
+
+.translation-diagnostic-form .check {
+  flex-direction: row;
+  align-items: center;
+}
+
+.translation-diagnostic-form input[type="checkbox"] {
+  width: auto;
+}
+

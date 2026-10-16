@@ -30,6 +30,14 @@ export function modelRow(): string {
   return flash('모델 설정을 저장했습니다.');
 }
 
+export function translationDiagnostic(value: unknown): string {
+  return renderPartial('translation-diagnostic', value);
+}
+
+export function modelDiagnostics(value: object): string {
+  return renderPartial('model-diagnostics', { ...value, oob: true });
+}
+
 export function flash(message: string): string {
   return renderPartial('flash', { message });
 }

@@ -1,6 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import process from 'node:process';
+import { loadEnvironment } from './runtime/environment.js';
 
 const DEFAULT_PORT = 8080;
 const DEFAULT_HOST = '127.0.0.1';
@@ -19,7 +18,7 @@ export interface LoadConfigOptions {
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env, options: LoadConfigOptions = {}): AppConfig {
-  const effectiveEnv = env === process.env ? mergeDotEnv(env, options.envFilePath) : env;
+  const effectiveEnv = loadEnvironment(env, options);
   const isProduction = effectiveEnv.NODE_ENV === 'production';
   const host = readString(effectiveEnv.HOST, DEFAULT_HOST, 'HOST');
   if (isProduction && !isLoopbackHost(host)) {
@@ -35,40 +34,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, options: LoadCo
   };
 }
 
-
-function mergeDotEnv(env: NodeJS.ProcessEnv, envFilePath?: string): NodeJS.ProcessEnv {
-  const file = envFilePath ?? resolve(process.cwd(), '.env');
-  if (!existsSync(file)) return env;
-  const merged: NodeJS.ProcessEnv = { ...env };
-  for (const [key, value] of parseDotEnv(readFileSync(file, 'utf8'))) {
-    if (merged[key] === undefined) merged[key] = value;
-  }
-  return merged;
-}
-
-function parseDotEnv(content: string): Array<[string, string]> {
-  const entries: Array<[string, string]> = [];
-  for (const rawLine of content.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith('#')) continue;
-    const match = /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(line);
-    if (!match) continue;
-    entries.push([match[1], parseDotEnvValue(match[2] ?? '')]);
-  }
-  return entries;
-}
-
-function parseDotEnvValue(value: string): string {
-  const trimmed = value.trim();
-  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-    return trimmed.slice(1, -1).replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-  }
-  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
-    return trimmed.slice(1, -1);
-  }
-  const hash = trimmed.indexOf(' #');
-  return (hash >= 0 ? trimmed.slice(0, hash) : trimmed).trim();
-}
 
 function readString(value: string | undefined, fallback: string, name: string): string {
   const candidate = value?.trim() ?? fallback;

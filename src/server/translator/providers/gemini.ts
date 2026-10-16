@@ -8,6 +8,8 @@ export class GeminiTranslationProvider implements TranslationProvider {
       model: request.config.model,
       contents: request.prompt,
       config: {
+        abortSignal: request.signal,
+        responseJsonSchema: { type: 'object', properties: { title: { type: 'string' }, summary: { type: 'string' } }, required: ['title', 'summary'] },
         temperature: 0,
         maxOutputTokens: request.maxOutputTokens,
         responseMimeType: 'application/json'

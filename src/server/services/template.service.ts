@@ -1,12 +1,14 @@
 import type { CreateTemplateRequest, TemplateDto, UpdateTemplateRequest } from '../contracts/api.js';
 import { nowIso } from '../db/time.js';
-import type { RepositoryRegistry } from '../runtime/container.js';
+import type { TemplateRepository } from '../db/index.js';
 import { conflict, notFound, validationError } from './errors.js';
 import { toTemplateDto } from './serialization.js';
 import { optionalString, parseIdParam, requireObject, requiredString } from './validation.js';
 
 export interface TemplateServiceOptions {
-  repositories: RepositoryRegistry;
+  repositories: {
+    templates: Pick<TemplateRepository, 'list' | 'create' | 'update' | 'delete' | 'findByName' | 'getById'>;
+  };
   now?: () => string;
 }
 

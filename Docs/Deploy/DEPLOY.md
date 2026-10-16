@@ -68,7 +68,7 @@ sudo chmod 600 /opt/rss-discord-bridge/.env   # 키 보호
 
 ```bash
 cd /opt/rss-discord-bridge
-sudo -u rssbridge env NODE_ENV=production node dist/server/app.js &
+sudo -u rssbridge env NODE_ENV=production node dist/server/main.js &
 sleep 2
 curl -s http://127.0.0.1:8080/healthz   # {"status":"ok"}
 curl -s http://127.0.0.1:8080/ready     # {"status":"ready"}  ← DB·마이그레이션 정상

@@ -42,6 +42,7 @@
     if (path.startsWith('/templates')) activeId = 'nav-templates';
     else if (path.startsWith('/logs')) activeId = 'nav-logs';
     else if (path.startsWith('/model')) activeId = 'nav-model';
+    else if (path.startsWith('/delivery-jobs')) activeId = 'nav-delivery-jobs';
     
     document.querySelectorAll('.sidebar-nav .nav-item').forEach((el) => {
       if (el.id === activeId) {
@@ -364,8 +365,8 @@
     state.usageBefore = result.nextBefore;
     const body = document.getElementById('model-usage');
     if (!body) return;
-    const html = result.items.map((item) => `<tr><td>${escapeHtml(item.role)}</td><td>${escapeHtml(item.provider)}</td><td>${escapeHtml(item.model)}</td><td>${item.inputTokens ?? ''}/${item.outputTokens ?? ''}</td><td>${item.latencyMs ?? ''}</td><td>${escapeHtml(item.error || '')}</td></tr>`).join('');
-    if (!append) body.innerHTML = html || `<tr><td colspan="6" class="muted" style="text-align:center; padding:2rem 1rem;">아직 AI 모델 호출 이력이 없습니다. 번역이 켜진 소스가 전송될 때 기록됩니다.</td></tr>`;
+    const html = result.items.map((item) => `<tr><td>${escapeHtml(item.role)}</td><td>${item.httpRequested ? '요청' : '설정 확인'}</td><td>${escapeHtml(item.provider)}</td><td>${escapeHtml(item.model)}</td><td>${item.inputTokens ?? ''}/${item.outputTokens ?? ''}</td><td>${item.latencyMs ?? ''}</td><td>${escapeHtml(item.error || '')}</td></tr>`).join('');
+    if (!append) body.innerHTML = html || `<tr><td colspan="7" class="muted" style="text-align:center; padding:2rem 1rem;">아직 AI 모델 호출 이력이 없습니다. 번역이 켜진 소스가 전송될 때 기록됩니다.</td></tr>`;
     else body.insertAdjacentHTML('beforeend', html);
   }
 

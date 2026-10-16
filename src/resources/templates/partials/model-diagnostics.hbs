@@ -1,0 +1,7 @@
+<section id="model-diagnostics" class="panel compact" {{#if oob}}hx-swap-oob="outerHTML"{{/if}}>
+  <h2>번역 동작 상태</h2>
+  <p class="muted">ready는 API 키가 설정되었다는 뜻입니다. 최근 실제 요청 결과는 아래에 표시됩니다.</p>
+  {{#each roles}}<p>{{role}}: {{keyStatus}} · 최근 요청 {{lastRequestAt}} · {{lastRequestResult}}</p>{{/each}}
+  <p>실제 요청 {{requests.requests}}회 · fallback {{requests.fallback}}회 · 잘림 {{requests.truncated}}회</p>
+  <p>캐시 재사용 {{cache.cache_hit}}회 · 로컬 처리 {{cache.local_skip}}회 · 동시 요청 합침 {{cache.single_flight}}회</p>
+</section>

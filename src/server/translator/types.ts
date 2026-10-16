@@ -1,6 +1,8 @@
 import type { ModelConfigRecord } from '../db/index.js';
 
 export interface TranslationInput {
+  itemId?: number;
+  jobId?: number;
   title: string;
   summary: string;
 }

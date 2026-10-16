@@ -12,6 +12,8 @@ const DEFAULT_MAX_SSE_CONNECTIONS = 5;
 
 export async function registerLogRoutes(app: FastifyInstance, services: ServiceRegistry, options: LogRouteOptions = {}): Promise<void> {
   const sseConnections = createSseConnectionLimiter(options.maxSseConnections ?? DEFAULT_MAX_SSE_CONNECTIONS);
+  const streams = new Set<import('node:http').ServerResponse>();
+  app.addHook('preClose', async () => { for (const stream of streams) stream.end(); });
 
   app.get('/api/logs', async (request) => {
     const query = request.query as { type?: string; before?: string; limit?: string };
@@ -34,31 +36,42 @@ export async function registerLogRoutes(app: FastifyInstance, services: ServiceR
     };
     request.raw.on('close', releaseOnce);
     reply.raw.on('close', releaseOnce);
+    streams.add(reply.raw);
+    reply.raw.on('close', () => streams.delete(reply.raw));
     reply.raw.writeHead(200, {
       'content-type': 'text/event-stream; charset=utf-8',
       'cache-control': 'no-cache, no-transform',
       connection: 'keep-alive'
     });
-    let deliveryLast = 0;
-    let fetchLast = 0;
+    reply.raw.flushHeaders();
+    const cursor = parseSseCursor(request.headers['last-event-id']);
+    let deliveryLast = cursor?.delivery ?? 0;
+    let fetchLast = cursor?.fetch ?? 0;
     const writeEvent = (event: { event: string; id: number; data: unknown }): void => {
       if (event.event === 'delivery') deliveryLast = Math.max(deliveryLast, event.id);
       if (event.event === 'fetch') fetchLast = Math.max(fetchLast, event.id);
       reply.raw.write(`event: ${event.event}\n`);
-      reply.raw.write(`id: ${event.id}\n`);
+      reply.raw.write(`id: ${deliveryLast}:${fetchLast}\n`);
       reply.raw.write(`data: ${JSON.stringify(event.data)}\n\n`);
     };
-    for (const event of services.logs.backfill(50)) writeEvent(event);
+    for (const event of cursor ? services.logs.after(deliveryLast, fetchLast, 100) : services.logs.backfill(50)) writeEvent(event);
+    let ticks = 0;
     const timer = setInterval(() => {
       for (const event of services.logs.after(deliveryLast, fetchLast, 100)) writeEvent(event);
-      reply.raw.write(': ping\n\n');
-    }, 15_000);
+      if (++ticks % 15 === 0) reply.raw.write(': ping\n\n');
+    }, 1000);
     timer.unref();
     request.raw.on('close', () => {
       clearInterval(timer);
       releaseOnce();
     });
   });
+}
+
+export function parseSseCursor(value: string | string[] | undefined): { delivery: number; fetch: number } | null {
+  if (typeof value !== 'string' || !/^\d+:\d+$/.test(value)) return null;
+  const [delivery, fetch] = value.split(':').map(Number);
+  return Number.isSafeInteger(delivery) && Number.isSafeInteger(fetch) ? { delivery, fetch } : null;
 }
 
 

@@ -51,6 +51,8 @@ export async function verifyWebhookUrlSafe(value: string, options: WebhookGuardO
 
 export function canonicalWebhookUrl(value: string): string {
   const url = assertSafeWebhookUrl(value);
-  const path = url.pathname.replace(/\/+$/, '').toLowerCase();
-  return `${url.protocol}//${url.hostname.toLowerCase()}${path}`;
+  const path = url.pathname.replace(/\/+$/, '');
+  if (url.hostname === 'discordapp.com') url.hostname = 'discord.com';
+  // The token is opaque and case-sensitive. Query thread settings belong to the source.
+  return `${url.origin}${path}`;
 }

@@ -1,5 +1,17 @@
 # Frontend 명세 (Gemini 트랙)
 
+## D25 — 2026-10-16 승인된 발송 상태·모델 화면 계약
+
+사용자가 §4.3·4.4 및 모델 화면 변경을 명시 승인했다. 해당 항목의 기존 설명과 충돌하면 아래 계약을 우선한다.
+
+- 새 소스·새 웹훅/스레드 연결은 첫 성공 수집을 묵음 baseline으로 삼는다고 안내한다. 연결 직후 첫 수집 전 새 글도 제외될 수 있음을 함께 표시한다.
+- editInPlace는 기존 발송 연결에 대한 수정/PATCH 여부다. OFF는 같은 연결의 변경 알림 POST이며 새 목적지로 과거 글을 보내는 권한이 아니다.
+- 목적지별 pending·failed·held·unknown·legacy_unknown·uneditable 상태와 사유를 확인할 수 있게 한다. retry-failed는 기존 유효 연결의 failed 작업만 재시도한다. held는 선택한 작업만 발송하거나 historical 처리한다. unknown은 결과 확인 없이 재POST하지 않는다. 연속 poll 실패를 표시한다.
+- 모델 화면은 키 존재 여부와 최근 실제 요청 성공을 구분한다. 실제 요청·캐시 hit·로컬 skip·fallback·잘림·토큰을 구분하고 Discord 발송 없이 번역 진단을 실행할 수 있게 한다.
+- Handlebars·htmx·CodeMirror·SSE와 미리보기의 원문 렌더 계약을 유지한다.
+
+---
+
 > 작성: 2026-05-28 · 상위: [README.md](../README.md) · 대칭: [backend-spec.md](./backend-spec.md)
 > 갱신: 2026-06-09 — D24 채널 모델 반영
 > 본 문서는 **프런트엔드(`src/resources/templates/**`, `src/resources/presets/**`)** 를 구현 직전 수준으로 정의한다.

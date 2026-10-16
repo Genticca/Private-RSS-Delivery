@@ -51,12 +51,18 @@ export async function registerWebRoutes(app: FastifyInstance, services: ServiceR
   );
 
   app.get('/logs', async (_request, reply) => render(reply, 'pages/logs.hbs', {}));
+  app.get('/delivery-jobs', async (request, reply) => {
+    const jobs = services.deliveryManagement.list(request.query);
+    const query = request.query as { state?: string; sourceId?: string };
+    return render(reply, 'pages/delivery-jobs.hbs', { jobs, state: query.state ?? '', sourceId: query.sourceId ?? '', nextBefore: jobs.length === 200 ? jobs.at(-1)?.id : null });
+  });
 
   app.get('/model', async (_request, reply) => {
     const status = services.model.getStatus();
     return render(reply, 'pages/model.hbs', {
       config: services.model.getConfig(),
       status,
+      diagnostics: services.model.getDiagnostics(),
       statusGuidance: modelStatusGuidance(status),
       usage: services.model.listUsage({ limit: 50 })
     });

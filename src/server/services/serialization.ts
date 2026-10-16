@@ -17,6 +17,7 @@ import type { TemplateRecord } from '../db/template.repository.js';
 
 export function toSourceDto(source: SourceRecord, groupIds: number[], groupNames: string[], lastOutcome: FetchLogDto['outcome'] | null): SourceDto {
   return {
+    consecutiveFailures: source.consecutiveFailures,
     id: source.id,
     feedUrl: source.feedUrl,
     name: source.name,
@@ -81,6 +82,9 @@ export function toModelConfigEntryDto(record: ModelConfigRecord): ModelConfigEnt
 
 export function toModelUsageDto(record: ModelUsageRecord): ModelUsageDto {
   return {
+    httpRequested: record.httpRequested,
+    itemId: record.itemId,
+    jobId: record.jobId,
     id: record.id,
     role: record.role,
     provider: record.provider,

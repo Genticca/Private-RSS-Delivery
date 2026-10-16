@@ -5,6 +5,9 @@ import { nullable, requireNonEmpty } from './sqlite.js';
 export type ItemDeliveryStatus = 'pending' | 'delivered' | 'failed' | 'historical';
 
 export interface ItemRecord {
+  contentRevision: number;
+  lastSeenAt: string | null;
+  contentPruned: boolean;
   id: number;
   sourceId: string;
   atomId: string;
@@ -69,6 +72,9 @@ export interface UpdateContentHashInput {
 }
 
 interface ItemRow {
+  content_revision: number;
+  last_seen_at: string | null;
+  content_pruned: number;
   id: number;
   source_id: string;
   atom_id: string;
@@ -95,6 +101,9 @@ interface ItemRow {
 }
 
 const ITEM_COLUMN_NAMES = [
+  'content_revision',
+  'last_seen_at',
+  'content_pruned',
   'id',
   'source_id',
   'atom_id',
@@ -198,7 +207,8 @@ export class ItemRepository {
         `UPDATE items
          SET title = ?, link = ?, summary = ?, content_hash = ?, incident_stage = ?,
              published_at = ?, updated_at = ?, author = ?, comments_url = ?, image = ?,
-             translated_title = NULL, translated_summary = NULL, translated_at = NULL
+             content_revision = content_revision + CASE WHEN content_hash != ? THEN 1 ELSE 0 END,
+             content_pruned = 0, translated_title = NULL, translated_summary = NULL, translated_at = NULL
          WHERE id = ?`
       )
       .run(
@@ -212,6 +222,7 @@ export class ItemRepository {
         nullable(input.author),
         nullable(input.commentsUrl),
         nullable(input.image),
+        input.contentHash,
         id
       );
     if (result.changes === 0) throw new Error(`Item not found: ${id}`);
@@ -316,6 +327,12 @@ export class ItemRepository {
     return this.requireById(id);
   }
 
+  saveTranslationIfCurrent(item: ItemRecord, title: string, summary: string, translatedAt: string): void {
+    this.db.prepare(`UPDATE items SET translated_title = ?, translated_summary = ?, translated_at = ?
+      WHERE id = ? AND content_revision = ? AND COALESCE(title, '') = ? AND COALESCE(summary, '') = ?`)
+      .run(title, summary, translatedAt, item.id, item.contentRevision, item.title ?? '', item.summary ?? '');
+  }
+
   private updateDeliveryState(
     id: number,
     deliveryStatus: ItemDeliveryStatus,
@@ -360,6 +377,9 @@ function mapItemRow(row: ItemRow): ItemRecord {
     throw new Error(`items.content_hash must not be empty for item ${row.id}.`);
   }
   return {
+    contentRevision: row.content_revision,
+    lastSeenAt: row.last_seen_at,
+    contentPruned: row.content_pruned === 1,
     id: row.id,
     sourceId: row.source_id,
     atomId: row.atom_id,

@@ -7,13 +7,16 @@ import type { NormalizedItem } from '../domain/normalize/types.js';
 import { applySourceWebhookOptions } from '../dispatcher/payload-options.js';
 import { buildPresetRenderContext, PresetRenderError, renderDiscordPayload } from '../dispatcher/render.js';
 import { DiscordPayloadValidationError, validateDiscordPayload } from '../dispatcher/validate.js';
-import type { RepositoryRegistry } from '../runtime/container.js';
+import type { SourceRepository, ItemRepository } from '../db/index.js';
 import { fetchFeed, type FetchFeedOptions, type FeedFetchResult } from '../security/index.js';
 import { notFound, validationError } from './errors.js';
 import { optionalString, requireObject } from './validation.js';
 
 export interface PreviewServiceOptions {
-  repositories: RepositoryRegistry;
+  repositories: {
+    sources: Pick<SourceRepository, 'getById'>;
+    items: Pick<ItemRepository, 'latestForSource'>;
+  };
   fetchFeed?: (source: Parameters<typeof fetchFeed>[0], options?: FetchFeedOptions) => Promise<FeedFetchResult>;
   fetchOptions?: FetchFeedOptions;
   now?: () => string;
@@ -84,6 +87,8 @@ export class PreviewService {
   private syntheticSource() {
     return {
       id: 'sample',
+      configRevision: 1,
+      consecutiveFailures: 0,
       feedUrl: 'https://example.com/feed.xml',
       name: 'Sample Source',
       enabled: true,
