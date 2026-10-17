@@ -117,7 +117,7 @@ Access의 무료 플랜은 공식 안내 기준 US$0이며 50명 미만 소규�
 
 공개 도메인·Cloudflare 계정·허용 관리자 계정·인증 제공자·세션 정책은 아직 정하지 않았으며 실제 설정도 하지 않았다.
 
-상세: [Cloudflare Access 도입안](../Deploy/CLOUDFLARE_ACCESS_PLAN.md).
+상세: [Cloudflare Access 도입안](../../../Deploy/CLOUDFLARE_ACCESS_PLAN.md).
 
 ## 7. 구현 순서와 미확정 사항
 
@@ -129,7 +129,7 @@ Access의 무료 플랜은 공식 안내 기준 US$0이며 50명 미만 소규�
 6. Access·Host/Origin·JWT 검증·SSE 세션 동작을 구현/검증한 후 외부 도메인을 연결한다.
 7. OCI에서 자원 사용량·발송 지연·중복/누락·번역 사용량을 측정한다.
 
-보호 문서 변경 검토 대상은 [backend-spec](../Architecture/backend-spec.md)의 DB/스케줄러/dispatcher/번역/서비스/접근 제어 계약과 [frontend-spec](../Architecture/frontend-spec.md)의 번역·재시도·Access 세션 안내다. AGENTS.md에 따라 파일·항목 단위의 명시 승인 없이 수정하지 않는다. 이 요약 문서 작성은 해당 보호 문서 편집 승인으로 취급하지 않는다.
+보호 문서 변경 검토 대상은 [backend-spec](../../../Architecture/backend-spec.md)의 DB/스케줄러/dispatcher/번역/서비스/접근 제어 계약과 [frontend-spec](../../../Architecture/frontend-spec.md)의 번역·재시도·Access 세션 안내다. AGENTS.md에 따라 파일·항목 단위의 명시 승인 없이 수정하지 않는다. 이 요약 문서 작성은 해당 보호 문서 편집 승인으로 취급하지 않는다.
 
 ## 8. 검증 상태와 관련 자료
 
@@ -144,7 +144,7 @@ Access의 무료 플랜은 공식 안내 기준 US$0이며 50명 미만 소규�
 - [발송 원인 조사](2026-10-16-webhook-history-investigation.md)
 - [발송 개선 상세안](2026-10-16-webhook-delivery-improvement-plan.md)
 - [번역 API 절감 상세안](2026-10-16-translation-api-optimization.md)
-- [발송 재현 스크립트](../../Archive/2026-10-16/Docs/Report/2026-10-16-webhook-history-repro.mjs)
-- [번역 재현 스크립트](../../Archive/2026-10-16/Docs/Report/2026-10-16-translation-usage-repro.mjs)
-- [현재 SSH 터널 배포 가이드](../Deploy/DEPLOY.md)
-- [Cloudflare Access 도입안](../Deploy/CLOUDFLARE_ACCESS_PLAN.md)
+- [발송 재현 스크립트](../../../../Archive/2026-10-16/Docs/Report/2026-10-16-webhook-history-repro.mjs)
+- [번역 재현 스크립트](../../../../Archive/2026-10-16/Docs/Report/2026-10-16-translation-usage-repro.mjs)
+- [현재 SSH 터널 배포 가이드](../../../Deploy/DEPLOY.md)
+- [Cloudflare Access 도입안](../../../Deploy/CLOUDFLARE_ACCESS_PLAN.md)

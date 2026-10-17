@@ -10,14 +10,16 @@
 
 | 약칭 | 문서 | 작성 | 성격 |
 | --- | --- | --- | --- |
-| **[9월]** | 워크스페이스 루트 `PROJECT_STRUCTURE_REVIEW.md` | 2026-09-07 | 구조·장애 경로 조사(저장소 밖) |
-| **[9월-노트]** | [2026-09-07-structure-review-notes.md](2026-09-07-structure-review-notes.md) | 2026-09-07 | 설계 문서 관련 발견 요약 |
-| **[요약]** | [2026-10-16-reorganization-summary.md](2026-10-16-reorganization-summary.md) | Codex | 개편 현황과 추진 방향 |
-| **[원인]** | [2026-10-16-webhook-history-investigation.md](2026-10-16-webhook-history-investigation.md) | Codex | 새 웹훅 과거 발송 원인·재현 |
-| **[발송]** | [2026-10-16-webhook-delivery-improvement-plan.md](2026-10-16-webhook-delivery-improvement-plan.md) | Codex | 목적지별 발송 모델·이관·테스트 |
-| **[번역]** | [2026-10-16-translation-api-optimization.md](2026-10-16-translation-api-optimization.md) | Codex | 번역 API 절감 |
+| **[9월]** | [project-structure-review.md](Archive/2026-09-07/project-structure-review.md) (원래 워크스페이스 루트 `PROJECT_STRUCTURE_REVIEW.md`) | 2026-09-07 | 구조·장애 경로 조사 |
+| **[9월-노트]** | [2026-09-07-structure-review-notes.md](Archive/2026-09-07/2026-09-07-structure-review-notes.md) | 2026-09-07 | 설계 문서 관련 발견 요약 |
+| **[요약]** | [2026-10-16-reorganization-summary.md](Archive/2026-10-16/2026-10-16-reorganization-summary.md) | Codex | 개편 현황과 추진 방향 |
+| **[원인]** | [2026-10-16-webhook-history-investigation.md](Archive/2026-10-16/2026-10-16-webhook-history-investigation.md) | Codex | 새 웹훅 과거 발송 원인·재현 |
+| **[발송]** | [2026-10-16-webhook-delivery-improvement-plan.md](Archive/2026-10-16/2026-10-16-webhook-delivery-improvement-plan.md) | Codex | 목적지별 발송 모델·이관·테스트 |
+| **[번역]** | [2026-10-16-translation-api-optimization.md](Archive/2026-10-16/2026-10-16-translation-api-optimization.md) | Codex | 번역 API 절감 |
 | **[Access]** | [../Deploy/CLOUDFLARE_ACCESS_PLAN.md](../Deploy/CLOUDFLARE_ACCESS_PLAN.md) | Codex | Cloudflare Access + Tunnel 검토 (배포 항목 — 본문 제외, 부록 참조) |
-| **[보완]** | [2026-10-16-additional-reorganization-findings.md](2026-10-16-additional-reorganization-findings.md) | Claude | 누락 항목·추가 발견 |
+| **[보완]** | [2026-10-16-additional-reorganization-findings.md](Archive/2026-10-16/2026-10-16-additional-reorganization-findings.md) | Claude | 누락 항목·추가 발견 |
+
+출처 문서는 2026-10-16 문서 정리 때 `Docs/Report/Archive/`로 옮겼다. 이 통합 보고서와 [구현 보고서](2026-10-16-implementation-report.md)가 현재 기준이다.
 
 재현 스크립트: [2026-10-16-webhook-history-repro.mjs](../../Archive/2026-10-16/Docs/Report/2026-10-16-webhook-history-repro.mjs), [2026-10-16-translation-usage-repro.mjs](../../Archive/2026-10-16/Docs/Report/2026-10-16-translation-usage-repro.mjs).
 
