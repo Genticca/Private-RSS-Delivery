@@ -120,8 +120,10 @@ env는 프로젝트 루트의 `.env`(gitignore)에서 읽는다. 템플릿은 `d
 
 ## 설계 문서
 
-세부 계약·알고리즘은 별도 문서에 있다:
+세부 계약·알고리즘은 별도 문서에 있다. 입구는 [`Docs/README.md`](./Docs/README.md)(문서 지도)다.
 
+- 구조 개요 — [`Docs/Architecture/overview.md`](./Docs/Architecture/overview.md)
+- DB 스키마 계약 — [`Docs/Contracts/db-schema.md`](./Docs/Contracts/db-schema.md)
 - 백엔드 스펙 — [`Docs/Architecture/backend-spec.md`](./Docs/Architecture/backend-spec.md)
 - 프런트엔드 스펙 — [`Docs/Architecture/frontend-spec.md`](./Docs/Architecture/frontend-spec.md)
 - 배포 가이드 — [`Docs/Deploy/DEPLOY.md`](./Docs/Deploy/DEPLOY.md)

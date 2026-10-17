@@ -4,7 +4,7 @@
 
 상태: **검토안, 미도입**. Cloudflare 계정·도메인·OCI 방화벽·앱 코드를 변경하지 않았다. 명령을 그대로 실행하는 설치 런북이 아니라 도입에 필요한 구성과 검증 항목을 기록한다.
 
-전체 개편 현황: [프로젝트 개편 요약](../Report/2026-10-16-reorganization-summary.md).
+전체 개편 현황: [프로젝트 개편 요약](../Report/Archive/2026-10-16/2026-10-16-reorganization-summary.md) (현재 기준: [통합 개편 보고서](../Report/2026-10-16-consolidated-reorganization-report.md)).
 
 ## 1. 현재 접근 방식과 목표
 
