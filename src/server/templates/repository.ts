@@ -1,10 +1,8 @@
-import type Database from 'better-sqlite3';
-import { nowIso } from '../core/db.js';
-import { toSqliteBoolean } from '../core/db.js';
-import { fromSqliteBoolean } from '../core/db.js';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import type Database from 'better-sqlite3';
+import { nowIso, toSqliteBoolean, fromSqliteBoolean } from '../core/db.js';
 
 export interface TemplateRecord {
   id: number;

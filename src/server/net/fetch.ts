@@ -1,15 +1,13 @@
-import type { DnsLookup } from './address.js';
-import { Agent } from 'undici';
-import type { Dispatcher } from 'undici';
-import { tlsProfileKey } from './address.js';
-import { createSsrSafeLookup } from './address.js';
-import type { RequestInfo } from 'undici';
-import type { RequestInit } from 'undici';
-import type { Response } from 'undici';
-import { assertSafeFeedUrl } from './address.js';
-import { verifyFeedUrlSafe } from './address.js';
+import {
+  Agent,
+  fetch as undiciFetch,
+  type Dispatcher,
+  type RequestInfo,
+  type RequestInit,
+  type Response
+} from 'undici';
 import { SecurityError } from '../core/errors.js';
-import { fetch as undiciFetch } from 'undici';
+import { tlsProfileKey, createSsrSafeLookup, assertSafeFeedUrl, verifyFeedUrlSafe, type DnsLookup } from './address.js';
 
 export interface AgentCacheOptions {
   tlsMaxVersion?: TlsMaxVersion;

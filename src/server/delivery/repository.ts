@@ -1,7 +1,7 @@
+import { randomUUID } from 'node:crypto';
 import type Database from 'better-sqlite3';
 import type { ItemRecord } from '../feed/repository.js';
 import type { SourceRecord } from '../sources/repository.js';
-import { randomUUID } from 'node:crypto';
 import type { DiscordWebhookPayload } from '../templates/render.js';
 
 export interface DeliveryBindingRecord {

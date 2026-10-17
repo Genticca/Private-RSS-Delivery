@@ -116,6 +116,21 @@ describe('server package dependencies', () => {
     .map((target) => ({ file, target })));
   const label = ({ file, target }: { file: string; target: string }) => `${relative(ROOT, file)} -> ${relative(ROOT, target)}`;
 
+  it('imports each module once per file', () => {
+    const duplicates = sources.flatMap((file) => {
+      const statements = [...readFileSync(file, 'utf8').matchAll(/^import\s+(type\s+)?([^'"]*?)\s*from\s*['"]([^'"]+)['"]/gms)];
+      const seen = new Map<string, number>();
+      for (const [, typeOnly, clause, module] of statements) {
+        if (clause.trim().startsWith('* as')) continue;
+        const typeDefault = typeOnly && !clause.trim().startsWith('{');
+        const key = `${module}${typeDefault ? ':type-default' : ''}`;
+        seen.set(key, (seen.get(key) ?? 0) + 1);
+      }
+      return [...seen].filter(([, count]) => count > 1).map(([module]) => `${relative(ROOT, file)} -> ${module}`);
+    });
+    expect(duplicates).toEqual([]);
+  });
+
   it('knows every package', () => {
     expect(sources.map(packageOf).filter((name) => !(name in TIERS))).toEqual([]);
   });

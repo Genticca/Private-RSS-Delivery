@@ -1,14 +1,13 @@
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import type { FeedEnvelope } from '../../src/server/feed/parse.js';
-import { normalize } from '../../src/server/feed/normalize.js';
-import { expect } from 'vitest';
-import { computeGenericContentHash } from '../../src/server/feed/normalize.js';
-import { parseFeed } from '../../src/server/feed/parse.js';
+import { describe, it, expect } from 'vitest';
+import { parseFeed, type FeedEnvelope } from '../../src/server/feed/parse.js';
+import {
+  normalize,
+  computeGenericContentHash,
+  normalizeGeneric,
+  detectProfile,
+  effectiveProfile
+} from '../../src/server/feed/normalize.js';
 import { readFeedFixture } from '../mocks/fixtures.js';
-import { normalizeGeneric } from '../../src/server/feed/normalize.js';
-import { detectProfile } from '../../src/server/feed/normalize.js';
-import { effectiveProfile } from '../../src/server/feed/normalize.js';
 
 describe('normalize Stage 2', () => {
   it('normalizes generic HTML into clean text and strips title markup without leaking raw fields', () => {

@@ -1,11 +1,8 @@
-import type { DeliveryDestination } from './bindings.js';
+import { fetch as undiciFetch, type Response } from 'undici';
 import type { DiscordWebhookPayload } from '../templates/render.js';
-import { assertSafeWebhookUrl } from '../net/webhook-url.js';
-import { canonicalWebhookUrl } from '../net/webhook-url.js';
-import { assertSafeWebhookMessageUrl } from '../net/webhook-url.js';
-import type { Response } from 'undici';
-import { fetch as undiciFetch } from 'undici';
+import { assertSafeWebhookUrl, canonicalWebhookUrl, assertSafeWebhookMessageUrl } from '../net/webhook-url.js';
 import { getSsrSafeAgent } from '../net/fetch.js';
+import type { DeliveryDestination } from './bindings.js';
 
 export interface WebhookPostRequest {
   destination: DeliveryDestination;

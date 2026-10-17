@@ -1,10 +1,6 @@
-import type { Container } from '../../src/server/container.js';
-import { afterEach } from 'vitest';
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
+import { afterEach, describe, it, expect } from 'vitest';
+import { createContainer, type Container } from '../../src/server/container.js';
 import { addSecondsIso } from '../../src/server/core/db.js';
-import { createContainer } from '../../src/server/container.js';
 
 let containers: Container[] = [];
 

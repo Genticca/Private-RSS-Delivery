@@ -1,8 +1,5 @@
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import { harness } from '../mocks/runtime.js';
-import { WEBHOOK_B } from '../mocks/runtime.js';
-import { expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { harness, WEBHOOK_B } from '../mocks/runtime.js';
 
 describe('configuration mutations and binding consistency', () => {
   it('reconciles group URL replacement through import overwrite', async () => {

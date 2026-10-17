@@ -1,21 +1,19 @@
-import type { CreateSourceRequest } from './service.js';
-import { requireObject } from '../core/input.js';
-import { optionalString } from '../core/input.js';
-import { optionalInteger } from '../core/input.js';
-import { optionalBoolean } from '../core/input.js';
-import { parseDiscordIdList } from '../core/input.js';
-import { parseDiscordId } from '../core/input.js';
-import { parseDiscordTagIds } from '../core/input.js';
-import type { UpdateSourceRequest } from './service.js';
-import type { SourceProfile } from '../feed/parse.js';
-import { SOURCE_PROFILE_OPTIONS } from '../feed/parse.js';
-import { validationError } from '../core/errors.js';
-import { requiredString } from '../core/input.js';
-import { assertSafeFeedUrl } from '../net/address.js';
-import { securityValidationError } from '../core/input.js';
-import { parseHttpUrl } from '../net/address.js';
-import { SecurityError } from '../core/errors.js';
+import {
+  requireObject,
+  optionalString,
+  optionalInteger,
+  optionalBoolean,
+  parseDiscordIdList,
+  parseDiscordId,
+  parseDiscordTagIds,
+  requiredString,
+  securityValidationError
+} from '../core/input.js';
+import { SOURCE_PROFILE_OPTIONS, type SourceProfile } from '../feed/parse.js';
+import { validationError, SecurityError } from '../core/errors.js';
+import { assertSafeFeedUrl, parseHttpUrl } from '../net/address.js';
 import type { FetchOptions } from '../net/fetch.js';
+import type { CreateSourceRequest, UpdateSourceRequest } from './service.js';
 
 export function normalizeSourceCreate(value: unknown): Required<Pick<CreateSourceRequest, 'feedUrl'>> & CreateSourceRequest {
   const body = requireObject(value);

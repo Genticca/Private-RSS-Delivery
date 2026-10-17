@@ -1,12 +1,11 @@
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import type { FeedEnvelope } from '../../src/server/feed/parse.js';
-import { expect } from 'vitest';
-import type { NormalizedItem } from '../../src/server/feed/parse.js';
-import { PROFILES } from '../../src/server/feed/parse.js';
-import { SOURCE_PROFILE_OPTIONS } from '../../src/server/feed/parse.js';
-import type { FetchOptions } from '../../src/server/net/fetch.js';
-import { TLS_MAX_VERSIONS } from '../../src/server/net/fetch.js';
+import { describe, it, expect } from 'vitest';
+import {
+  PROFILES,
+  SOURCE_PROFILE_OPTIONS,
+  type FeedEnvelope,
+  type NormalizedItem
+} from '../../src/server/feed/parse.js';
+import { TLS_MAX_VERSIONS, type FetchOptions } from '../../src/server/net/fetch.js';
 
 describe('Turn 0 domain contracts', () => {
   it('keeps FeedEnvelope as the Stage 1 raw HTML carrier', () => {

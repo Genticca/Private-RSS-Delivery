@@ -1,11 +1,7 @@
-import type { Container } from '../../src/server/container.js';
-import { afterEach } from 'vitest';
-import { describe } from 'vitest';
-import { it } from 'vitest';
+import { afterEach, describe, it, expect } from 'vitest';
+import { createContainer, type Container } from '../../src/server/container.js';
 import type { WebhookPostRequest } from '../../src/server/delivery/discord.js';
 import { TestSendService } from '../../src/server/delivery/preview.js';
-import { expect } from 'vitest';
-import { createContainer } from '../../src/server/container.js';
 
 const containers: Container[] = [];
 

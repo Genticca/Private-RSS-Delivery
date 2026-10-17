@@ -1,15 +1,10 @@
-import type { AppInstance } from '../../src/server/app.js';
-import type { Container } from '../../src/server/container.js';
-import { afterEach } from 'vitest';
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
+import { afterEach, describe, it, expect } from 'vitest';
+import { createApp, type AppInstance } from '../../src/server/app.js';
+import { createContainer, type Container } from '../../src/server/container.js';
 import type { WebhookPostRequest } from '../../src/server/delivery/discord.js';
 import { DeliveryWorker } from '../../src/server/delivery/worker.js';
 import { DeliveryService } from '../../src/server/delivery/service.js';
 import { createSseConnectionLimiter } from '../../src/server/logs/routes.js';
-import { createContainer } from '../../src/server/container.js';
-import { createApp } from '../../src/server/app.js';
 
 const apps: AppInstance[] = [];
 

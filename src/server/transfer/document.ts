@@ -1,8 +1,7 @@
 import type { FetchOptions } from '../net/fetch.js';
 import { validationError } from '../core/errors.js';
 import { requiredString } from '../core/input.js';
-import { normalizeSourceCreate } from '../sources/input.js';
-import { validateFetchOptions } from '../sources/input.js';
+import { normalizeSourceCreate, validateFetchOptions } from '../sources/input.js';
 
 export interface ExportDocumentV1 {
   kind: 'rss-discord-bridge/export';

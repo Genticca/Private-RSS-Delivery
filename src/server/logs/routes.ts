@@ -1,8 +1,7 @@
-import type { LogService } from './service.js';
 import type { FastifyInstance } from 'fastify';
 import { queryInt } from '../core/http.js';
-import type { LogType } from './service.js';
 import { validationError } from '../core/errors.js';
+import type { LogService, LogType } from './service.js';
 
 export interface LogRouteOptions {
   maxSseConnections?: number;

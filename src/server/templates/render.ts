@@ -1,7 +1,5 @@
-import type { SourceProfile } from '../feed/parse.js';
-import type { NormalizedItem } from '../feed/parse.js';
-import type { Profile } from '../feed/parse.js';
 import Handlebars from 'handlebars';
+import type { SourceProfile, NormalizedItem, Profile } from '../feed/parse.js';
 import type { ItemRecord } from '../feed/repository.js';
 import { effectiveProfile } from '../feed/normalize.js';
 import { validateDiscordPayload } from './payload.js';

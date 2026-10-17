@@ -1,14 +1,8 @@
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { writeFileSync } from 'node:fs';
-import { vi } from 'vitest';
-import { harness } from '../mocks/runtime.js';
-import { expect } from 'vitest';
-import { BASE } from '../mocks/runtime.js';
-import { rmSync } from 'node:fs';
+import { describe, it, vi, expect } from 'vitest';
+import { harness, BASE } from '../mocks/runtime.js';
 import { loadEnvironment } from '../../src/server/core/config.js';
 
 describe('shared runtime environment', () => {

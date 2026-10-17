@@ -1,8 +1,5 @@
-import type { DnsLookup } from './address.js';
 import { SecurityError } from '../core/errors.js';
-import { parseHttpUrl } from './address.js';
-import { resolveSafeHostname } from './address.js';
-import { assertAddressAllowed } from './address.js';
+import { parseHttpUrl, resolveSafeHostname, assertAddressAllowed, type DnsLookup } from './address.js';
 
 const ALLOWED_WEBHOOK_HOSTS = new Set(['discord.com', 'discordapp.com']);
 

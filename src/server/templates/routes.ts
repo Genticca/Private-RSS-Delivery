@@ -1,11 +1,7 @@
-import type { TemplateService } from './service.js';
 import type { FastifyInstance } from 'fastify';
-import type { IdParam } from '../core/http.js';
+import { mutationReply, requestBody, flash, renderPartial, type IdParam } from '../core/http.js';
 import { parseIdParam } from '../core/input.js';
-import { mutationReply } from '../core/http.js';
-import { requestBody } from '../core/http.js';
-import { flash } from '../core/http.js';
-import { renderPartial } from '../core/http.js';
+import type { TemplateService } from './service.js';
 
 /** Discord 메시지 템플릿을 조회하고 편집한다. 템플릿 검증과 저장 정책은 서비스가 담당한다. */
 export async function registerTemplateRoutes(app: FastifyInstance, services: { templates: TemplateService }): Promise<void> {

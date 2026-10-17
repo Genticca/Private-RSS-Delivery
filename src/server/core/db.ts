@@ -1,8 +1,7 @@
 import { fileURLToPath } from 'node:url';
-import type DatabaseType from 'better-sqlite3';
-import { readdirSync } from 'node:fs';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import type DatabaseType from 'better-sqlite3';
 
 export function toSqliteBoolean(value: boolean): 0 | 1 {
   return value ? 1 : 0;

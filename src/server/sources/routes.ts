@@ -1,12 +1,14 @@
-import type { SourceService } from './service.js';
 import type { FastifyInstance } from 'fastify';
-import type { IdParam } from '../core/http.js';
-import { isHtmxRequest } from '../core/http.js';
-import { redirectMutation } from '../core/http.js';
-import { requestBody } from '../core/http.js';
-import { mutationReply } from '../core/http.js';
-import { flash } from '../core/http.js';
-import { renderPartial } from '../core/http.js';
+import {
+  isHtmxRequest,
+  redirectMutation,
+  requestBody,
+  mutationReply,
+  flash,
+  renderPartial,
+  type IdParam
+} from '../core/http.js';
+import type { SourceService } from './service.js';
 
 /** 피드 소스 관리와 수동 수집·테스트 발송 요청을 해당 서비스에 연결한다. */
 export async function registerSourceRoutes(app: FastifyInstance, services: { sources: SourceService }): Promise<void> {

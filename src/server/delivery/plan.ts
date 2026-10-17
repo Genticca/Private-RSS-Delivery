@@ -1,10 +1,12 @@
 import type { SourceRecord } from '../sources/repository.js';
-import type { DeliveryOperation } from './repository.js';
-import type { DeliveryBindingRepository } from './repository.js';
-import type { DeliveryJobRepository } from './repository.js';
-import type { ItemDeliveryRepository } from './repository.js';
 import type { TemplateRepository } from '../templates/repository.js';
 import type { ItemRecord } from '../feed/repository.js';
+import type {
+  DeliveryOperation,
+  DeliveryBindingRepository,
+  DeliveryJobRepository,
+  ItemDeliveryRepository
+} from './repository.js';
 
 export function updateOperation(source: Pick<SourceRecord, 'editInPlace'>): DeliveryOperation {
   return source.editInPlace ? 'edit' : 'update_post';

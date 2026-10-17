@@ -1,7 +1,6 @@
-import type { LookupFunction } from 'node:net';
+import net, { type LookupFunction } from 'node:net';
 import dns from 'node:dns';
 import { SecurityError } from '../core/errors.js';
-import net from 'node:net';
 import type { TlsMaxVersion } from './fetch.js';
 
 export interface LookupAddress {

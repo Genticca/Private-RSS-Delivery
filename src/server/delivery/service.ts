@@ -1,35 +1,39 @@
-import type { ItemRepository } from '../feed/repository.js';
-import type { SourceRepository } from '../sources/repository.js';
-import type { GroupRepository } from '../groups/repository.js';
-import type { SourceGroupRepository } from '../sources/repository.js';
-import type { DeliveryBindingRepository } from './repository.js';
-import type { DeliveryJobRepository } from './repository.js';
-import type { ItemDeliveryRepository } from './repository.js';
-import type { EventLogRepository } from '../logs/repository.js';
 import type Database from 'better-sqlite3';
-import type { DeliveryPlanService } from './plan.js';
+import type { ItemRepository, ItemRecord } from '../feed/repository.js';
+import type { SourceRepository, SourceGroupRepository, SourceRecord } from '../sources/repository.js';
+import type { GroupRepository } from '../groups/repository.js';
+import type { EventLogRepository } from '../logs/repository.js';
 import type { DispatchTranslationService } from '../translation/translator.js';
-import type { WebhookPostFunction } from './discord.js';
-import type { WebhookEditFunction } from './discord.js';
 import { nowIso } from '../core/db.js';
-import type { DiscordWebhookPayload } from '../templates/render.js';
-import type { SourceRecord } from '../sources/repository.js';
-import type { ItemRecord } from '../feed/repository.js';
-import type { TranslatedItem } from '../templates/render.js';
-import { renderDiscordPayload } from '../templates/render.js';
-import { buildPresetRenderContext } from '../templates/render.js';
-import { validateDiscordPayload } from '../templates/payload.js';
-import { applySourceWebhookOptions } from '../templates/payload.js';
-import { editDiscordWebhookMessage } from './discord.js';
-import { postDiscordWebhook } from './discord.js';
+import {
+  renderDiscordPayload,
+  buildPresetRenderContext,
+  PresetRenderError,
+  type DiscordWebhookPayload,
+  type TranslatedItem
+} from '../templates/render.js';
+import {
+  validateDiscordPayload,
+  applySourceWebhookOptions,
+  DiscordPayloadValidationError
+} from '../templates/payload.js';
 import { SecurityError } from '../core/errors.js';
-import { DiscordPayloadValidationError } from '../templates/payload.js';
-import { PresetRenderError } from '../templates/render.js';
-import type { DeliveryJobRecord } from './repository.js';
+import type {
+  DeliveryBindingRepository,
+  DeliveryJobRepository,
+  ItemDeliveryRepository,
+  DeliveryJobRecord,
+  DeliveryJobState
+} from './repository.js';
+import { retryAt, type DeliveryPlanService } from './plan.js';
+import {
+  editDiscordWebhookMessage,
+  postDiscordWebhook,
+  type WebhookPostFunction,
+  type WebhookEditFunction,
+  type WebhookPostResponse
+} from './discord.js';
 import { resolveDestinationsForSource } from './bindings.js';
-import type { WebhookPostResponse } from './discord.js';
-import { retryAt } from './plan.js';
-import type { DeliveryJobState } from './repository.js';
 
 export interface DeliveryRepositories {
   items: ItemRepository;

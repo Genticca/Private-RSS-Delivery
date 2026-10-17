@@ -1,3 +1,12 @@
+import { fileURLToPath } from 'node:url';
+import { join, extname, basename } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import Fastify, { type FastifyInstance } from 'fastify';
+import rateLimitPlugin from '@fastify/rate-limit';
+import multipartPlugin from '@fastify/multipart';
+import staticPlugin from '@fastify/static';
+import viewPlugin from '@fastify/view';
+import Handlebars from 'handlebars';
 import { registerSourceRoutes } from './sources/routes.js';
 import { registerGroupRoutes } from './groups/routes.js';
 import { registerTemplateRoutes } from './templates/routes.js';
@@ -5,27 +14,11 @@ import { registerPreviewRoutes, registerDeliveryJobRoutes, registerSourceDeliver
 import { registerModelRoutes } from './translation/routes.js';
 import { registerLogRoutes } from './logs/routes.js';
 import { registerExportImportRoutes } from './transfer/routes.js';
-import type { FastifyInstance } from 'fastify';
-import type { Container } from './container.js';
-import Fastify from 'fastify';
-import { createContainer } from './container.js';
+import { createContainer, type Container } from './container.js';
 import { registerAdminOrigin } from './core/http.js';
 import { registerCollectRoutes } from './collect/routes.js';
 import { registerWebRoutes } from './web/pages.js';
-import rateLimitPlugin from '@fastify/rate-limit';
-import { AppError } from './core/errors.js';
-import multipartPlugin from '@fastify/multipart';
-import { fileURLToPath } from 'node:url';
-import staticPlugin from '@fastify/static';
-import viewPlugin from '@fastify/view';
-import Handlebars from 'handlebars';
-import { join } from 'node:path';
-import { existsSync } from 'node:fs';
-import { readdirSync } from 'node:fs';
-import { extname } from 'node:path';
-import { basename } from 'node:path';
-import { readFileSync } from 'node:fs';
-import { SecurityError } from './core/errors.js';
+import { AppError, SecurityError } from './core/errors.js';
 
 export type AppInstance = FastifyInstance & {
   container: Container

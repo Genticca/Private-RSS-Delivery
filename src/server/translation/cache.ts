@@ -1,13 +1,12 @@
-import type Database from 'better-sqlite3';
 import { createHash } from 'node:crypto';
-import type { SourceRecord } from '../sources/repository.js';
+import type Database from 'better-sqlite3';
 import Handlebars from 'handlebars';
+import type { SourceRecord } from '../sources/repository.js';
 import type { ItemRecord } from '../feed/repository.js';
 import type { EventLogRepository } from '../logs/repository.js';
-import type { ModelTranslator } from './translator.js';
 import { nowIso } from '../core/db.js';
 import { effectiveProfile } from '../feed/normalize.js';
-import { TARGET_LANG } from './translator.js';
+import { TARGET_LANG, type ModelTranslator } from './translator.js';
 
 export interface TranslationCacheRecord {
   cacheKey: string;

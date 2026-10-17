@@ -1,14 +1,8 @@
-import type { Server } from 'node:http';
+import { createServer, type Server, type ServerResponse } from 'node:http';
+import { afterEach, describe, it, expect } from 'vitest';
+import { fetch as undiciFetch, Response } from 'undici';
 import type { DnsLookup } from '../../src/server/net/address.js';
-import { afterEach } from 'vitest';
-import type { ServerResponse } from 'node:http';
-import { createServer } from 'node:http';
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
 import { fetchFeed } from '../../src/server/net/fetch.js';
-import { fetch as undiciFetch } from 'undici';
-import { Response } from 'undici';
 
 const servers: Server[] = [];
 

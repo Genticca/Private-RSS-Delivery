@@ -1,8 +1,6 @@
 import process from 'node:process';
-import type { TranslationProvider } from './translator.js';
-import type { TranslationProviderRequest } from './translator.js';
-import type { TranslationProviderResponse } from './translator.js';
 import { GoogleGenAI } from '@google/genai';
+import type { TranslationProvider, TranslationProviderRequest, TranslationProviderResponse } from './translator.js';
 
 export const MODEL_API_KEY_ENV = 'PRIMARY_MODEL_API_KEY';
 

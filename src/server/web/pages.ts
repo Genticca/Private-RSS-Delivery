@@ -1,19 +1,13 @@
-import type { SourceService } from '../sources/service.js';
-import type { GroupService } from '../groups/service.js';
-import type { TemplateService } from '../templates/service.js';
+import type { FastifyInstance, FastifyReply } from 'fastify';
+import type { SourceService, SourceDto } from '../sources/service.js';
+import type { GroupService, GroupDto } from '../groups/service.js';
+import type { TemplateService, TemplateDto } from '../templates/service.js';
 import type { ModelService } from '../translation/service.js';
-import type { LogService } from '../logs/service.js';
+import type { LogService, EventLogDto } from '../logs/service.js';
 import type { DeliveryManagementService } from '../delivery/review.js';
-import type { SourceDto } from '../sources/service.js';
 import type { SourceProfile } from '../feed/parse.js';
-import type { EventLogDto } from '../logs/service.js';
-import type { GroupDto } from '../groups/service.js';
-import type { TemplateDto } from '../templates/service.js';
-import type { PresetVariable } from '../templates/render.js';
-import type { FastifyInstance } from 'fastify';
+import { PRESET_VARIABLES, type PresetVariable } from '../templates/render.js';
 import { parseIdParam } from '../core/input.js';
-import { PRESET_VARIABLES } from '../templates/render.js';
-import type { FastifyReply } from 'fastify';
 
 export interface DashboardSourceSummary {
   id: string;

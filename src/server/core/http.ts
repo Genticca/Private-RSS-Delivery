@@ -1,10 +1,8 @@
-import type { FastifyReply } from 'fastify';
-import { AppError } from './errors.js';
-import type { FastifyRequest } from 'fastify';
-import Handlebars from 'handlebars';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyReply, FastifyRequest, FastifyInstance } from 'fastify';
+import Handlebars from 'handlebars';
+import { AppError } from './errors.js';
 
 export interface IdParam {
   id: string;

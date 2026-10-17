@@ -1,6 +1,5 @@
 import type Database from 'better-sqlite3';
-import { nowIso } from '../core/db.js';
-import { nullable } from '../core/db.js';
+import { nowIso, nullable } from '../core/db.js';
 
 export interface GroupRecord {
   id: number;

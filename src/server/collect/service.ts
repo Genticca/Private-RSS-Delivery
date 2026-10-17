@@ -1,27 +1,16 @@
-import type { SourceRecord } from '../sources/repository.js';
-import type { NormalizedItem } from '../feed/parse.js';
-import type { Profile } from '../feed/parse.js';
 import type Database from 'better-sqlite3';
-import type { SourceRepository } from '../sources/repository.js';
+import type { SourceRecord, SourceRepository, SourceGroupRepository } from '../sources/repository.js';
+import { parseFeed, type NormalizedItem, type Profile } from '../feed/parse.js';
 import type { ItemRepository } from '../feed/repository.js';
 import type { EventLogRepository } from '../logs/repository.js';
 import type { GroupRepository } from '../groups/repository.js';
-import type { SourceGroupRepository } from '../sources/repository.js';
 import type { DeliveryBindingRepository } from '../delivery/repository.js';
-import type { DeliveryBindingService } from '../delivery/bindings.js';
-import type { DeliveryPlanService } from '../delivery/plan.js';
-import type { FeedFetchSource } from '../net/fetch.js';
-import type { FetchFeedOptions } from '../net/fetch.js';
-import type { FeedFetchResult } from '../net/fetch.js';
+import { resolveDestinationsForSource, type DeliveryBindingService } from '../delivery/bindings.js';
+import { shouldHoldNewItems, type DeliveryPlanService } from '../delivery/plan.js';
+import { fetchFeed, type FeedFetchSource, type FetchFeedOptions, type FeedFetchResult } from '../net/fetch.js';
 import { nowIso } from '../core/db.js';
-import { resolveDestinationsForSource } from '../delivery/bindings.js';
-import { fetchFeed } from '../net/fetch.js';
 import { SecurityError } from '../core/errors.js';
-import { parseFeed } from '../feed/parse.js';
-import { detectProfile } from '../feed/normalize.js';
-import { effectiveProfile } from '../feed/normalize.js';
-import { normalize } from '../feed/normalize.js';
-import { shouldHoldNewItems } from '../delivery/plan.js';
+import { detectProfile, effectiveProfile, normalize } from '../feed/normalize.js';
 
 export function shouldQueueNewItem(source: SourceRecord, item: NormalizedItem): boolean {
   // 첫 수집은 과거 항목의 기준점만 만든다. 기존 공지가 한꺼번에 발송되는 것을 막는다.

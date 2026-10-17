@@ -1,17 +1,15 @@
 import type Database from 'better-sqlite3';
-import type { GroupRepository } from './repository.js';
-import { conflict } from '../core/errors.js';
-import { validationError } from '../core/errors.js';
-import { notFound } from '../core/errors.js';
-import { verifyWebhookUrlSafe } from '../net/webhook-url.js';
+import { conflict, validationError, notFound } from '../core/errors.js';
+import { verifyWebhookUrlSafe, assertSafeWebhookUrl } from '../net/webhook-url.js';
 import { nowIso } from '../core/db.js';
-import { requireObject } from '../core/input.js';
-import { requiredString } from '../core/input.js';
-import { optionalString } from '../core/input.js';
-import { optionalBoolean } from '../core/input.js';
-import type { GroupRecord } from './repository.js';
-import { assertSafeWebhookUrl } from '../net/webhook-url.js';
-import { securityValidationError } from '../core/input.js';
+import {
+  requireObject,
+  requiredString,
+  optionalString,
+  optionalBoolean,
+  securityValidationError
+} from '../core/input.js';
+import type { GroupRepository, GroupRecord } from './repository.js';
 
 export type GroupId = number;
 

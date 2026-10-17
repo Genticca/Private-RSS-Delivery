@@ -1,23 +1,25 @@
-import type { DnsLookup } from '../../src/server/net/address.js';
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { assertSafeFeedUrl } from '../../src/server/net/address.js';
-import { SecurityError } from '../../src/server/core/errors.js';
-import { verifyFeedUrlSafe } from '../../src/server/net/address.js';
-import { createSsrSafeLookup } from '../../src/server/net/address.js';
-import { assertSafeWebhookUrl } from '../../src/server/net/webhook-url.js';
-import { canonicalWebhookUrl } from '../../src/server/net/webhook-url.js';
-import { assertSafeWebhookMessageUrl } from '../../src/server/net/webhook-url.js';
-import { verifyWebhookUrlSafe } from '../../src/server/net/webhook-url.js';
-import { getSsrSafeAgent } from '../../src/server/net/fetch.js';
-import { closeSsrSafeAgents } from '../../src/server/net/fetch.js';
-import type { RequestInit } from 'undici';
-import type { FetchImplementation } from '../../src/server/net/fetch.js';
-import type { RequestInfo } from 'undici';
-import { Response } from 'undici';
-import { fetchFeed } from '../../src/server/net/fetch.js';
 import { Buffer } from 'node:buffer';
+import { describe, it, expect } from 'vitest';
+import { Response, type RequestInit, type RequestInfo } from 'undici';
+import {
+  assertSafeFeedUrl,
+  verifyFeedUrlSafe,
+  createSsrSafeLookup,
+  type DnsLookup
+} from '../../src/server/net/address.js';
+import { SecurityError } from '../../src/server/core/errors.js';
+import {
+  assertSafeWebhookUrl,
+  canonicalWebhookUrl,
+  assertSafeWebhookMessageUrl,
+  verifyWebhookUrlSafe
+} from '../../src/server/net/webhook-url.js';
+import {
+  getSsrSafeAgent,
+  closeSsrSafeAgents,
+  fetchFeed,
+  type FetchImplementation
+} from '../../src/server/net/fetch.js';
 
 const publicLookup: DnsLookup = (_hostname, _options, callback) => {
   callback(null, [{ address: '93.184.216.34', family: 4 }]);

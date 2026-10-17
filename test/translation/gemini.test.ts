@@ -1,8 +1,5 @@
-import { vi } from 'vitest';
-import { describe } from 'vitest';
-import { it } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
 import { GeminiTranslationProvider } from '../../src/server/translation/gemini.js';
-import { expect } from 'vitest';
 
 const mocks = vi.hoisted(() => ({ generate: vi.fn(), create: vi.fn() }));
 

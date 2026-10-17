@@ -1,7 +1,5 @@
-import type { DiscordWebhookPayload } from './render.js';
-import Ajv from 'ajv';
-import type { DiscordEmbed } from './render.js';
-import type { ErrorObject } from 'ajv';
+import Ajv, { type ErrorObject } from 'ajv';
+import type { DiscordWebhookPayload, DiscordEmbed } from './render.js';
 
 export const SUPPRESS_NOTIFICATIONS_FLAG = 4096;
 

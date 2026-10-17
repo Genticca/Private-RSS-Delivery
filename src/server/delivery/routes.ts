@@ -1,12 +1,8 @@
+import type { FastifyInstance } from 'fastify';
+import { mutationReply, flash, requestBody, isHtmxRequest, redirectMutation, type IdParam } from '../core/http.js';
+import { parseIdParam } from '../core/input.js';
 import type { DeliveryManagementService } from './review.js';
 import type { PreviewService, TestSendService } from './preview.js';
-import { mutationReply, flash } from '../core/http.js';
-import type { FastifyInstance } from 'fastify';
-import type { IdParam } from '../core/http.js';
-import { parseIdParam } from '../core/input.js';
-import { requestBody } from '../core/http.js';
-import { isHtmxRequest } from '../core/http.js';
-import { redirectMutation } from '../core/http.js';
 
 /** 보류되거나 결과 확인이 필요한 발송 작업을 조회하고 관리자의 검토 결정을 전달한다. */
 export async function registerDeliveryJobRoutes(app: FastifyInstance, services: { deliveryManagement: DeliveryManagementService }): Promise<void> {

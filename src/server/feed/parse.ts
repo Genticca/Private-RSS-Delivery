@@ -1,5 +1,4 @@
-import { XMLParser } from 'fast-xml-parser';
-import { XMLValidator } from 'fast-xml-parser';
+import { XMLParser, XMLValidator } from 'fast-xml-parser';
 
 type XmlNode = Record<string, unknown>;
 

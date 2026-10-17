@@ -1,12 +1,7 @@
-import { vi } from 'vitest';
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import { Response } from 'undici';
-import { postDiscordWebhook } from '../../src/server/delivery/discord.js';
-import { expect } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
+import { Response, type RequestInit } from 'undici';
+import { postDiscordWebhook, editDiscordWebhookMessage } from '../../src/server/delivery/discord.js';
 import { canonicalWebhookUrl } from '../../src/server/net/webhook-url.js';
-import { editDiscordWebhookMessage } from '../../src/server/delivery/discord.js';
-import type { RequestInit } from 'undici';
 
 const mocks = vi.hoisted(() => ({ fetch: vi.fn() }));
 

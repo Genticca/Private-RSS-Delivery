@@ -1,9 +1,6 @@
-import type { ModelService } from './service.js';
 import type { FastifyInstance } from 'fastify';
-import { requestBody } from '../core/http.js';
-import { isHtmxRequest } from '../core/http.js';
-import { mutationReply } from '../core/http.js';
-import { renderPartial } from '../core/http.js';
+import { requestBody, isHtmxRequest, mutationReply, renderPartial } from '../core/http.js';
+import type { ModelService } from './service.js';
 
 /** 번역 모델 상태·진단 HTTP 라우트다. 모델과 키는 환경 변수로만 바꾼다. */
 export async function registerModelRoutes(app: FastifyInstance, services: { model: ModelService }): Promise<void> {

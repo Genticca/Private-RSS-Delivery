@@ -1,9 +1,6 @@
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import { harness } from '../mocks/runtime.js';
-import { BASE } from '../mocks/runtime.js';
+import { describe, it, expect } from 'vitest';
+import { harness, BASE } from '../mocks/runtime.js';
 import { createApp } from '../../src/server/app.js';
-import { expect } from 'vitest';
 import { parseSseCursor } from '../../src/server/logs/routes.js';
 
 describe('SSE reconnect and shutdown', () => {

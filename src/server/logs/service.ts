@@ -1,7 +1,4 @@
-import type { EventKind } from './repository.js';
-import type { EventStatus } from './repository.js';
-import type { EventLogRepository } from './repository.js';
-import type { EventLogRecord } from './repository.js';
+import type { EventKind, EventStatus, EventLogRepository, EventLogRecord } from './repository.js';
 
 export interface EventLogDto {
   id: number;

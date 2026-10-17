@@ -1,11 +1,10 @@
+import type Database from 'better-sqlite3';
 import type { EventLogRepository } from '../logs/repository.js';
 import type { TranslationCacheRepository } from '../translation/cache.js';
 import type { ItemRepository } from '../feed/repository.js';
 import type { DeliveryJobRepository } from '../delivery/repository.js';
-import type Database from 'better-sqlite3';
-import { subtractDaysIso } from '../core/db.js';
+import { subtractDaysIso, nowIso } from '../core/db.js';
 import { TaskTracker } from '../core/worker.js';
-import { nowIso } from '../core/db.js';
 
 export interface CleanupRunResult {
   events: number;

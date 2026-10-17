@@ -1,8 +1,5 @@
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { isAllowedHost } from '../../src/server/core/http.js';
-import { hasAllowedBrowserOrigin } from '../../src/server/core/http.js';
+import { describe, it, expect } from 'vitest';
+import { isAllowedHost, hasAllowedBrowserOrigin } from '../../src/server/core/http.js';
 
 describe('admin-origin helpers', () => {
   const allowed = new Set(['localhost', '127.0.0.1', 'localhost:8080', '127.0.0.1:8080']);

@@ -1,9 +1,5 @@
-import { describe } from 'vitest';
-import { it } from 'vitest';
-import { readAllFeedFixtures } from '../mocks/fixtures.js';
-import { expect } from 'vitest';
-import { FEED_FIXTURE_NAMES } from '../mocks/fixtures.js';
-import { getFeedFixturePath } from '../mocks/fixtures.js';
+import { describe, it, expect } from 'vitest';
+import { readAllFeedFixtures, FEED_FIXTURE_NAMES, getFeedFixturePath } from '../mocks/fixtures.js';
 
 describe('Turn 0 feed fixture helper', () => {
   it('exposes every bundled feed fixture by stable name', async () => {
