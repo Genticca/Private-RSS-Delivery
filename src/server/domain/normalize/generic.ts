@@ -1,7 +1,9 @@
 import { computeGenericContentHash } from './content-hash.js';
 import { cleanSummary, cleanTitle } from './html.js';
+import { copyFeedMetadata } from './metadata.js';
 import type { FeedEnvelope, NormalizedItem } from './types.js';
 
+/** 일반 피드는 본문을 표시용으로 정제하고, 제목·링크를 기준으로 변경을 감지한다. */
 export function normalizeGeneric(env: FeedEnvelope): NormalizedItem {
   const title = cleanTitle(env.title);
   const summary = cleanSummary(env.rawBody);
@@ -13,20 +15,6 @@ export function normalizeGeneric(env: FeedEnvelope): NormalizedItem {
     contentHash: computeGenericContentHash({ title, link: env.link })
   };
 
-  assignOptional(item, 'publishedAt', env.publishedAt);
-  assignOptional(item, 'updatedAt', env.updatedAt);
-  assignOptional(item, 'author', env.author);
-  assignOptional(item, 'commentsUrl', env.commentsUrl);
-  assignOptional(item, 'image', env.image);
+  copyFeedMetadata(item, env);
   return item;
-}
-
-function assignOptional<K extends keyof NormalizedItem>(
-  item: NormalizedItem,
-  key: K,
-  value: NormalizedItem[K] | undefined
-): void {
-  if (value !== undefined && value !== '') {
-    item[key] = value;
-  }
 }

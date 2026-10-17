@@ -14,7 +14,9 @@ import { SecurityError } from './security/index.js';
 import { AppError } from './services/errors.js';
 import { createContainer, type Container } from './runtime/container.js';
 
-export type AppInstance = FastifyInstance & { container: Container };
+export type AppInstance = FastifyInstance & {
+  container: Container
+};
 
 export interface CreateAppOptions {
   container?: Container;
@@ -31,6 +33,7 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
       }
     });
   const ownsContainer = options.container === undefined;
+  // 외부에서 주입한 컨테이너의 수명은 호출자가 관리한다.
   app.decorate('container', container);
 
   registerBodyParsers(app);
@@ -75,7 +78,12 @@ async function registerRateLimit(app: FastifyInstance): Promise<void> {
 async function registerMultipart(app: FastifyInstance): Promise<void> {
   await app.register(multipartPlugin, {
     attachFieldsToBody: 'keyValues',
-    limits: { fileSize: IMPORT_UPLOAD_LIMIT_BYTES, files: 1, fields: 4, parts: 5 }
+    limits: {
+      fileSize: IMPORT_UPLOAD_LIMIT_BYTES,
+      files: 1,
+      fields: 4,
+      parts: 5
+    }
   });
 }
 
@@ -125,9 +133,10 @@ function registerErrorHandlers(app: FastifyInstance): void {
       return;
     }
     if (error instanceof SecurityError) {
-      const code = error.code === 'webhook_not_allowed' ? 'webhook_not_allowed' : error.code === 'ssrf_blocked' ? 'ssrf_blocked' : 'validation_error';
-      const status = code === 'validation_error' ? 400 : 400;
-      reply.status(status).send({ error: { code, message: error.message } });
+      const code = error.code === 'webhook_not_allowed' || error.code === 'ssrf_blocked'
+        ? error.code
+        : 'validation_error';
+      reply.status(400).send({ error: { code, message: error.message } });
       return;
     }
     if (isMultipartError(error)) {
@@ -140,6 +149,13 @@ function registerErrorHandlers(app: FastifyInstance): void {
 }
 
 
-function isMultipartError(error: unknown): error is Error & { code?: string; statusCode?: number } {
-  return error instanceof Error && typeof (error as { code?: unknown }).code === 'string' && String((error as { code?: string }).code).startsWith('FST_');
+function isMultipartError(error: unknown): error is Error & {
+  code?: string;
+  statusCode?: number
+} {
+  return error instanceof Error && typeof (error as {
+    code?: unknown
+  }).code === 'string' && String((error as {
+    code?: string
+  }).code).startsWith('FST_');
 }

@@ -154,7 +154,7 @@ const SOURCE_COLUMNS = `
 `;
 
 export class SourceRepository {
-  constructor(private readonly db: Database.Database) {}
+  constructor(private readonly db: Database.Database) { }
 
   list(): SourceRecord[] {
     return (this.db.prepare(`SELECT ${SOURCE_COLUMNS} FROM sources ORDER BY created_at DESC, id`).all() as SourceRow[]).map(
@@ -236,6 +236,7 @@ export class SourceRepository {
   }
 
   update(id: string, input: UpdateSourceInput): SourceRecord {
+    // undefined 필드는 유지하고 null은 그대로 저장한다. 부분 수정의 의미를 보존한다.
     const assignments: string[] = [];
     const values: unknown[] = [];
     const add = (column: string, value: unknown): void => {
@@ -297,6 +298,7 @@ export class SourceRepository {
   }
 
   setEnabled(id: string, enabled: boolean, changedAt = nowIso()): SourceRecord {
+    // 재활성화 시 이전 비활성 기간의 항목이 재발송되지 않도록 기준 시각도 갱신한다.
     return this.update(id, enabled ? { enabled, deliveryCutoffAt: changedAt, nextPollAt: null } : { enabled });
   }
 

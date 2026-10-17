@@ -7,6 +7,7 @@ export interface TranslationInput {
   summary: string;
 }
 
+/** translated가 false이면 title·summary는 번역 실패 시 사용할 원문이다. */
 export interface TranslationResult {
   title: string;
   summary: string;
@@ -28,6 +29,7 @@ export interface TranslationProviderResponse {
   finishReason?: string | null;
 }
 
+/** 공급자는 통신과 응답 매핑을 담당하고, 대체 모델 선택·사용량 기록은 ModelTranslator에 맡긴다. */
 export interface TranslationProvider {
   generate(request: TranslationProviderRequest): Promise<TranslationProviderResponse>;
 }

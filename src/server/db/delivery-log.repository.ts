@@ -70,8 +70,9 @@ const DELIVERY_LOG_COLUMNS = `
 `;
 const TERMINAL_FAILURE_REASONS = new Set(['webhook_rejected', 'guard_blocked']);
 
+/** 발송 시도별 결과를 저장한다. 목록은 최신순, SSE용 추가 조회는 ID 오름차순이다. */
 export class DeliveryLogRepository {
-  constructor(private readonly db: Database.Database) {}
+  constructor(private readonly db: Database.Database) { }
 
   append(input: AppendDeliveryLogInput): DeliveryLogRecord {
     const createdAt = input.createdAt ?? nowIso();
@@ -131,6 +132,7 @@ export class DeliveryLogRepository {
   }
 
   findResolved(itemId: number, destinationKey: string, contentHash: string): DeliveryLogRecord | null {
+    // 항목뿐 아니라 목적지와 내용까지 일치하는 성공 또는 최종 거절 이력을 찾는다.
     const row = this.db
       .prepare(
         `SELECT ${DELIVERY_LOG_COLUMNS}
@@ -160,7 +162,9 @@ export class DeliveryLogRepository {
          ORDER BY id DESC
          LIMIT 1`
       )
-      .get(itemId, destinationKey) as { discord_message_id: string } | undefined;
+      .get(itemId, destinationKey) as {
+        discord_message_id: string
+      } | undefined;
     return row?.discord_message_id ?? null;
   }
 

@@ -7,6 +7,7 @@ export type AppErrorCode =
   | 'rate_limited'
   | 'internal_error';
 
+/** 관리 요청에 표시할 예상 가능한 오류다. HTTP 상태·오류 코드·필드별 안내를 함께 전달한다. */
 export class AppError extends Error {
   constructor(
     readonly statusCode: number,

@@ -13,6 +13,7 @@ export type KnownIncidentStage = (typeof INCIDENT_STAGES)[number];
 export type IncidentStage = KnownIncidentStage | (string & {});
 
 export interface FeedEnvelope {
+  /** 피드 원본에서 추출한 식별자. 내용이 바뀌어도 동일 항목을 찾는 기준이다. */
   atomId: string;
   title: string;
   link: string;
@@ -36,5 +37,6 @@ export interface NormalizedItem {
   image?: string;
   summary: string;
   incidentStage?: IncidentStage;
+  /** 프로필별 변경 감지 기준으로 계산하며 항목 ID와는 별도로 사용한다. */
   contentHash: string;
 }

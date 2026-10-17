@@ -40,6 +40,7 @@ export function normalizeSourceCreate(value: unknown): Required<Pick<CreateSourc
 }
 
 export function normalizeSourceUpdate(value: unknown): UpdateSourceRequest {
+  // undefined는 기존 값 유지, null은 명시적 비우기다. 부분 수정에서 두 값을 구분한다.
   const body = requireObject(value);
   return {
     feedUrl: body.feedUrl === undefined ? undefined : validateFeedUrl(body.feedUrl),

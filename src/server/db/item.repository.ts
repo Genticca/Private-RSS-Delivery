@@ -133,7 +133,7 @@ const ITEM_COLUMNS = ITEM_COLUMN_NAMES.join(', ');
 const QUALIFIED_ITEM_COLUMNS = ITEM_COLUMN_NAMES.map((column) => `items.${column}`).join(', ');
 
 export class ItemRepository {
-  constructor(private readonly db: Database.Database) {}
+  constructor(private readonly db: Database.Database) { }
 
   getById(id: number): ItemRecord | null {
     const row = this.db.prepare(`SELECT ${ITEM_COLUMNS} FROM items WHERE id = ?`).get(id) as ItemRow | undefined;
@@ -202,6 +202,7 @@ export class ItemRepository {
   }
 
   updateContentHash(id: number, input: UpdateContentHashInput): ItemRecord {
+    // 내용 해시가 달라진 경우만 revision을 올린다. 본문 복원은 발송할 새 버전이 아니다.
     const result = this.db
       .prepare(
         `UPDATE items
@@ -328,6 +329,7 @@ export class ItemRepository {
   }
 
   saveTranslationIfCurrent(item: ItemRecord, title: string, summary: string, translatedAt: string): void {
+    // 번역 중 원문이 갱신됐다면 이전 원문의 번역을 최신 항목에 덮어쓰지 않는다.
     this.db.prepare(`UPDATE items SET translated_title = ?, translated_summary = ?, translated_at = ?
       WHERE id = ? AND content_revision = ? AND COALESCE(title, '') = ? AND COALESCE(summary, '') = ?`)
       .run(title, summary, translatedAt, item.id, item.contentRevision, item.title ?? '', item.summary ?? '');

@@ -1,6 +1,18 @@
 import type Database from 'better-sqlite3';
 import type { DiscordWebhookPayload } from '../contracts/render-context.js';
-import type { DeliveryBindingRepository, DeliveryJobRecord, DeliveryJobRepository, DeliveryLogRepository, GroupRepository, ItemDeliveryRepository, ItemRecord, ItemRepository, SourceGroupRepository, SourceRecord, SourceRepository } from '../db/index.js';
+import type {
+  DeliveryBindingRepository,
+  DeliveryJobRecord,
+  DeliveryJobRepository,
+  DeliveryLogRepository,
+  GroupRepository,
+  ItemDeliveryRepository,
+  ItemRecord,
+  ItemRepository,
+  SourceGroupRepository,
+  SourceRecord,
+  SourceRepository
+} from '../db/index.js';
 import type { DeliveryFailureReason } from '../db/delivery-log.repository.js';
 import { nowIso } from '../db/time.js';
 import { retryAt, type DeliveryJobState } from '../domain/delivery/policy.js';
@@ -14,8 +26,14 @@ import type { DispatchTranslationService } from '../translator/translator.js';
 import type { DeliveryPlanService } from './delivery-plan.service.js';
 
 export interface DeliveryRepositories {
-  items: ItemRepository; sources: SourceRepository; groups: GroupRepository; sourceGroups: SourceGroupRepository;
-  deliveryBindings: DeliveryBindingRepository; deliveryJobs: DeliveryJobRepository; itemDeliveries: ItemDeliveryRepository; deliveryLogs: DeliveryLogRepository;
+  items: ItemRepository;
+  sources: SourceRepository;
+  groups: GroupRepository;
+  sourceGroups: SourceGroupRepository;
+  deliveryBindings: DeliveryBindingRepository;
+  deliveryJobs: DeliveryJobRepository;
+  itemDeliveries: ItemDeliveryRepository;
+  deliveryLogs: DeliveryLogRepository;
 }
 export interface DeliveryServiceOptions {
   db: Database.Database;
@@ -27,29 +45,38 @@ export interface DeliveryServiceOptions {
   requestTimeoutMs?: number;
 }
 export type DeliveryRunOutcome = 'delivered' | 'failed' | 'retrying' | 'skipped' | 'unknown' | 'uneditable';
-export interface DeliveryRunResult { itemId: number; jobId: number; outcome: DeliveryRunOutcome; attemptNo: number | null; failureReason?: string; nextAttemptAt?: string | null; }
+export interface DeliveryRunResult {
+  itemId: number;
+  jobId: number;
+  outcome: DeliveryRunOutcome;
+  attemptNo: number | null;
+  failureReason?: string;
+  nextAttemptAt?: string | null;
+}
 
 export class DeliveryService {
-  constructor(private readonly options: DeliveryServiceOptions) {}
+  constructor(private readonly options: DeliveryServiceOptions) { }
 
   async processJob(id: number, now = nowIso(), isStopping: () => boolean = () => false): Promise<DeliveryRunResult | null> {
-    const { repositories: r } = this.options;
-    const job = r.deliveryJobs.claim(id);
+    const { repositories } = this.options;
+    // 1. 작업 소유권을 얻고 연결·버전·발송 이력이 여전히 유효한지 확인한다.
+    const job = repositories.deliveryJobs.claim(id);
     if (!job) return null;
-    let sent = false;
+    // 요청을 시작한 뒤에는 실패하더라도 Discord에 메시지가 생성됐을 수 있다.
+    let requestStarted = false;
     try {
-      let context = this.context(job);
+      let context = this.resolveActiveContext(job);
       if (!context) return this.finish(job, 'cancelled', now, 'Connection ended or source disabled');
       if (isStopping()) return this.finish(job, 'pending', now, null, now);
-      const readyAt = [r.deliveryJobs.cooldownUntil(context.binding.bucketKey), r.deliveryJobs.cooldownUntil('__discord_global__')]
-        .filter((value): value is string => value !== null).sort().at(-1);
+      const readyAt = this.latestCooldownUntil(context.binding.bucketKey);
       if (readyAt && readyAt > now) return this.finish(job, 'pending', now, 'Destination cooldown', readyAt);
       if (context.item.contentRevision !== job.revision) return this.superseded(job, context.item, context.source, now);
-      const receipt = r.itemDeliveries.get(job.itemId, job.bindingId!);
+      const receipt = repositories.itemDeliveries.get(job.itemId, job.bindingId!);
       if (job.operation !== 'initial_post' && !receipt) return this.finish(job, 'uneditable', now, 'No original delivery receipt');
       if (receipt && receipt.appliedRevision >= job.revision) return this.finish(job, 'succeeded', now);
       if (job.operation === 'edit' && !receipt?.messageId) return this.finish(job, 'uneditable', now, 'Message ID is unknown');
 
+      // 2. 저장된 payload를 재사용하거나, 계획 시점의 스냅샷으로 번역·렌더링한다.
       let payload: DiscordWebhookPayload;
       if (job.payload !== null) payload = JSON.parse(job.payload) as DiscordWebhookPayload;
       else {
@@ -64,19 +91,22 @@ export class DeliveryService {
           username: context.destination.webhookName ?? rendered.username,
           avatar_url: context.destination.webhookAvatarUrl ?? rendered.avatar_url
         });
-        if (job.operation === 'edit') { delete payload.thread_name; delete payload.applied_tags; }
-        if (!r.deliveryJobs.savePayload(job, payload)) return null;
+        if (job.operation === 'edit') {
+          delete payload.thread_name;
+          delete payload.applied_tags;
+        }
+        if (!repositories.deliveryJobs.savePayload(job, payload)) return null;
       }
-      context = this.context(job);
+      // 번역 중 연결이나 항목이 바뀔 수 있으므로 실제 전송 직전에 다시 확인한다.
+      context = this.resolveActiveContext(job);
       if (!context) return this.finish(job, 'cancelled', now, 'Connection ended during preparation');
       if (context.item.contentRevision !== job.revision) return this.superseded(job, context.item, context.source, now);
       if (isStopping()) return this.finish(job, 'pending', now, null, now);
-      const cooldown = r.deliveryJobs.cooldownUntil(context.binding.bucketKey);
-      const globalCooldown = r.deliveryJobs.cooldownUntil('__discord_global__');
-      const until = [cooldown, globalCooldown].filter((value): value is string => value !== null).sort().at(-1);
+      const until = this.latestCooldownUntil(context.binding.bucketKey);
       if (until && until > now) return this.finish(job, 'pending', now, 'Destination cooldown', until);
-      if (!r.deliveryJobs.markRequestStarted(job, now)) return null;
-      sent = true;
+      // 3. 요청 시작을 먼저 기록한 뒤 전송한다. 중단 후 복구 시 POST 중복 발송을 막는 기준이다.
+      if (!repositories.deliveryJobs.markRequestStarted(job, now)) return null;
+      requestStarted = true;
       const destination = { ...context.destination, threadId: receipt?.threadId ?? context.destination.threadId };
       const request = { destination, payload, timeoutMs: this.options.requestTimeoutMs ?? 10_000 };
       const response = job.operation === 'edit'
@@ -85,29 +115,52 @@ export class DeliveryService {
       return this.commitResponse(job, payload, response, now);
     } catch (error) {
       if (error instanceof SecurityError) return this.finish(job, 'failed', now, 'guard_blocked');
-      if (!sent && error instanceof DiscordPayloadValidationError) return this.finish(job, 'failed', now, 'validate');
-      if (!sent && error instanceof PresetRenderError) return this.finish(job, 'failed', now, 'render');
-      const reason = sent ? 'Network request failed or response unavailable' : 'Translation/render preparation failed';
-      if (sent && job.operation !== 'edit') return this.finish(job, 'unknown', now, reason);
-      if (sent) return this.retry(job, now, reason);
+      if (!requestStarted && error instanceof DiscordPayloadValidationError) return this.finish(job, 'failed', now, 'validate');
+      if (!requestStarted && error instanceof PresetRenderError) return this.finish(job, 'failed', now, 'render');
+      const reason = requestStarted ? 'Network request failed or response unavailable' : 'Translation/render preparation failed';
+      // POST 결과가 불명확할 때 자동 재시도하면 중복 공지가 생길 수 있다.
+      // 기존 메시지를 수정하는 PATCH만 자동 재시도한다.
+      if (requestStarted && job.operation !== 'edit') return this.finish(job, 'unknown', now, reason);
+      if (requestStarted) return this.retry(job, now, reason);
       return this.finish(job, 'failed', now, reason);
     }
   }
 
-  private context(job: DeliveryJobRecord) {
-    const r = this.options.repositories;
-    const binding = job.bindingId === null ? null : r.deliveryBindings.getById(job.bindingId);
-    const item = r.items.getById(job.itemId);
-    const source = item ? r.sources.getById(item.sourceId) : null;
+  private latestCooldownUntil(bucketKey: string): string | undefined {
+    const jobs = this.options.repositories.deliveryJobs;
+    const destinationCooldown = jobs.cooldownUntil(bucketKey);
+    const globalCooldown = jobs.cooldownUntil('__discord_global__');
+    return [destinationCooldown, globalCooldown]
+      .filter((value): value is string => value !== null)
+      .sort()
+      .at(-1);
+  }
+
+  private resolveActiveContext(job: DeliveryJobRecord) {
+    const repositories = this.options.repositories;
+    const binding = job.bindingId === null ? null : repositories.deliveryBindings.getById(job.bindingId);
+    const item = repositories.items.getById(job.itemId);
+    const source = item ? repositories.sources.getById(item.sourceId) : null;
     if (!binding || binding.endedAt !== null || !item || !source?.enabled) return null;
-    const destination = resolveDestinationsForSource(source, r).find((value) => value.destinationKey === binding.destinationKey);
-    return destination ? { binding, item, source, destination } : null;
+    const destination = resolveDestinationsForSource(source, repositories).find((value) => value.destinationKey === binding.destinationKey);
+    return destination ? {
+      binding,
+      item,
+      source,
+      destination
+    } : null;
   }
 
   private superseded(job: DeliveryJobRecord, item: ItemRecord, source: SourceRecord, now: string): DeliveryRunResult {
     if (job.operation === 'initial_post') {
       this.options.repositories.deliveryJobs.refreshInitial(job, item, source);
-      return { itemId: job.itemId, jobId: job.id, outcome: 'retrying', attemptNo: job.attemptCount, nextAttemptAt: now };
+      return {
+        itemId: job.itemId,
+        jobId: job.id,
+        outcome: 'retrying',
+        attemptNo: job.attemptCount,
+        nextAttemptAt: now
+      };
     }
     const result = this.finish(job, 'cancelled', now, 'Superseded revision');
     this.options.planner.planUpdate(item, source, now);
@@ -115,33 +168,50 @@ export class DeliveryService {
   }
 
   private commitResponse(job: DeliveryJobRecord, payload: DiscordWebhookPayload, response: WebhookPostResponse, now: string): DeliveryRunResult {
-    const r = this.options.repositories;
-    const binding = r.deliveryBindings.getById(job.bindingId!);
-    if (binding && response.cooldownMs) r.deliveryJobs.cooldown(binding.bucketKey, new Date(Date.parse(now) + response.cooldownMs).toISOString());
+    const repositories = this.options.repositories;
+    const binding = repositories.deliveryBindings.getById(job.bindingId!);
+    if (binding && response.cooldownMs) repositories.deliveryJobs.cooldown(binding.bucketKey, new Date(Date.parse(now) + response.cooldownMs).toISOString());
     if (response.statusCode === 429) {
       const until = new Date(Date.parse(now) + Math.max(1000, response.retryAfterMs ?? 1000)).toISOString();
-      if (binding) r.deliveryJobs.cooldown(binding.bucketKey, until);
-      if (response.globalRateLimit) r.deliveryJobs.cooldown('__discord_global__', until);
+      if (binding) repositories.deliveryJobs.cooldown(binding.bucketKey, until);
+      if (response.globalRateLimit) repositories.deliveryJobs.cooldown('__discord_global__', until);
       return this.finish(job, 'pending', now, 'rate_limited', until, job.attemptCount, 429);
     }
-    if (response.statusCode >= 500) return job.operation === 'edit' ? this.retry(job, now, 'network') : this.finish(job, 'unknown', now, 'POST server result is unknown');
+    if (response.statusCode >= 500) {
+      if (job.operation === 'edit') return this.retry(job, now, 'network');
+      return this.finish(job, 'unknown', now, 'POST server result is unknown');
+    }
     if (response.statusCode === 404 && job.operation === 'edit') return this.finish(job, 'uneditable', now, 'Message no longer exists', null, job.attemptCount, 404);
     if (response.statusCode < 200 || response.statusCode >= 300) return this.finish(job, 'failed', now, 'webhook_rejected', null, job.attemptCount, response.statusCode);
-    const prior = r.itemDeliveries.get(job.itemId, job.bindingId!);
+    const prior = repositories.itemDeliveries.get(job.itemId, job.bindingId!);
     const messageId = response.messageId ?? (job.operation === 'edit' ? prior?.messageId : null);
     if (!messageId) return this.finish(job, 'unknown', now, 'POST succeeded but message ID is unavailable');
     return this.options.db.transaction(() => {
-      if (!r.deliveryJobs.finish(job, 'succeeded', now)) return this.result(job, 'skipped');
-      r.itemDeliveries.save({ itemId: job.itemId, bindingId: job.bindingId!, messageId,
-        channelId: response.channelId ?? prior?.channelId ?? null, threadId: response.threadId ?? prior?.threadId ?? null,
-        appliedRevision: job.revision, firstDeliveredAt: prior?.firstDeliveredAt ?? now });
-      r.deliveryLogs.append({ itemId: job.itemId, attemptNo: job.attemptCount + 1, status: 'success', httpStatus: response.statusCode,
-        renderedBytes: Buffer.byteLength(JSON.stringify(payload)), destinationKey: binding?.destinationKey ?? null,
-        contentHash: (JSON.parse(job.itemSnapshot) as ItemRecord).contentHash, discordMessageId: messageId, createdAt: now });
-      const latest = r.items.getById(job.itemId);
-      const source = latest ? r.sources.getById(latest.sourceId) : null;
+      if (!repositories.deliveryJobs.finish(job, 'succeeded', now)) return this.result(job, 'skipped');
+      repositories.itemDeliveries.save({
+        itemId: job.itemId,
+        bindingId: job.bindingId!,
+        messageId,
+        channelId: response.channelId ?? prior?.channelId ?? null,
+        threadId: response.threadId ?? prior?.threadId ?? null,
+        appliedRevision: job.revision,
+        firstDeliveredAt: prior?.firstDeliveredAt ?? now
+      });
+      repositories.deliveryLogs.append({
+        itemId: job.itemId,
+        attemptNo: job.attemptCount + 1,
+        status: 'success',
+        httpStatus: response.statusCode,
+        renderedBytes: Buffer.byteLength(JSON.stringify(payload)),
+        destinationKey: binding?.destinationKey ?? null,
+        contentHash: (JSON.parse(job.itemSnapshot) as ItemRecord).contentHash,
+        discordMessageId: messageId,
+        createdAt: now
+      });
+      const latest = repositories.items.getById(job.itemId);
+      const source = latest ? repositories.sources.getById(latest.sourceId) : null;
       if (latest && source && latest.contentRevision > job.revision) this.options.planner.planUpdate(latest, source, now);
-      r.deliveryJobs.syncItemState(job.itemId, now);
+      repositories.deliveryJobs.syncItemState(job.itemId, now);
       return this.result(job, 'delivered');
     })();
   }
@@ -152,24 +222,65 @@ export class DeliveryService {
       : this.finish(job, 'pending', now, error, retryAt(now, failures), failures);
   }
 
-  private finish(job: DeliveryJobRecord, state: DeliveryJobState, now: string, error: string | null = null, next: string | null = null, attempts = job.attemptCount, httpStatus: number | null = null): DeliveryRunResult {
-    const r = this.options.repositories;
+  private finish(
+    job: DeliveryJobRecord,
+    state: DeliveryJobState,
+    now: string,
+    error: string | null = null,
+    next: string | null = null,
+    attempts = job.attemptCount,
+    httpStatus: number | null = null
+  ): DeliveryRunResult {
+    const repositories = this.options.repositories;
     return this.options.db.transaction(() => {
-      const saved = r.deliveryJobs.finish(job, state, now, error, next, attempts);
+      const saved = repositories.deliveryJobs.finish(job, state, now, error, next, attempts);
       if (saved && (['failed', 'unknown', 'uneditable'].includes(state) || error === 'rate_limited')) {
-        const binding = job.bindingId ? r.deliveryBindings.getById(job.bindingId) : null;
-        r.deliveryLogs.append({ itemId: job.itemId, attemptNo: attempts + 1, status: 'failed', destinationKey: binding?.destinationKey ?? null,
-          failureReason: (state === 'unknown' ? 'unknown' : ['render', 'validate', 'guard_blocked', 'rate_limited', 'max_retries'].includes(error ?? '') ? error : 'webhook_rejected') as DeliveryFailureReason,
+        const binding = job.bindingId ? repositories.deliveryBindings.getById(job.bindingId) : null;
+        repositories.deliveryLogs.append({
+          itemId: job.itemId,
+          attemptNo: attempts + 1,
+          status: 'failed',
+          destinationKey: binding?.destinationKey ?? null,
+          failureReason: logFailureReason(state, error),
           httpStatus,
-          error, createdAt: now });
+          error,
+          createdAt: now
+        });
       }
-      if (saved) r.deliveryJobs.syncItemState(job.itemId, now);
-      const outcome: DeliveryRunOutcome = !saved ? 'skipped' : state === 'succeeded' ? 'delivered' : state === 'pending' ? 'retrying' : state === 'cancelled' ? 'skipped' : state as DeliveryRunOutcome;
+      if (saved) repositories.deliveryJobs.syncItemState(job.itemId, now);
+      const outcome = runOutcome(state, saved);
       return { ...this.result(job, outcome), failureReason: error ?? undefined, nextAttemptAt: next };
     })();
   }
 
   private result(job: DeliveryJobRecord, outcome: DeliveryRunOutcome): DeliveryRunResult {
-    return { itemId: job.itemId, jobId: job.id, outcome, attemptNo: job.attemptCount + 1 };
+    return {
+      itemId: job.itemId,
+      jobId: job.id,
+      outcome,
+      attemptNo: job.attemptCount + 1
+    };
   }
+}
+
+function logFailureReason(state: DeliveryJobState, error: string | null): DeliveryFailureReason {
+  if (state === 'unknown') return 'unknown';
+  switch (error) {
+    case 'render':
+    case 'validate':
+    case 'guard_blocked':
+    case 'rate_limited':
+    case 'max_retries':
+      return error;
+    default:
+      return 'webhook_rejected';
+  }
+}
+
+function runOutcome(state: DeliveryJobState, saved: boolean): DeliveryRunOutcome {
+  // 소유권을 잃어 저장하지 못한 실행은 발송 결과를 확정한 것으로 처리하지 않는다.
+  if (!saved || state === 'cancelled') return 'skipped';
+  if (state === 'succeeded') return 'delivered';
+  if (state === 'pending') return 'retrying';
+  return state as DeliveryRunOutcome;
 }

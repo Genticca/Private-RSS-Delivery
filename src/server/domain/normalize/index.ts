@@ -18,6 +18,7 @@ export { normalizeIncident } from './incident.js';
 export { cleanSummary, cleanTitle, decodeHtmlEntities, htmlToText, truncateAtWordBoundary } from './html.js';
 
 export function normalize(profile: Profile, env: FeedEnvelope): NormalizedItem {
+  // 공급자별 처리가 실패하면 일반 정규화를 시도한다. 일반 처리의 실패까지 숨기지는 않는다.
   try {
     if (profile === 'incident-io' || profile === 'atlassian-statuspage') {
       return normalizeIncident(profile, env);

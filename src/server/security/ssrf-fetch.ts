@@ -25,28 +25,28 @@ export interface FetchFeedOptions {
 
 export type FeedFetchResult =
   | {
-      kind: 'not-modified';
-      statusCode: 304;
-      url: string;
-      etag: string | null;
-      lastModified: string | null;
-      usedTlsMaxVersion?: TlsMaxVersion;
-      persistedFetchOptions?: FetchOptions;
-      permanentUrl?: string;
-    }
+    kind: 'not-modified';
+    statusCode: 304;
+    url: string;
+    etag: string | null;
+    lastModified: string | null;
+    usedTlsMaxVersion?: TlsMaxVersion;
+    persistedFetchOptions?: FetchOptions;
+    permanentUrl?: string;
+  }
   | {
-      kind: 'ok';
-      statusCode: number;
-      url: string;
-      body: string;
-      etag: string | null;
-      lastModified: string | null;
-      contentType: string | null;
-      charset: string;
-      usedTlsMaxVersion?: TlsMaxVersion;
-      persistedFetchOptions?: FetchOptions;
-      permanentUrl?: string;
-    };
+    kind: 'ok';
+    statusCode: number;
+    url: string;
+    body: string;
+    etag: string | null;
+    lastModified: string | null;
+    contentType: string | null;
+    charset: string;
+    usedTlsMaxVersion?: TlsMaxVersion;
+    persistedFetchOptions?: FetchOptions;
+    permanentUrl?: string;
+  };
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 const DEFAULT_USER_AGENT = 'rss-discord-bridge/0.4.0';
@@ -70,7 +70,12 @@ export async function fetchFeed(source: FeedFetchSource, options: FetchFeedOptio
     if (source.id && options.persistFetchOptions) {
       await options.persistFetchOptions(source.id, persistedFetchOptions);
     }
-    return { ...retryAttempt.result, url: url.toString(), usedTlsMaxVersion: 'TLSv1.2', persistedFetchOptions };
+    return {
+      ...retryAttempt.result,
+      url: url.toString(),
+      usedTlsMaxVersion: 'TLSv1.2',
+      persistedFetchOptions
+    };
   }
   if (recheckTls) {
     const persistedFetchOptions = { ...fetchOptions };
@@ -86,7 +91,12 @@ async function attemptFetch(
   source: FeedFetchSource,
   tlsMaxVersion: TlsMaxVersion | undefined,
   options: FetchFeedOptions
-): Promise<{ result: FeedFetchResult; retryWithTls12: false } | { retryWithTls12: true }> {
+): Promise<{
+  result: FeedFetchResult;
+  retryWithTls12: false
+} | {
+  retryWithTls12: true
+}> {
   const fetchImpl = options.fetchImpl ?? undiciFetch;
   const dispatcher = options.dispatcherFactory?.(tlsMaxVersion) ?? getSsrSafeAgent({ tlsMaxVersion, lookup: options.lookup });
   const timeoutMs = source.fetchOptions?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
@@ -102,7 +112,13 @@ async function attemptFetch(
   let response: Response | undefined;
   try {
     while (true) {
-      response = await abortable(fetchImpl(currentUrl, { method: 'GET', headers, redirect: 'manual', dispatcher, signal: controller.signal }), controller.signal);
+      response = await abortable(fetchImpl(currentUrl, {
+        method: 'GET',
+        headers,
+        redirect: 'manual',
+        dispatcher,
+        signal: controller.signal
+      }), controller.signal);
       if (!isRedirect(response.status)) break;
       permanentRedirect = permanentRedirect && (response.status === 301 || response.status === 308);
       const location = header(response, 'location');
@@ -110,15 +126,24 @@ async function attemptFetch(
       if (!location) throw new SecurityError('http_error', 'Feed redirect did not include a location header.', { statusCode: response.status });
       if (redirectCount++ >= MAX_REDIRECTS) throw new SecurityError('redirect_blocked', 'Too many feed redirects.', { maxRedirects: MAX_REDIRECTS });
       const targetUrl = new URL(location, currentUrl).toString();
+      // 처음 URL이 안전해도 리다이렉트가 내부 주소를 가리킬 수 있어 매번 재검증한다.
       assertSafeFeedUrl(targetUrl);
       await abortable(verifyFeedUrlSafe(targetUrl, { lookup: options.lookup }), controller.signal);
       currentUrl = targetUrl;
     }
     if (response.status === 304) {
       await discardBody(response);
-      return { retryWithTls12: false, result: { kind: 'not-modified', statusCode: 304, url: source.feedUrl,
-        etag: header(response, 'etag'), lastModified: header(response, 'last-modified'), usedTlsMaxVersion: tlsMaxVersion,
-        permanentUrl: redirectCount > 0 && permanentRedirect ? currentUrl : undefined } };
+      return {
+        retryWithTls12: false, result: {
+          kind: 'not-modified',
+          statusCode: 304,
+          url: source.feedUrl,
+          etag: header(response, 'etag'),
+          lastModified: header(response, 'last-modified'),
+          usedTlsMaxVersion: tlsMaxVersion,
+          permanentUrl: redirectCount > 0 && permanentRedirect ? currentUrl : undefined
+        }
+      };
     }
     if (response.status === 403 && !tlsMaxVersion) {
       await discardBody(response);
@@ -131,9 +156,20 @@ async function attemptFetch(
     const bytes = await readBoundedBody(response, maxBytes, controller);
     const contentType = header(response, 'content-type');
     const charset = selectCharset(source.fetchOptions, contentType, bytes);
-    return { retryWithTls12: false, result: { kind: 'ok', statusCode: response.status, url: source.feedUrl,
-      body: decodeBytes(bytes, charset), etag: header(response, 'etag'), lastModified: header(response, 'last-modified'),
-      contentType, charset, usedTlsMaxVersion: tlsMaxVersion, permanentUrl: redirectCount > 0 && permanentRedirect ? currentUrl : undefined } };
+    return {
+      retryWithTls12: false, result: {
+        kind: 'ok',
+        statusCode: response.status,
+        url: source.feedUrl,
+        body: decodeBytes(bytes, charset),
+        etag: header(response, 'etag'),
+        lastModified: header(response, 'last-modified'),
+        contentType,
+        charset,
+        usedTlsMaxVersion: tlsMaxVersion,
+        permanentUrl: redirectCount > 0 && permanentRedirect ? currentUrl : undefined
+      }
+    };
   } catch (error) {
     if (error instanceof SecurityError) throw error;
     if (!tlsMaxVersion && !controller.signal.aborted && isTlsHandshakeError(error)) return { retryWithTls12: true };
@@ -146,6 +182,7 @@ async function attemptFetch(
 }
 
 async function readBoundedBody(response: Response, maxBytes: number, controller: AbortController): Promise<Uint8Array> {
+  // Content-Length가 없거나 잘못되어도 실제 수신량을 별도로 제한한다.
   const declaredLength = Number(response.headers.get('content-length'));
   if (declaredLength > maxBytes) {
     controller.abort();
@@ -176,7 +213,11 @@ async function readBoundedBody(response: Response, maxBytes: number, controller:
 function abortable<T>(operation: Promise<T>, signal: AbortSignal): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const onAbort = () => reject(new SecurityError('timeout', 'Feed fetch timed out.'));
-    if (signal.aborted) { void operation.catch(() => undefined); reject(new SecurityError('timeout', 'Feed fetch timed out.')); return; }
+    if (signal.aborted) {
+      void operation.catch(() => undefined);
+      reject(new SecurityError('timeout', 'Feed fetch timed out.'));
+      return;
+    }
     signal.addEventListener('abort', onAbort, { once: true });
     operation.then(resolve, reject).finally(() => signal.removeEventListener('abort', onAbort));
   });

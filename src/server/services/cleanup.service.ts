@@ -2,7 +2,11 @@ import type Database from 'better-sqlite3';
 import type { DeliveryLogRepository, FetchLogRepository, ModelUsageRepository } from '../db/index.js';
 import { subtractDaysIso } from '../db/time.js';
 
-export interface CleanupRunResult { deliveryLogs: number; fetchLogs: number; modelUsage: number; }
+export interface CleanupRunResult {
+  deliveryLogs: number;
+  fetchLogs: number;
+  modelUsage: number;
+}
 export interface CleanupRepositories {
   deliveryLogs: Pick<DeliveryLogRepository, 'pruneOlderThan'>;
   fetchLogs: Pick<FetchLogRepository, 'pruneOlderThan'>;
@@ -10,7 +14,7 @@ export interface CleanupRepositories {
 }
 
 export class CleanupService {
-  constructor(private readonly db: Database.Database, private readonly repositories: CleanupRepositories) {}
+  constructor(private readonly db: Database.Database, private readonly repositories: CleanupRepositories) { }
 
   run(now: string, retentionDays: number, itemRetentionDays?: number): CleanupRunResult {
     return this.db.transaction(() => {
@@ -20,6 +24,8 @@ export class CleanupService {
         modelUsage: this.repositories.modelUsage.pruneOlderThan(retentionDays, now)
       };
       if (itemRetentionDays !== undefined) {
+        // 항목 식별자와 발송 이력은 유지하고 오래된 본문만 비운다.
+        // 미해결 발송 작업이 참조하는 항목은 이후 처리에 필요하므로 보존한다.
         this.db.prepare('DELETE FROM translation_events WHERE created_at < ?').run(subtractDaysIso(now, retentionDays));
         this.db.prepare("DELETE FROM translation_cache WHERE status = 'failed' AND updated_at < ?").run(subtractDaysIso(now, retentionDays));
         this.db.prepare(`UPDATE items SET summary = NULL, translated_title = NULL, translated_summary = NULL,

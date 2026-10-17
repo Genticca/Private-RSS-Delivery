@@ -42,7 +42,9 @@ export function flash(message: string): string {
   return renderPartial('flash', { message });
 }
 
-export function importSummary(plan: { [key: string]: unknown }, mode = 'skip'): string {
+export function importSummary(plan: {
+  [key: string]: unknown
+}, mode = 'skip'): string {
   const warnings = Array.isArray(plan.warnings) ? plan.warnings.map((warning) => String(warning)) : [];
   const blockedFeedUrls = Array.isArray(plan.blockedFeedUrls) ? plan.blockedFeedUrls : [];
   return renderPartial('import-preview', {
@@ -57,27 +59,30 @@ export function importSummary(plan: { [key: string]: unknown }, mode = 'skip'): 
   });
 }
 
+/** htmx가 응답 헤더를 읽어 전체 페이지를 이동하도록 한다. 응답 본문은 비운다. */
 export function redirectNoContent(reply: FastifyReply, location: string): void {
   reply.header('HX-Redirect', location).status(204).send();
 }
 
 export async function redirectMutation(reply: FastifyReply, action: () => unknown | Promise<unknown>, location: string): Promise<void> {
-  try {
+  await handleHtmlMutation(reply, async () => {
     await action();
     redirectNoContent(reply, location);
-  } catch (error) {
-    if (error instanceof AppError) {
-      reply.status(error.statusCode).type('text/html').send(errorPartial(error));
-      return;
-    }
-    throw error;
-  }
+  });
 }
 
+/** 변경 작업을 마친 뒤 결과를 HTML 조각으로 렌더링하는 공통 응답 경로다. */
 export async function mutationReply(reply: FastifyReply, action: () => unknown | Promise<unknown>, render: (value: unknown) => string): Promise<void> {
-  try {
+  await handleHtmlMutation(reply, async () => {
     const result = await action();
     reply.type('text/html').send(render(result));
+  });
+}
+
+/** htmx 폼의 예상된 입력 오류는 HTML로 응답하고, 예기치 않은 오류는 전역 처리기에 맡긴다. */
+async function handleHtmlMutation(reply: FastifyReply, action: () => Promise<void>): Promise<void> {
+  try {
+    await action();
   } catch (error) {
     if (error instanceof AppError) {
       reply.status(error.statusCode).type('text/html').send(errorPartial(error));
@@ -93,6 +98,8 @@ export function requestBody(request: FastifyRequest): unknown {
 
 
 export function expandDottedBody(value: unknown): unknown {
+  // 체크박스의 hidden 값과 선택 값이 함께 오면 마지막 값을 사용한다.
+  // fetchOptions.headers 같은 점 표기 필드는 중첩 객체로 복원한다.
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
   const output: Record<string, unknown> = {};
   for (const [key, rawValue] of Object.entries(value as Record<string, unknown>)) {
@@ -121,6 +128,7 @@ export function isHtmxRequest(request: FastifyRequest): boolean {
 const partialCache = new Map<string, Handlebars.TemplateDelegate>();
 
 function renderPartial(name: string, context: unknown): string {
+  // 같은 부분 템플릿을 요청마다 다시 읽고 컴파일하지 않도록 최초 결과를 재사용한다.
   let template = partialCache.get(name);
   if (!template) {
     const file = fileURLToPath(new URL(`../../../resources/templates/partials/${name}.hbs`, import.meta.url));
@@ -131,6 +139,7 @@ function renderPartial(name: string, context: unknown): string {
 }
 
 function errorPartial(error: AppError): string {
+  // 템플릿을 거치지 않고 만드는 HTML이므로 오류 메시지와 필드명도 이스케이프한다.
   const fields = error.fields ? fieldList(error.fields) : '';
   return `<div class="form-error" data-error-code="${escapeHtml(error.code)}"><p>${escapeHtml(error.message)}</p>${fields}</div>`;
 }
@@ -143,5 +152,10 @@ function fieldList(fields: Record<string, string>): string {
 }
 
 function escapeHtml(value: string): string {
-  return value.replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char] ?? char));
+  return value.replace(/[&<>"]/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;'
+  }[char] ?? char));
 }

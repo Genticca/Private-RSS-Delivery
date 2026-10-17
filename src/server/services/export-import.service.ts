@@ -5,7 +5,17 @@ import type { FetchOptions } from '../security/types.js';
 import { nowIso } from '../db/time.js';
 import type { GroupRepository, SourceRepository, TemplateRepository, SourceGroupRepository } from '../db/index.js';
 import { validationError } from './errors.js';
-import { parseDocument, validateDocument, sanitizeFetchOptions, type ExportDocumentV1, type ExportGroup, type ExportSource, type ImportMode, type ImportPlan, type ImportBlockedSource } from './export-import.document.js';
+import {
+  parseDocument,
+  validateDocument,
+  sanitizeFetchOptions,
+  type ExportDocumentV1,
+  type ExportGroup,
+  type ExportSource,
+  type ImportMode,
+  type ImportPlan,
+  type ImportBlockedSource
+} from './export-import.document.js';
 export { parseImportMode } from './export-import.document.js';
 export type { ExportDocumentV1, ExportGroup, ExportSource, ImportMode, ImportPlan, ImportBlockedSource } from './export-import.document.js';
 import { validateOptionalWebhookUrl } from './validation.js';
@@ -25,7 +35,7 @@ export interface ExportImportServiceOptions {
 }
 
 export class ExportImportService {
-  constructor(private readonly options: ExportImportServiceOptions) {}
+  constructor(private readonly options: ExportImportServiceOptions) { }
 
   export(): ExportDocumentV1 {
     const groups = this.options.repositories.groups.list();
@@ -76,6 +86,7 @@ export class ExportImportService {
   }
 
   async commit(payload: string, mode: ImportMode = 'skip'): Promise<ImportPlan> {
+    // DNS 등 외부 검증은 쓰기 트랜잭션 전에 끝내 DB 잠금을 오래 잡지 않는다.
     const { document, blockedFeedUrls } = await this.prepareImport(payload);
     const plan = this.plan(document, mode, blockedFeedUrls);
     const timestamp = this.now();
@@ -164,12 +175,16 @@ export class ExportImportService {
     return plan;
   }
 
-  private async prepareImport(payload: string): Promise<{ document: ExportDocumentV1; blockedFeedUrls: ImportBlockedSource[] }> {
+  private async prepareImport(payload: string): Promise<{
+    document: ExportDocumentV1;
+    blockedFeedUrls: ImportBlockedSource[]
+  }> {
     const document = parseDocument(payload);
     validateDocument(document);
     const blockedGroupWebhooks = await this.normalizeAndVerifyGroupWebhooks(document.groups);
     const blockedFeedUrls: ImportBlockedSource[] = [];
     const sources: ExportSource[] = [];
+    // 차단된 항목은 사유를 남기고 제외한다. 미리보기와 실제 적용에 같은 입력을 사용한다.
     for (const source of document.sources) {
       try {
         await (this.options.verifyFeedUrl ?? verifyFeedUrlSafe)(source.feedUrl);
@@ -204,7 +219,10 @@ export class ExportImportService {
     return blocked;
   }
 
-  private firstBlockedGroupForSource(source: ExportSource, blockedGroups: ReadonlyMap<string, string>): { name: string; reason: string } | null {
+  private firstBlockedGroupForSource(source: ExportSource, blockedGroups: ReadonlyMap<string, string>): {
+    name: string;
+    reason: string
+  } | null {
     for (const groupRef of source.groupRefs) {
       const reason = blockedGroups.get(groupRef.toLowerCase());
       if (reason) return { name: groupRef, reason };

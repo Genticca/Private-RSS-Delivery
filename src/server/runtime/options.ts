@@ -10,6 +10,7 @@ export interface RuntimeOptions {
 }
 
 export function loadRuntimeOptions(env: NodeJS.ProcessEnv): RuntimeOptions {
+  // 잘못된 제한값으로 실행을 시작하지 않도록 부팅 단계에서 범위까지 검증한다.
   return {
     pollConcurrency: integer(env, 'POLL_CONCURRENCY', 2, 1, 16),
     deliveryConcurrency: integer(env, 'DELIVERY_CONCURRENCY', 2, 1, 16),

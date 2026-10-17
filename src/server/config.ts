@@ -47,7 +47,10 @@ function readInt(
   value: string | undefined,
   fallback: number,
   name: string,
-  bounds: { min?: number; max?: number } = {}
+  bounds: {
+    min?: number;
+    max?: number
+  } = {}
 ): number {
   if (value === undefined || value.trim() === '') return fallback;
 

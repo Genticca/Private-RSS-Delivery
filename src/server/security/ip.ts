@@ -11,7 +11,10 @@ export interface LookupAddress {
 
 export type DnsLookup = (
   hostname: string,
-  options: { all: true; verbatim: true },
+  options: {
+    all: true;
+    verbatim: true
+  },
   callback: (error: NodeJS.ErrnoException | null, addresses: LookupAddress[]) => void
 ) => void;
 
@@ -94,6 +97,7 @@ export async function resolveSafeHostname(hostname: string, options: SsrSafeLook
     throw new SecurityError('ssrf_blocked', 'Host did not resolve to an address.');
   }
 
+  // 하나라도 내부 주소가 섞여 있으면 거부한다. 실제 연결에서 어느 주소가 선택될지에 의존하지 않는다.
   for (const address of addresses) {
     assertAddressAllowed(address.address);
   }
@@ -101,6 +105,7 @@ export async function resolveSafeHostname(hostname: string, options: SsrSafeLook
 }
 
 export function createSsrSafeLookup(options: SsrSafeLookupOptions = {}): SsrSafeLookup {
+  // 사전 검사에 더해 실제 소켓 연결 시점의 DNS 조회에도 동일한 검증을 적용한다.
   return (hostname, lookupOptions, callback) => {
     resolveSafeHostname(hostname, options)
       .then((addresses) => {
@@ -132,6 +137,7 @@ export function assertAddressAllowed(address: string): void {
     throw new SecurityError('ssrf_blocked', 'Resolved address is not allowed.');
   }
   if (family === 6) {
+    // IPv4를 담은 IPv6 표기로 사설 IPv4 차단을 우회하지 못하도록 내부 주소도 검사한다.
     const mapped = extractIpv4MappedAddress(normalized);
     if (mapped && isRestrictedIpv4(mapped)) {
       throw new SecurityError('ssrf_blocked', 'Resolved IPv4-mapped address is not allowed.');

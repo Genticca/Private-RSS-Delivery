@@ -56,8 +56,9 @@ const FETCH_LOG_COLUMNS = `
   items_changed, items_skipped, duration_ms, error, created_at
 `;
 
+/** 피드 수집 결과와 처리 건수를 저장하며 관리 목록·SSE·보존 기간 정리에 사용한다. */
 export class FetchLogRepository {
-  constructor(private readonly db: Database.Database) {}
+  constructor(private readonly db: Database.Database) { }
 
   append(input: AppendFetchLogInput): FetchLogRecord {
     const createdAt = input.createdAt ?? nowIso();
@@ -118,6 +119,7 @@ export class FetchLogRepository {
   }
 
   listLatestOutcomeBySourceIds(sourceIds: readonly string[]): Map<string, FetchOutcome> {
+    // 소스별로 쿼리를 반복하지 않고, 각 소스에서 가장 큰 로그 ID의 결과만 일괄 조회한다.
     const output = new Map<string, FetchOutcome>();
     if (sourceIds.length === 0) return output;
     const placeholders = sourceIds.map(() => '?').join(', ');
@@ -131,7 +133,10 @@ export class FetchLogRepository {
          )
          WHERE rank = 1`
       )
-      .all(...sourceIds) as Array<{ source_id: string; outcome: FetchOutcome }>;
+      .all(...sourceIds) as Array<{
+        source_id: string;
+        outcome: FetchOutcome
+      }>;
     for (const row of rows) {
       output.set(row.source_id, row.outcome);
     }

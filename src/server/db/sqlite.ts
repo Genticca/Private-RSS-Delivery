@@ -11,6 +11,7 @@ export function nullable<T>(value: T | null | undefined): T | null {
 }
 
 export function parseJsonObject<T extends object>(value: string | null, fallback: T, fieldName: string): T {
+  // 값이 없는 경우만 기본값을 사용한다. 손상된 JSON은 필드명을 포함한 오류로 드러낸다.
   if (value === null || value.trim() === '') return fallback;
   try {
     const parsed: unknown = JSON.parse(value);

@@ -1,3 +1,4 @@
+// 피드와 웹훅의 외부 통신은 이 경로의 URL·DNS 검증과 안전한 연결 풀을 사용한다.
 export { getSsrSafeAgent, closeSsrSafeAgents } from './agent-cache.js';
 export { SecurityError, type SecurityErrorCode } from './errors.js';
 export {

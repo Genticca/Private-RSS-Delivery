@@ -15,7 +15,7 @@ export interface ExportGroup {
   name: string;
   webhookName?: string | null;
   webhookAvatarUrl?: string | null;
-  /** @deprecated Import-only legacy group webhook. Export never writes this field. */
+  /** @deprecated 이전 문서 가져오기 전용이다. 내보내기에는 웹훅 원문을 포함하지 않는다. */
   legacyWebhookUrl?: string | null;
 }
 
@@ -35,7 +35,7 @@ export interface ExportSource {
   threadName?: string | null;
   appliedTags?: string[];
   editInPlace?: boolean;
-  /** @deprecated Import-only legacy source webhook. Export never writes this field. */
+  /** @deprecated 이전 소스 웹훅의 호환 입력이다. 새 문서에는 기록하지 않는다. */
   legacyWebhookUrl?: string | null;
   webhookName?: string | null;
   webhookAvatarUrl?: string | null;
@@ -65,8 +65,12 @@ export interface ImportPlan {
   warnings: string[];
 }
 
-type ImportGroupWithLegacyWebhook = ExportGroup & { webhookUrl?: unknown };
-type ImportSourceWithLegacyWebhook = ExportSource & { webhookUrl?: unknown };
+type ImportGroupWithLegacyWebhook = ExportGroup & {
+  webhookUrl?: unknown
+};
+type ImportSourceWithLegacyWebhook = ExportSource & {
+  webhookUrl?: unknown
+};
 
 export type ImportMode = 'skip' | 'overwrite';
 

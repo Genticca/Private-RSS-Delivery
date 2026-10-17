@@ -12,6 +12,7 @@ export interface PresetRenderSource {
 }
 
 export interface PresetRenderContext {
+  // Discord 프리셋에 공개하는 입력만 모은다. DB 레코드 전체를 템플릿에 노출하지 않는다.
   item: PresetRenderItem;
   source: PresetRenderSource;
 }

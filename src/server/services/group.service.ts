@@ -18,8 +18,9 @@ export interface GroupServiceOptions {
   bindings?: DeliveryBindingService;
 }
 
+/** 그룹 입력을 검증하고 웹훅 변경에 맞춰 소스의 발송 연결을 함께 조정한다. */
 export class GroupService {
-  constructor(private readonly options: GroupServiceOptions) {}
+  constructor(private readonly options: GroupServiceOptions) { }
 
   list(): GroupDto[] {
     return this.options.repositories.groups.list().map(toGroupDto);
@@ -59,7 +60,8 @@ export class GroupService {
       if (existing && existing.id !== id) throw conflict('이미 존재하는 그룹 이름입니다.', { name: '이미 사용 중입니다.' });
     }
     if (input.webhookUrl) await this.verifyWebhookUrl(input.webhookUrl);
-    const webhookUrl = input.clearWebhook ? null : input.webhookUrl === null ? undefined : input.webhookUrl;
+    // 비어 있는 폼 입력은 기존 웹훅을 유지한다. clearWebhook을 선택한 경우만 제거한다.
+    const webhookUrl = input.clearWebhook ? null : input.webhookUrl ?? undefined;
     return this.options.db.transaction(() => {
       const updated = this.options.repositories.groups.update(id, {
         name: input.name,
@@ -68,6 +70,7 @@ export class GroupService {
         webhookAvatarUrl: input.webhookAvatarUrl,
         updatedAt: this.now()
       });
+      // 변경된 웹훅으로 기존 발송 이력을 옮기지 않고 새 연결 세대로 반영한다.
       this.options.bindings?.reconcileAll(this.now());
       return toGroupDto(updated);
     })();

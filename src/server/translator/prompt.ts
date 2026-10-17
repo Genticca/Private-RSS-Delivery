@@ -50,6 +50,7 @@ export function truncateUtf8(value: string, maxBytes: number): string {
   const bodyLimit = maxBytes - markerBytes;
   let end = bodyLimit;
   const buffer = Buffer.from(value, 'utf8');
+  // 멀티바이트 문자 중간에서 자르면 대체 문자가 생기므로 문자 시작점까지 되돌린다.
   while (end > 0 && (buffer[end] & 0b1100_0000) === 0b1000_0000) {
     end -= 1;
   }
@@ -57,6 +58,7 @@ export function truncateUtf8(value: string, maxBytes: number): string {
 }
 
 function extractJsonObject(value: string): string {
+  // 모델이 코드 블록이나 설명을 덧붙여도 JSON 객체 부분을 추출해 검증한다.
   const trimmed = value.trim();
   if (trimmed.startsWith('{') && trimmed.endsWith('}')) return trimmed;
   const start = trimmed.indexOf('{');

@@ -39,8 +39,9 @@ interface TemplateRow {
 
 const TEMPLATE_COLUMNS = 'id, name, label, body, is_builtin, created_at, updated_at';
 
+/** Discord 프리셋 본문을 저장한다. 내장 프리셋은 이름을 기준으로 재등록한다. */
 export class TemplateRepository {
-  constructor(private readonly db: Database.Database) {}
+  constructor(private readonly db: Database.Database) { }
 
   list(): TemplateRecord[] {
     return (this.db.prepare(`SELECT ${TEMPLATE_COLUMNS} FROM templates ORDER BY is_builtin DESC, name`).all() as TemplateRow[]).map(
@@ -89,6 +90,7 @@ export class TemplateRepository {
   }
 
   upsertBuiltin(name: string, label: string, body: string, updatedAt = nowIso()): TemplateRecord {
+    // 같은 이름의 ID를 유지해 소스가 참조 중인 내장 프리셋을 갱신한다.
     this.db
       .prepare(
         `INSERT INTO templates (name, label, body, is_builtin, created_at, updated_at)
@@ -106,6 +108,7 @@ export class TemplateRepository {
   }
 
   delete(id: number): boolean {
+    // 서비스의 검증과 별개로 저장소에서도 내장 프리셋 삭제를 막는다.
     return this.db.prepare('DELETE FROM templates WHERE id = ? AND is_builtin = 0').run(id).changes > 0;
   }
 

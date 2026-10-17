@@ -8,6 +8,6 @@ export interface FetchOptions {
   headers?: Record<string, string>;
   timeoutMs?: number;
   tlsMaxVersion?: TlsMaxVersion;
-  /** Internal timestamp for automatic compatibility fallback; absent on manual TLS settings. */
+  /** 자동 TLS 호환 모드 적용 시각. 수동 TLS 설정에는 없으며 기본 TLS 재검사 여부를 판단한다. */
   tlsPinnedAt?: string;
 }

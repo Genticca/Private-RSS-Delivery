@@ -28,7 +28,7 @@ export class CleanupWorker {
   private running = false;
   private readonly tracker = new TaskTracker();
 
-  constructor(private readonly options: CleanupWorkerOptions) {}
+  constructor(private readonly options: CleanupWorkerOptions) { }
 
   start(): void {
     if (this.timer || this.tracker.stopped) return;
@@ -43,14 +43,19 @@ export class CleanupWorker {
     this.timer = null;
   }
 
-  drain(): Promise<void> { return this.tracker.drain(); }
+  drain(): Promise<void> {
+    return this.tracker.drain();
+  }
 
   async runOnce(baseIso = this.now()): Promise<CleanupRunResult> {
     if (this.running || this.tracker.stopped) return { deliveryLogs: 0, fetchLogs: 0, modelUsage: 0 };
     this.running = true;
     try {
-      return await this.tracker.track(async () => this.tracker.stopped ? { deliveryLogs: 0, fetchLogs: 0, modelUsage: 0 }
-        : new CleanupService(this.options.db, this.options.repositories).run(baseIso, this.retentionDays(), this.options.itemContentRetentionDays));
+      return await this.tracker.track(async () => {
+        if (this.tracker.stopped) return { deliveryLogs: 0, fetchLogs: 0, modelUsage: 0 };
+        const service = new CleanupService(this.options.db, this.options.repositories);
+        return service.run(baseIso, this.retentionDays(), this.options.itemContentRetentionDays);
+      });
     } finally {
       this.running = false;
     }
@@ -88,6 +93,7 @@ export class CleanupWorker {
 export function delayUntilNextKstMidnight(baseIso: string): number {
   const base = new Date(baseIso);
   if (Number.isNaN(base.getTime())) return DAY_MS;
+  // 실행 환경의 시간대와 무관하게 한국 시간 자정을 계산한다.
   const kstMs = base.getTime() + 9 * 60 * 60 * 1000;
   const kst = new Date(kstMs);
   const nextKstMidnight = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() + 1, 0, 0, 0, 0);

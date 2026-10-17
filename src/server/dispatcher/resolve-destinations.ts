@@ -24,6 +24,7 @@ export function resolveDestinationsForSource(source: SourceRecord, repositories:
     const group = repositories.groups.getById(groupId);
     if (!group?.webhookUrl) continue;
     const identity = destinationIdentity(group.webhookUrl, source.threadId);
+    // 여러 그룹이 같은 웹훅·스레드를 가리켜도 메시지는 한 번만 발송한다.
     if (seen.has(identity)) continue;
     seen.add(identity);
     destinations.push(mapGroupDestination(source, group, identity));

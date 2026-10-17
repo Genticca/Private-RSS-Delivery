@@ -78,6 +78,7 @@ export function formatKstTimestamp(value?: string | null): string | undefined {
 
 
 function disambiguateJsonObjectClosers(templateBody: string): string {
+  // 헬퍼의 닫는 중괄호와 JSON의 닫는 중괄호가 붙어 삼중 중괄호로 해석되는 것을 막는다.
   return templateBody.replace(/({{\s*(?:json|stageColor|stageLabel|truncate|eq)\b[^{}]*}})(?=})/g, '$1 ');
 }
 
@@ -125,16 +126,18 @@ function stageColor(stage: string): number {
 
 function itemRecordToPresetItem(item: ItemRecord, useTranslationCache: boolean): PresetRenderItem {
   const publishedAtFormatted = formatKstTimestamp(item.publishedAt ?? item.updatedAt);
+  const title = useTranslationCache ? item.translatedTitle ?? item.title ?? '' : item.title ?? '';
+  const summary = useTranslationCache ? item.translatedSummary ?? item.summary ?? '' : item.summary ?? '';
   return {
     atomId: item.atomId,
-    title: useTranslationCache ? item.translatedTitle ?? item.title ?? '' : item.title ?? '',
+    title,
     link: item.link,
     publishedAt: item.publishedAt ?? undefined,
     updatedAt: item.updatedAt ?? undefined,
     author: item.author ?? undefined,
     commentsUrl: item.commentsUrl ?? undefined,
     image: item.image ?? undefined,
-    summary: useTranslationCache ? item.translatedSummary ?? item.summary ?? '' : item.summary ?? '',
+    summary,
     incidentStage: item.incidentStage ?? undefined,
     contentHash: item.contentHash,
     publishedAtFormatted

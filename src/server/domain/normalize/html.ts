@@ -26,14 +26,19 @@ export function cleanSummary(value: string): string {
   return htmlToText(value, { singleLine: false, maxChars: DEFAULT_SUMMARY_MAX_CHARS });
 }
 
+/** HTML 구조를 줄바꿈으로 남긴 뒤 엔티티·공백·길이를 순서대로 정리해 표시용 텍스트를 만든다. */
 export function htmlToText(
   value: string,
-  options: { singleLine: boolean; maxChars?: number } = { singleLine: false }
+  options: {
+    singleLine: boolean;
+    maxChars?: number
+  } = { singleLine: false }
 ): string {
   const withoutScripts = value
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ');
 
+  // 태그를 지우기 전에 문단·목록 경계를 보존해야 인접한 문장이 붙지 않는다.
   const withStructuralBreaks = withoutScripts
     .replace(/<br\b[^>]*\/?>/gi, '\n')
     .replace(/<li\b[^>]*>/gi, '\n· ')
@@ -47,6 +52,7 @@ export function htmlToText(
 }
 
 export function decodeHtmlEntities(value: string): string {
+  // 해석할 수 없는 엔티티는 원문으로 남겨 임의로 정보를 버리지 않는다.
   return value.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]+);/g, (match, entity: string) => {
     if (entity.startsWith('#x')) {
       const codePoint = Number.parseInt(entity.slice(2), 16);
@@ -74,6 +80,7 @@ export function normalizeMultiline(value: string): string {
 }
 
 export function truncateAtWordBoundary(value: string, maxChars: number): string {
+  // 마지막 단어 경계가 너무 앞에 있으면 글자 수 기준으로 잘라 표시 공간을 확보한다.
   if (value.length <= maxChars) return value;
   if (maxChars <= 1) return '…'.slice(0, maxChars);
 

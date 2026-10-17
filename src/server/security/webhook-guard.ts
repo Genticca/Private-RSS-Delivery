@@ -53,6 +53,6 @@ export function canonicalWebhookUrl(value: string): string {
   const url = assertSafeWebhookUrl(value);
   const path = url.pathname.replace(/\/+$/, '');
   if (url.hostname === 'discordapp.com') url.hostname = 'discord.com';
-  // The token is opaque and case-sensitive. Query thread settings belong to the source.
+  // 토큰의 대소문자는 보존한다. 스레드 설정은 소스에서 관리하므로 쿼리는 식별 키에서 제외한다.
   return `${url.origin}${path}`;
 }

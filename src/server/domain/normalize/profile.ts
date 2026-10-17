@@ -11,6 +11,7 @@ const INCIDENT_IO_STATUS_MARKER_RE = /<(?:b|strong)\b[^>]*>\s*Status:\s*[^<]+<\/
 const ATLASSIAN_SEGMENT_MARKER_RE = /<p\b[^>]*>[\s\S]*?<strong\b[^>]*>\s*(?:Investigating|Identified|Monitoring|Resolved|Update)\s*<\/strong>[\s\S]*?<\/p>/i;
 
 export function effectiveProfile(profileSetting: SourceProfile, detectedProfile?: Profile | null): Profile {
+  // 관리자가 지정한 프로필은 자동 감지 결과보다 우선한다.
   if (profileSetting !== 'auto') return profileSetting;
   return detectedProfile ?? 'generic';
 }
@@ -19,6 +20,7 @@ export function detectProfile(rawXml: string, envelopes: readonly FeedEnvelope[]
   if (INCIDENT_IO_GENERATOR_RE.test(rawXml)) return 'incident-io';
   if (ATLASSIAN_STATUSPAGE_MARKERS.some((marker) => marker.test(rawXml))) return 'atlassian-statuspage';
 
+  // XML과 본문에서 검사할 범위를 제한해 큰 피드에서도 탐지 비용을 제한한다.
   const bodySample = envelopes
     .slice(0, 200)
     .map((envelope) => `${envelope.title}\n${envelope.rawBody}`)

@@ -11,6 +11,7 @@ const cachedAgents = new Map<string, Agent>();
 
 export function getSsrSafeAgent(options: AgentCacheOptions = {}): Dispatcher {
   if (options.lookup) {
+    // 주입된 DNS 조회 함수를 사용하는 연결은 기본 DNS 연결 풀과 섞지 않는다.
     return createAgent(options);
   }
 
@@ -35,14 +36,14 @@ function createAgent(options: AgentCacheOptions): Agent {
   const connect =
     options.tlsMaxVersion === 'TLSv1.2'
       ? {
-          lookup: createSsrSafeLookup({ lookup: options.lookup }),
-          minVersion: 'TLSv1.2' as const,
-          maxVersion: 'TLSv1.2' as const
-        }
+        lookup: createSsrSafeLookup({ lookup: options.lookup }),
+        minVersion: 'TLSv1.2' as const,
+        maxVersion: 'TLSv1.2' as const
+      }
       : {
-          lookup: createSsrSafeLookup({ lookup: options.lookup }),
-          maxVersion: options.tlsMaxVersion
-        };
+        lookup: createSsrSafeLookup({ lookup: options.lookup }),
+        maxVersion: options.tlsMaxVersion
+      };
 
   return new Agent({
     connect,

@@ -1,9 +1,17 @@
 import type Database from 'better-sqlite3';
 
-export interface TranslationCacheRecord { cacheKey: string; field: 'title' | 'summary'; status: 'success' | 'failed'; value: string | null; lastError: string | null; retryAfter: string | null; }
+export interface TranslationCacheRecord {
+  cacheKey: string;
+  field: 'title' | 'summary';
+  status: 'success' | 'failed';
+  value: string | null;
+  lastError: string | null;
+  retryAfter: string | null;
+}
 
+/** 필드별 번역 성공값·실패 대기 시각과 캐시 사용 통계를 저장한다. */
 export class TranslationCacheRepository {
-  constructor(private readonly db: Database.Database) {}
+  constructor(private readonly db: Database.Database) { }
 
   get(cacheKey: string): TranslationCacheRecord | null {
     return this.db.prepare('SELECT cache_key AS cacheKey, field, status, value, last_error AS lastError, retry_after AS retryAfter FROM translation_cache WHERE cache_key = ?').get(cacheKey) as TranslationCacheRecord ?? null;
@@ -21,6 +29,10 @@ export class TranslationCacheRepository {
   }
 
   statistics(): Record<string, number> {
-    return Object.fromEntries((this.db.prepare('SELECT kind, COUNT(*) AS count FROM translation_events GROUP BY kind').all() as Array<{ kind: string; count: number }>).map((row) => [row.kind, row.count]));
+    const eventCounts = this.db.prepare('SELECT kind, COUNT(*) AS count FROM translation_events GROUP BY kind').all() as Array<{
+      kind: string;
+      count: number;
+    }>;
+    return Object.fromEntries(eventCounts.map((row) => [row.kind, row.count]));
   }
 }

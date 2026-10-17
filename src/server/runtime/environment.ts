@@ -5,7 +5,7 @@ export interface LoadEnvironmentOptions {
   envFilePath?: string;
 }
 
-/** Load secrets and settings once without mutating process.env. */
+/** process.env를 바꾸지 않고, 외부 환경 변수에 없는 값만 .env에서 채운다. */
 export function loadEnvironment(
   env: NodeJS.ProcessEnv = process.env,
   options: LoadEnvironmentOptions = {}
@@ -17,7 +17,11 @@ export function loadEnvironment(
     const line = rawLine.trim();
     if (!line || line.startsWith('#')) continue;
     const match = /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(line);
-    if (match && merged[match[1]] === undefined) merged[match[1]] = parseValue(match[2] ?? '');
+    if (!match) continue;
+    const [, name, value] = match;
+    if (merged[name] === undefined) {
+      merged[name] = parseValue(value ?? '');
+    }
   }
   return merged;
 }
@@ -25,9 +29,15 @@ export function loadEnvironment(
 function parseValue(value: string): string {
   const trimmed = value.trim();
   if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-    return trimmed.slice(1, -1).replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    return trimmed.slice(1, -1)
+      .replace(/\\n/g, '\n')
+      .replace(/\\r/g, '\r')
+      .replace(/\\t/g, '\t')
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, '\\');
   }
   if (trimmed.startsWith("'") && trimmed.endsWith("'")) return trimmed.slice(1, -1);
-  const hash = trimmed.indexOf(' #');
-  return (hash >= 0 ? trimmed.slice(0, hash) : trimmed).trim();
+  // 따옴표 밖에서 공백 뒤에 붙은 #만 주석의 시작으로 취급한다.
+  const commentIndex = trimmed.indexOf(' #');
+  return (commentIndex >= 0 ? trimmed.slice(0, commentIndex) : trimmed).trim();
 }

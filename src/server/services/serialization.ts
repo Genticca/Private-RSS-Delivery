@@ -45,6 +45,7 @@ export function toSourceDto(source: SourceRecord, groupIds: number[], groupNames
 }
 
 export function toGroupDto(group: GroupRecord): GroupDto {
+  // 웹훅 토큰 원문 대신 설정 여부와 마스킹한 주소만 관리 화면에 전달한다.
   return {
     id: group.id,
     name: group.name,

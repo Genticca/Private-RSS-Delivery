@@ -3,8 +3,16 @@ import type { DiscordWebhookPayload } from '../contracts/render-context.js';
 import { assertSafeWebhookMessageUrl, assertSafeWebhookUrl, canonicalWebhookUrl, getSsrSafeAgent } from '../security/index.js';
 import type { DeliveryDestination } from './resolve-destinations.js';
 
-export interface WebhookPostRequest { destination: DeliveryDestination; payload: DiscordWebhookPayload; timeoutMs: number; captureMessageId?: boolean; }
-export interface WebhookEditRequest extends WebhookPostRequest { messageId: string; }
+export interface WebhookPostRequest {
+  destination: DeliveryDestination;
+  payload: DiscordWebhookPayload;
+  timeoutMs: number;
+  captureMessageId?: boolean;
+}
+
+export interface WebhookEditRequest extends WebhookPostRequest {
+  messageId: string;
+}
 export interface WebhookPostResponse {
   statusCode: number;
   retryAfterMs?: number;
@@ -21,39 +29,58 @@ export type WebhookEditFunction = (request: WebhookEditRequest) => Promise<Webho
 export async function postDiscordWebhook(request: WebhookPostRequest): Promise<WebhookPostResponse> {
   const url = assertSafeWebhookUrl(canonicalWebhookUrl(request.destination.webhookUrl));
   if (request.destination.threadId) url.searchParams.set('thread_id', request.destination.threadId);
+  // 성공 응답에서 메시지 ID를 받아 이후 편집할 대상을 확정한다.
   url.searchParams.set('wait', 'true');
-  const response = await undiciFetch(url, {
-    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(request.payload),
-    dispatcher: getSsrSafeAgent(), signal: AbortSignal.timeout(request.timeoutMs)
-  });
+  const response = await sendWebhookRequest(url, 'POST', request.payload, request.timeoutMs);
   const result = await readResponse(response);
   if (result.channelId && request.payload.thread_name && !request.destination.threadId) result.threadId = result.channelId;
   return result;
 }
 
 export async function editDiscordWebhookMessage(request: WebhookEditRequest): Promise<WebhookPostResponse> {
-  const base = assertSafeWebhookUrl(canonicalWebhookUrl(request.destination.webhookUrl));
-  base.pathname = `${base.pathname.replace(/\/+$/, '')}/messages/${request.messageId}`;
-  if (request.destination.threadId) base.searchParams.set('thread_id', request.destination.threadId);
+  const messageUrl = assertSafeWebhookUrl(canonicalWebhookUrl(request.destination.webhookUrl));
+  messageUrl.pathname = `${messageUrl.pathname.replace(/\/+$/, '')}/messages/${request.messageId}`;
+  if (request.destination.threadId) messageUrl.searchParams.set('thread_id', request.destination.threadId);
+  // 새 스레드 생성 옵션은 기존 메시지 편집 요청에 포함하지 않는다.
   const payload = { ...request.payload };
   delete payload.thread_name;
   delete payload.applied_tags;
-  const response = await undiciFetch(assertSafeWebhookMessageUrl(base.toString()), {
-    method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
-    dispatcher: getSsrSafeAgent(), signal: AbortSignal.timeout(request.timeoutMs)
-  });
+  const response = await sendWebhookRequest(
+    assertSafeWebhookMessageUrl(messageUrl.toString()), 'PATCH', payload, request.timeoutMs
+  );
   return { ...await readResponse(response), messageId: response.ok ? request.messageId : undefined };
+}
+
+function sendWebhookRequest(
+  url: URL,
+  method: 'POST' | 'PATCH',
+  payload: DiscordWebhookPayload,
+  timeoutMs: number
+): Promise<Response> {
+  return undiciFetch(url, {
+    method,
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+    dispatcher: getSsrSafeAgent(),
+    signal: AbortSignal.timeout(timeoutMs)
+  });
 }
 
 async function readResponse(response: Response): Promise<WebhookPostResponse> {
   const body = await response.json().catch(() => null) as Record<string, unknown> | null;
   const retrySeconds = Number(response.headers.get('retry-after') ?? body?.retry_after ?? 1);
   const resetSeconds = Number(response.headers.get('x-ratelimit-reset-after') ?? 0);
+  const retryAfterMs = Number.isFinite(retrySeconds) ? Math.max(1000, retrySeconds * 1000) : 1000;
+  const hasExhaustedBucket = response.headers.get('x-ratelimit-remaining') === '0';
+  const cooldownMs = hasExhaustedBucket && Number.isFinite(resetSeconds)
+    ? Math.max(0, resetSeconds * 1000)
+    : undefined;
   return {
     statusCode: response.status,
-    messageId: snowflake(body?.id), channelId: snowflake(body?.channel_id),
-    retryAfterMs: Number.isFinite(retrySeconds) ? Math.max(1000, retrySeconds * 1000) : 1000,
-    cooldownMs: response.headers.get('x-ratelimit-remaining') === '0' && Number.isFinite(resetSeconds) ? Math.max(0, resetSeconds * 1000) : undefined,
+    messageId: snowflake(body?.id),
+    channelId: snowflake(body?.channel_id),
+    retryAfterMs,
+    cooldownMs,
     globalRateLimit: body?.global === true,
     error: response.ok ? undefined : `Discord returned HTTP ${response.status}.`
   };

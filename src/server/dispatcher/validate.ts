@@ -91,6 +91,7 @@ const payloadSchema = {
 } as const;
 
 const validatePayloadShape = ajv.compile(payloadSchema);
+const MAX_EMBED_TEXT_LENGTH = 6000;
 
 export function validateDiscordPayload(payload: unknown): DiscordWebhookPayload {
   const issues: DiscordPayloadValidationIssue[] = [];
@@ -98,8 +99,9 @@ export function validateDiscordPayload(payload: unknown): DiscordWebhookPayload 
     issues.push(...formatAjvErrors(validatePayloadShape.errors ?? []));
   }
   if (payload && typeof payload === 'object') {
+    // 개별 필드의 길이 제한과 별도로 모든 embed의 텍스트 합계도 검사한다.
     const total = getEmbedTextLength(payload as DiscordWebhookPayload);
-    if (total > 6000) {
+    if (total > MAX_EMBED_TEXT_LENGTH) {
       issues.push({ path: '/embeds', message: `embed text total must be <= 6000 characters (got ${total}).` });
     }
   }

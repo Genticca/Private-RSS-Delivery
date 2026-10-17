@@ -41,8 +41,9 @@ interface GroupRow {
 
 const GROUP_COLUMNS = 'id, name, webhook_url, webhook_name, webhook_avatar_url, created_at, updated_at';
 
+/** 발송 그룹과 웹훅 설정의 저장소다. 이름 검색은 대소문자를 구분하지 않는다. */
 export class GroupRepository {
-  constructor(private readonly db: Database.Database) {}
+  constructor(private readonly db: Database.Database) { }
 
   list(): GroupRecord[] {
     return (this.db.prepare(`SELECT ${GROUP_COLUMNS} FROM "groups" ORDER BY name COLLATE NOCASE`).all() as GroupRow[]).map(
@@ -61,7 +62,10 @@ export class GroupRepository {
     const placeholders = ids.map(() => '?').join(', ');
     const rows = this.db
       .prepare(`SELECT id, name FROM "groups" WHERE id IN (${placeholders})`)
-      .all(...ids) as Array<{ id: number; name: string }>;
+      .all(...ids) as Array<{
+        id: number;
+        name: string
+      }>;
     for (const row of rows) {
       output.set(row.id, row.name);
     }
@@ -95,6 +99,7 @@ export class GroupRepository {
   }
 
   update(id: number, input: UpdateGroupInput): GroupRecord {
+    // 누락된 필드는 유지한다. null을 받은 웹훅 필드만 명시적으로 비운다.
     const assignments: string[] = [];
     const values: unknown[] = [];
     const add = (column: string, value: unknown): void => {

@@ -22,8 +22,9 @@ export interface PreviewServiceOptions {
   now?: () => string;
 }
 
+/** 항목을 골라 템플릿 결과를 검증한다. 실제 Discord 발송과 항목 저장은 수행하지 않는다. */
 export class PreviewService {
-  constructor(private readonly options: PreviewServiceOptions) {}
+  constructor(private readonly options: PreviewServiceOptions) { }
 
   async preview(value: unknown): Promise<PreviewResponse> {
     const input = normalizePreviewRequest(value);
@@ -38,6 +39,7 @@ export class PreviewService {
       if (!live.item) return { ok: false, errors: [{ stage: 'fetch', message: live.error }] };
       item = live.item;
     } else {
+      // 저장된 항목이 없거나 소스를 선택하지 않았으면 편집 확인용 샘플을 사용한다.
       item = source ? this.sampleItem(source.id) : syntheticItem(this.now());
     }
 
@@ -58,7 +60,10 @@ export class PreviewService {
     return latest ? itemRecordToNormalizedItem(latest) : syntheticItem(this.now());
   }
 
-  private async fetchLiveItem(sourceId: string): Promise<{ item?: NormalizedItem; error: string }> {
+  private async fetchLiveItem(sourceId: string): Promise<{
+    item?: NormalizedItem;
+    error: string
+  }> {
     const source = this.options.repositories.sources.getById(sourceId);
     if (!source) throw notFound('소스를 찾을 수 없습니다.');
     const fetcher = this.options.fetchFeed ?? fetchFeed;
@@ -73,6 +78,7 @@ export class PreviewService {
         },
         this.options.fetchOptions
       );
+      // live 모드의 304는 새 샘플이 없다는 뜻이다. 일반 샘플로 조용히 바꾸지 않고 화면에 알린다.
       if (result.kind === 'not-modified') return { error: '피드가 변경되지 않아 미리보기할 새 항목이 없습니다.' };
       const envelopes = parseFeed(result.body);
       if (envelopes.length === 0) return { error: '피드에서 미리보기 가능한 항목을 찾지 못했습니다.' };

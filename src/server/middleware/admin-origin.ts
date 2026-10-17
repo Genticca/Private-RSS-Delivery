@@ -25,6 +25,7 @@ export async function registerAdminOrigin(app: FastifyInstance, options: AdminOr
       return;
     }
     if (SAFE_METHODS.has(request.method.toUpperCase())) return;
+    // 상태를 바꾸는 브라우저 요청은 Host 검사에 더해 Origin 또는 Referer도 확인한다.
     if (!hasAllowedBrowserOrigin(request, allowedHosts)) {
       reject(reply, 'Origin is not allowed.');
     }
@@ -45,6 +46,7 @@ export function isAllowedHost(hostHeader: string | undefined, allowedHosts: Read
 export function hasAllowedBrowserOrigin(request: FastifyRequest, allowedHosts: ReadonlySet<string>): boolean {
   const origin = request.headers.origin;
   const referer = request.headers.referer;
+  // 브라우저 출처 헤더가 없는 CLI 요청은 Host 검사를 통과했다면 허용한다.
   if (!origin && !referer) return true;
   if (typeof origin === 'string') return isAllowedUrlHost(origin, allowedHosts);
   if (typeof referer === 'string') return isAllowedUrlHost(referer, allowedHosts);

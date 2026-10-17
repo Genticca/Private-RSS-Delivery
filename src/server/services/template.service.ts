@@ -13,7 +13,7 @@ export interface TemplateServiceOptions {
 }
 
 export class TemplateService {
-  constructor(private readonly options: TemplateServiceOptions) {}
+  constructor(private readonly options: TemplateServiceOptions) { }
 
   list(): TemplateDto[] {
     return this.options.repositories.templates.list().map(toTemplateDto);
@@ -32,7 +32,13 @@ export class TemplateService {
     if (!body) throw validationError('템플릿 body가 필요합니다.', { body: '필수 값입니다.' });
     // 식별자(name)는 시스템이 라벨에서 자동 생성한다(사용자 입력 아님). 슬러그가 비면(예: 한글 라벨) 'custom' 기반.
     const name = this.uniqueName(slugify(label) || (clone ? `${clone.name}-copy` : 'custom'));
-    return toTemplateDto(this.options.repositories.templates.create({ name, label, body, createdAt: this.now(), updatedAt: this.now() }));
+    return toTemplateDto(this.options.repositories.templates.create({
+      name,
+      label,
+      body,
+      createdAt: this.now(),
+      updatedAt: this.now()
+    }));
   }
 
   update(id: number, value: unknown): TemplateDto {

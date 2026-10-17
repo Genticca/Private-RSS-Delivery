@@ -1,3 +1,4 @@
+/** DB 시각은 UTC ISO 문자열로 통일한다. KST 표시는 렌더 계층에서 변환한다. */
 export function nowIso(): string {
   return new Date().toISOString();
 }

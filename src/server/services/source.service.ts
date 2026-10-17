@@ -2,7 +2,15 @@ import type Database from 'better-sqlite3';
 import type { SourceDto } from '../contracts/api.js';
 import { nowIso } from '../db/time.js';
 import type { DeliveryBindingService } from './delivery-binding.service.js';
-import type { SourceRepository, SourceGroupRepository, GroupRepository, FetchLogRepository, ItemRepository, DeliveryJobRepository, TemplateRepository } from '../db/index.js';
+import type {
+  SourceRepository,
+  SourceGroupRepository,
+  GroupRepository,
+  FetchLogRepository,
+  ItemRepository,
+  DeliveryJobRepository,
+  TemplateRepository
+} from '../db/index.js';
 import { verifyFeedUrlSafe } from '../security/index.js';
 import { conflict, notFound, validationError } from './errors.js';
 import { toSourceDto } from './serialization.js';
@@ -26,9 +34,10 @@ export interface SourceServiceOptions {
 }
 
 export class SourceService {
-  constructor(private readonly options: SourceServiceOptions) {}
+  constructor(private readonly options: SourceServiceOptions) { }
 
   list(): SourceDto[] {
+    // 목록에 필요한 부가 정보는 일괄 조회해 소스마다 같은 쿼리를 반복하지 않는다.
     const sources = this.options.repositories.sources.list();
     const sourceIds = sources.map((source) => source.id);
     const groupIdsBySource = this.options.repositories.sourceGroups.listGroupIdsBySourceIds(sourceIds);
@@ -94,7 +103,8 @@ export class SourceService {
     const current = this.requireSource(id);
     const input = normalizeSourceUpdate(value);
     const nextFeedUrl = input.feedUrl ?? current.feedUrl;
-    if (nextFeedUrl !== current.feedUrl) {
+    const feedChanged = nextFeedUrl !== current.feedUrl;
+    if (feedChanged) {
       const existing = this.options.repositories.sources.findByFeedUrl(nextFeedUrl);
       if (existing && existing.id !== id) {
         throw conflict('이미 등록된 RSS URL입니다.', { feedUrl: '이미 등록되어 있습니다.' });
@@ -106,7 +116,8 @@ export class SourceService {
     if (input.feedUrl && input.feedUrl !== current.feedUrl) await this.verifyFeedUrl(input.feedUrl);
     const timestamp = this.now();
     this.writeSource(() => this.transaction(() => {
-      if (nextFeedUrl !== current.feedUrl) {
+      // 피드 URL을 바꾸면 다른 피드로 취급해 항목과 초기 수집 기준을 함께 초기화한다.
+      if (feedChanged) {
         this.options.repositories.items.deleteBySourceId(id);
       }
       this.options.repositories.sources.update(id, {
@@ -128,18 +139,18 @@ export class SourceService {
         threadName: input.threadName,
         appliedTags: input.appliedTags,
         editInPlace: input.editInPlace,
-        initialized: nextFeedUrl !== current.feedUrl ? false : undefined,
-        detectedProfile: nextFeedUrl !== current.feedUrl ? null : undefined,
-        deliveryCutoffAt: nextFeedUrl !== current.feedUrl ? timestamp : undefined,
-        etag: nextFeedUrl !== current.feedUrl ? null : undefined,
-        lastModified: nextFeedUrl !== current.feedUrl ? null : undefined,
-        lastPolledAt: nextFeedUrl !== current.feedUrl ? null : undefined,
-        nextPollAt: nextFeedUrl !== current.feedUrl ? null : undefined
+        initialized: feedChanged ? false : undefined,
+        detectedProfile: feedChanged ? null : undefined,
+        deliveryCutoffAt: feedChanged ? timestamp : undefined,
+        etag: feedChanged ? null : undefined,
+        lastModified: feedChanged ? null : undefined,
+        lastPolledAt: feedChanged ? null : undefined,
+        nextPollAt: feedChanged ? null : undefined
       });
       if (input.groupIds !== undefined) {
         this.options.repositories.sourceGroups.setGroups(id, input.groupIds);
       }
-      this.options.bindings?.reconcile(id, timestamp, nextFeedUrl !== current.feedUrl);
+      this.options.bindings?.reconcile(id, timestamp, feedChanged);
     }));
     return this.toDto(id);
   }
@@ -236,5 +247,7 @@ function uniqueNumbers(values: readonly number[]): number[] {
 }
 
 function isSqliteConstraint(error: unknown): boolean {
-  return error instanceof Error && String((error as { code?: unknown }).code ?? '').startsWith('SQLITE_CONSTRAINT');
+  return error instanceof Error && String((error as {
+    code?: unknown
+  }).code ?? '').startsWith('SQLITE_CONSTRAINT');
 }

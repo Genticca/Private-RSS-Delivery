@@ -44,7 +44,7 @@ export interface TestSendResult {
 export class TestSendService {
   private readonly lastTestAt = new Map<string, number>();
 
-  constructor(private readonly options: TestSendServiceOptions) {}
+  constructor(private readonly options: TestSendServiceOptions) { }
 
   async testSource(id: SourceId): Promise<TestSendResult> {
     const source = this.options.repositories.sources.getById(id);
@@ -117,7 +117,12 @@ export class TestSendService {
     // postDiscordWebhook 이 저장된 URL 을 다시 SSRF 검증한 뒤 SSRF-safe agent 로 POST 한다.
     this.enforceRate(rateKey);
     try {
-      const response = await post({ destination, payload: finalPayload, timeoutMs: TEST_TIMEOUT_MS, captureMessageId: false });
+      const response = await post({
+        destination,
+        payload: finalPayload,
+        timeoutMs: TEST_TIMEOUT_MS,
+        captureMessageId: false
+      });
       statusCode = response.statusCode;
       error = response.error;
     } catch (cause) {

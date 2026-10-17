@@ -1,3 +1,4 @@
+/** 서버가 Handlebars 화면에 전달하는 표시용 데이터의 형태를 정의한다. */
 import type {
   GroupDto,
   ModelConfigResponse,
@@ -39,7 +40,9 @@ export interface GroupWithSelection extends GroupDto {
 
 export interface SourceFormViewModel {
   // web.ts가 withDestinationStatus로 source.hasAnyDestination을, withGroupSelection으로 groups[].selected를 주입한다.
-  source: (SourceDto & { hasAnyDestination: boolean }) | null;
+  source: (SourceDto & {
+    hasAnyDestination: boolean
+  }) | null;
   groups: GroupWithSelection[];
   templates: TemplateDto[];
   profiles: readonly SourceProfile[];
@@ -56,7 +59,10 @@ export interface TemplatesViewModel {
 export interface TemplateEditorViewModel {
   template: TemplateDto;
   presetVars: readonly PresetVariable[];
-  sources: Array<{ id: string; name: string }>;
+  sources: Array<{
+    id: string;
+    name: string
+  }>;
   needsCodeMirror: boolean; // web.ts: CodeMirror 자산 로드 플래그(=true)
 }
 

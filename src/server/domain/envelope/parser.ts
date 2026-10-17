@@ -17,6 +17,7 @@ const parser = new XMLParser({
 });
 
 export function parseFeed(rawXml: string): FeedEnvelope[] {
+  // 이 단계는 RSS·Atom의 구조 차이만 흡수한다. HTML 정제는 normalize에서 수행한다.
   const validation = XMLValidator.validate(rawXml);
   if (validation !== true) {
     throw new Error('Invalid feed XML.');
@@ -94,6 +95,7 @@ function mapAtomFeed(feed: XmlNode): FeedEnvelope[] {
 }
 
 function dedupeFirstWins(items: FeedEnvelope[]): FeedEnvelope[] {
+  // 같은 ID가 반복되면 문서에 먼저 나온 항목을 유지한다.
   const seen = new Set<string>();
   const result: FeedEnvelope[] = [];
   for (const item of items) {
@@ -195,6 +197,7 @@ function firstNode(value: unknown): XmlNode | undefined {
 }
 
 function asArray(value: unknown): unknown[] {
+  // XML 파서가 단일 노드와 반복 노드를 서로 다른 모양으로 반환하는 차이를 숨긴다.
   if (value === undefined || value === null) return [];
   return Array.isArray(value) ? value : [value];
 }
