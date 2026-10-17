@@ -1,5 +1,5 @@
 import type { DeliveryDestination } from './resolve-destinations.js';
-import type { DiscordWebhookPayload } from '../contracts/render-context.js';
+import type { DiscordWebhookPayload } from '../templates/render.js';
 import { assertSafeWebhookUrl } from '../net/webhook-url.js';
 import { canonicalWebhookUrl } from '../net/webhook-url.js';
 import { assertSafeWebhookMessageUrl } from '../net/webhook-url.js';

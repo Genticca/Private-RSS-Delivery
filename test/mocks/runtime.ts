@@ -1,6 +1,6 @@
 import type { Container } from '../../src/server/container.js';
 import { afterEach } from 'vitest';
-import type { CreateSourceRequest } from '../../src/server/contracts/api.js';
+import type { CreateSourceRequest } from '../../src/server/sources/service.js';
 import type { CreateContainerOptions } from '../../src/server/container.js';
 import { vi } from 'vitest';
 import type { WebhookPostRequest } from '../../src/server/dispatcher/discord-client.js';

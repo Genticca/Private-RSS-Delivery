@@ -3,10 +3,10 @@ import { it } from 'vitest';
 import { expect } from 'vitest';
 import { mapGroupDestination } from '../../../src/server/dispatcher/resolve-destinations.js';
 import { resolveDestinationsForSource } from '../../../src/server/dispatcher/resolve-destinations.js';
-import type { GroupRecord } from '../../../src/server/db/group.repository.js';
+import type { GroupRecord } from '../../../src/server/groups/repository.js';
 import { canonicalWebhookUrl } from '../../../src/server/net/webhook-url.js';
 import { createHash } from 'node:crypto';
-import type { SourceRecord } from '../../../src/server/db/source.repository.js';
+import type { SourceRecord } from '../../../src/server/sources/repository.js';
 
 const BASE_TIME = '2026-05-29T00:00:00.000Z';
 

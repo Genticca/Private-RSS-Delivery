@@ -1,4 +1,4 @@
-import type { SourceRepository } from '../db/source.repository.js';
+import type { SourceRepository } from '../sources/repository.js';
 import type { ItemRepository } from '../feed/repository.js';
 import { fetchFeed } from '../net/fetch.js';
 import type { FetchFeedOptions } from '../net/fetch.js';
@@ -6,10 +6,10 @@ import type { FeedFetchResult } from '../net/fetch.js';
 import type { PreviewResponse } from '../contracts/api.js';
 import { notFound } from '../core/errors.js';
 import type { NormalizedItem } from '../feed/parse.js';
-import { renderDiscordPayload } from '../dispatcher/render.js';
-import { buildPresetRenderContext } from '../dispatcher/render.js';
-import { validateDiscordPayload } from '../dispatcher/validate.js';
-import { applySourceWebhookOptions } from '../dispatcher/payload-options.js';
+import { renderDiscordPayload } from '../templates/render.js';
+import { buildPresetRenderContext } from '../templates/render.js';
+import { validateDiscordPayload } from '../templates/payload.js';
+import { applySourceWebhookOptions } from '../templates/payload.js';
 import type { SampleItemResponse } from '../contracts/api.js';
 import { parseFeed } from '../feed/parse.js';
 import { detectProfile } from '../feed/normalize.js';
@@ -21,8 +21,8 @@ import { requireObject } from '../core/input.js';
 import { validationError } from '../core/errors.js';
 import { optionalString } from '../core/input.js';
 import type { PreviewError } from '../contracts/api.js';
-import { DiscordPayloadValidationError } from '../dispatcher/validate.js';
-import { PresetRenderError } from '../dispatcher/render.js';
+import { DiscordPayloadValidationError } from '../templates/payload.js';
+import { PresetRenderError } from '../templates/render.js';
 import type { ItemRecord } from '../feed/repository.js';
 
 export interface PreviewServiceOptions {

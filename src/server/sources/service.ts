@@ -1,23 +1,109 @@
+import type { SourceProfile } from '../feed/parse.js';
+import type { Profile } from '../feed/parse.js';
+import type { TemplateId } from '../templates/service.js';
+import type { GroupId } from '../groups/service.js';
+import type { FetchEventStatus } from '../logs/repository.js';
+import type { FetchOptions } from '../net/fetch.js';
+import type { SourceRecord } from './repository.js';
 import type Database from 'better-sqlite3';
-import type { SourceRepository } from '../db/source.repository.js';
-import type { SourceGroupRepository } from '../db/source-group.repository.js';
-import type { GroupRepository } from '../db/group.repository.js';
-import type { EventLogRepository } from '../db/event-log.repository.js';
+import type { SourceRepository } from './repository.js';
+import type { SourceGroupRepository } from './repository.js';
+import type { GroupRepository } from '../groups/repository.js';
+import type { EventLogRepository } from '../logs/repository.js';
 import type { ItemRepository } from '../feed/repository.js';
 import type { DeliveryJobRepository } from '../db/delivery-job.repository.js';
-import type { TemplateRepository } from '../db/template.repository.js';
-import type { DeliveryBindingService } from './delivery-binding.service.js';
-import type { SourceDto } from '../contracts/api.js';
-import { toSourceDto } from './serialization.js';
-import { normalizeSourceCreate } from './source-input.js';
+import type { TemplateRepository } from '../templates/repository.js';
+import { normalizeSourceCreate } from './input.js';
 import { conflict } from '../core/errors.js';
-import { normalizeSourceUpdate } from './source-input.js';
+import { normalizeSourceUpdate } from './input.js';
 import { notFound } from '../core/errors.js';
 import { requireObject } from '../core/input.js';
 import { optionalBoolean } from '../core/input.js';
 import { validationError } from '../core/errors.js';
 import { verifyFeedUrlSafe } from '../net/address.js';
 import { nowIso } from '../core/db.js';
+
+export type SourceId = string;
+
+export interface SourceDto {
+  consecutiveFailures?: number;
+  id: SourceId;
+  feedUrl: string;
+  name: string | null;
+  enabled: boolean;
+  profile: SourceProfile;
+  detectedProfile: Profile | null;
+  pollIntervalSeconds: number;
+  translate: boolean;
+  templateId: TemplateId | null;
+  webhookName: string | null;
+  webhookAvatarUrl: string | null;
+  groupIds: GroupId[];
+  groupNames: string[];
+  silent: boolean;
+  mentionRoleIds: string[];
+  mentionUserIds: string[];
+  mentionEveryone: boolean;
+  mentionHere: boolean;
+  threadId: string | null;
+  threadName: string | null;
+  appliedTags: string[];
+  editInPlace: boolean;
+  lastOutcome?: FetchEventStatus | null;
+}
+
+export interface CreateSourceRequest {
+  feedUrl: string;
+  name?: string | null;
+  profile?: SourceProfile;
+  pollIntervalSeconds?: number;
+  translate?: boolean;
+  templateId?: TemplateId | null;
+  webhookName?: string | null;
+  webhookAvatarUrl?: string | null;
+  fetchOptions?: FetchOptions;
+  groupIds?: GroupId[];
+  silent?: boolean;
+  mentionRoleIds?: string[];
+  mentionUserIds?: string[];
+  mentionEveryone?: boolean;
+  mentionHere?: boolean;
+  threadId?: string | null;
+  threadName?: string | null;
+  appliedTags?: string[];
+  editInPlace?: boolean;
+}
+
+export type UpdateSourceRequest = Partial<CreateSourceRequest>;
+
+export function toSourceDto(source: SourceRecord, groupIds: number[], groupNames: string[], lastOutcome: FetchEventStatus | null): SourceDto {
+  return {
+    consecutiveFailures: source.consecutiveFailures,
+    id: source.id,
+    feedUrl: source.feedUrl,
+    name: source.name,
+    enabled: source.enabled,
+    profile: source.profileSetting,
+    detectedProfile: source.detectedProfile,
+    pollIntervalSeconds: source.pollIntervalSeconds,
+    translate: source.translate,
+    templateId: source.templateId,
+    webhookName: source.webhookName,
+    webhookAvatarUrl: source.webhookAvatarUrl,
+    groupIds,
+    groupNames,
+    silent: source.silent,
+    mentionRoleIds: source.mentionRoleIds,
+    mentionUserIds: source.mentionUserIds,
+    mentionEveryone: source.mentionEveryone,
+    mentionHere: source.mentionHere,
+    threadId: source.threadId,
+    threadName: source.threadName,
+    appliedTags: source.appliedTags,
+    editInPlace: source.editInPlace,
+    lastOutcome
+  };
+}
 
 export interface SourceServiceOptions {
   db: Database.Database;
@@ -32,7 +118,7 @@ export interface SourceServiceOptions {
   };
   now?: () => string;
   verifyFeedUrl?: (value: string) => Promise<unknown>;
-  bindings?: DeliveryBindingService;
+  reconcileDestinations?: (sourceId: string, now: string, reset?: boolean) => void;
 }
 
 export class SourceService {
@@ -94,7 +180,7 @@ export class SourceService {
         createdAt: timestamp
       });
       this.options.repositories.sourceGroups.setGroups(created.id, input.groupIds ?? []);
-      this.options.bindings?.reconcile(created.id, timestamp);
+      this.options.reconcileDestinations?.(created.id, timestamp);
       return created;
     }));
     return this.toDto(source.id);
@@ -151,7 +237,7 @@ export class SourceService {
       if (input.groupIds !== undefined) {
         this.options.repositories.sourceGroups.setGroups(id, input.groupIds);
       }
-      this.options.bindings?.reconcile(id, timestamp, feedChanged);
+      this.options.reconcileDestinations?.(id, timestamp, feedChanged);
     }));
     return this.toDto(id);
   }
@@ -171,7 +257,7 @@ export class SourceService {
     const timestamp = this.now();
     this.transaction(() => {
       this.options.repositories.sources.setEnabled(id, enabled, timestamp);
-      this.options.bindings?.reconcile(id, timestamp);
+      this.options.reconcileDestinations?.(id, timestamp);
     });
     return this.toDto(id);
   }

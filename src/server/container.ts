@@ -1,9 +1,9 @@
-import { SourceRepository } from './db/source.repository.js';
-import { SourceGroupRepository } from './db/source-group.repository.js';
-import { GroupRepository } from './db/group.repository.js';
-import { TemplateRepository } from './db/template.repository.js';
+import { SourceRepository } from './sources/repository.js';
+import { SourceGroupRepository } from './sources/repository.js';
+import { GroupRepository } from './groups/repository.js';
+import { TemplateRepository } from './templates/repository.js';
 import { ItemRepository } from './feed/repository.js';
-import { EventLogRepository } from './db/event-log.repository.js';
+import { EventLogRepository } from './logs/repository.js';
 import { DeliveryBindingRepository } from './db/delivery-binding.repository.js';
 import { ItemDeliveryRepository } from './db/item-delivery.repository.js';
 import { DeliveryJobRepository } from './db/delivery-job.repository.js';
@@ -11,12 +11,12 @@ import { TranslationCacheRepository } from './db/translation-cache.repository.js
 import { CleanupWorker } from './workers/cleanup-worker.js';
 import { DeliveryWorker } from './workers/delivery-worker.js';
 import { PollWorker } from './workers/poll-worker.js';
-import { SourceService } from './services/source.service.js';
-import { GroupService } from './services/group.service.js';
-import { TemplateService } from './services/template.service.js';
+import { SourceService } from './sources/service.js';
+import { GroupService } from './groups/service.js';
+import { TemplateService } from './templates/service.js';
 import { PreviewService } from './services/preview.service.js';
 import { ModelService } from './services/model.service.js';
-import { LogService } from './services/log.service.js';
+import { LogService } from './logs/service.js';
 import { SchedulerService } from './services/scheduler.service.js';
 import { ExportImportService } from './services/export-import.service.js';
 import { TestSendService } from './services/test-send.service.js';
@@ -39,7 +39,7 @@ import { loadConfig } from './core/config.js';
 import { loadRuntimeOptions } from './core/config.js';
 import { resolveModelName } from './translator/keys.js';
 import { runMigrations } from './core/db.js';
-import { seedBuiltinPresets } from './dispatcher/presets.js';
+import { seedBuiltinPresets } from './templates/repository.js';
 import { ModelTranslator } from './translator/translator.js';
 import { DispatchTranslationService } from './translator/translator.js';
 import { TranslationCacheService } from './translator/translation-cache.service.js';
@@ -203,13 +203,13 @@ export function createContainer(options: CreateContainerOptions = {}): Container
     sources: new SourceService({
       db,
       repositories,
-      bindings,
+      reconcileDestinations: (id, now, reset) => bindings.reconcile(id, now, reset),
       verifyFeedUrl: options.urlVerifiers?.verifyFeedUrl
     }),
     groups: new GroupService({
       db,
       repositories,
-      bindings,
+      reconcileAllDestinations: (now) => bindings.reconcileAll(now),
       verifyWebhookUrl: options.urlVerifiers?.verifyWebhookUrl
     }),
     templates: new TemplateService({ repositories }),

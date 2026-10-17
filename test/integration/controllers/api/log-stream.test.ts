@@ -1,7 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { harness } from '../../../mocks/runtime.js';
+import { BASE } from '../../../mocks/runtime.js';
 import { createApp } from '../../../../src/server/app.js';
-import { parseSseCursor } from '../../../../src/server/controllers/api/logs.js';
-import { harness, BASE } from '../../../mocks/runtime.js';
+import { expect } from 'vitest';
+import { parseSseCursor } from '../../../../src/server/logs/routes.js';
 
 describe('SSE reconnect and shutdown', () => {
   it('resumes the log cursor without replaying previous events and closes open streams during app shutdown', async () => {

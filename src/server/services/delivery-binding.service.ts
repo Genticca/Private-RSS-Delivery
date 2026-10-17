@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3';
-import type { SourceRepository } from '../db/source.repository.js';
-import type { GroupRepository } from '../db/group.repository.js';
-import type { SourceGroupRepository } from '../db/source-group.repository.js';
+import type { SourceRepository } from '../sources/repository.js';
+import type { GroupRepository } from '../groups/repository.js';
+import type { SourceGroupRepository } from '../sources/repository.js';
 import type { DeliveryBindingRepository } from '../db/delivery-binding.repository.js';
 import { resolveDestinationsForSource } from '../dispatcher/resolve-destinations.js';
 import { mapGroupDestination } from '../dispatcher/resolve-destinations.js';

@@ -1,7 +1,7 @@
-import type { SourceGroupRepository } from '../db/source-group.repository.js';
-import type { GroupRepository } from '../db/group.repository.js';
-import type { SourceRecord } from '../db/source.repository.js';
-import type { GroupRecord } from '../db/group.repository.js';
+import type { SourceGroupRepository } from '../sources/repository.js';
+import type { GroupRepository } from '../groups/repository.js';
+import type { SourceRecord } from '../sources/repository.js';
+import type { GroupRecord } from '../groups/repository.js';
 import { assertSafeWebhookUrl } from '../net/webhook-url.js';
 import { blankToNull } from '../core/input.js';
 import { createHash } from 'node:crypto';

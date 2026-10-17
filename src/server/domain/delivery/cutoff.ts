@@ -1,4 +1,4 @@
-import type { SourceRecord } from '../../db/source.repository.js';
+import type { SourceRecord } from '../../sources/repository.js';
 import type { NormalizedItem } from '../../feed/parse.js';
 
 export function shouldQueueNewItem(source: SourceRecord, item: NormalizedItem): boolean {

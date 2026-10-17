@@ -1,15 +1,48 @@
-import type { TemplateRepository } from '../db/template.repository.js';
-import type { TemplateDto } from '../contracts/api.js';
-import { toTemplateDto } from './serialization.js';
+import type { TemplateRecord } from './repository.js';
+import type { TemplateRepository } from './repository.js';
 import { validationError } from '../core/errors.js';
 import { conflict } from '../core/errors.js';
 import { notFound } from '../core/errors.js';
 import { nowIso } from '../core/db.js';
-import type { CreateTemplateRequest } from '../contracts/api.js';
 import { requireObject } from '../core/input.js';
 import { optionalString } from '../core/input.js';
 import { parseIdParam } from '../core/input.js';
-import type { UpdateTemplateRequest } from '../contracts/api.js';
+
+export type TemplateId = number;
+
+export interface TemplateDto {
+  id: TemplateId;
+  name: string;
+  label: string;
+  body: string;
+  isBuiltin: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTemplateRequest {
+  // 식별자(name 슬러그)는 사용자 입력이 아니라 서버가 label에서 자동 생성한다(TemplateService.create). 폼도 label/body/cloneFrom만 전송.
+  label: string;
+  body: string;
+  cloneFrom?: TemplateId;
+}
+
+export interface UpdateTemplateRequest {
+  label?: string;
+  body?: string;
+}
+
+export function toTemplateDto(template: TemplateRecord): TemplateDto {
+  return {
+    id: template.id,
+    name: template.name,
+    label: template.label,
+    body: template.body,
+    isBuiltin: template.isBuiltin,
+    createdAt: template.createdAt,
+    updatedAt: template.updatedAt
+  };
+}
 
 export interface TemplateServiceOptions {
   repositories: {

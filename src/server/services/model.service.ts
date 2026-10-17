@@ -1,4 +1,4 @@
-import type { EventLogRepository } from '../db/event-log.repository.js';
+import type { EventLogRepository } from '../logs/repository.js';
 import type { TranslationCacheService } from '../translator/translation-cache.service.js';
 import type { ModelTranslator } from '../translator/translator.js';
 import type { ModelDiagnosticsResponse } from '../contracts/api.js';

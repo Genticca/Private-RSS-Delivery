@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ServiceRegistry } from '../container.js';
 import { parseIdParam } from '../core/input.js';
 import type { DashboardViewModel } from '../contracts/view-models.js';
-import { PRESET_VARIABLES } from '../contracts/render-context.js';
+import { PRESET_VARIABLES } from '../templates/render.js';
 import type { FastifyReply } from 'fastify';
 
 export async function registerWebRoutes(app: FastifyInstance, services: ServiceRegistry): Promise<void> {

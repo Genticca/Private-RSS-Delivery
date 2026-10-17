@@ -3,7 +3,7 @@ import type Database from 'better-sqlite3';
 import type { DeliveryJobRepository } from '../db/delivery-job.repository.js';
 import type { DeliveryBindingRepository } from '../db/delivery-binding.repository.js';
 import type { ItemRepository } from '../feed/repository.js';
-import type { SourceRepository } from '../db/source.repository.js';
+import type { SourceRepository } from '../sources/repository.js';
 import type { ItemDeliveryRepository } from '../db/item-delivery.repository.js';
 import type { DeliveryPlanService } from './delivery-plan.service.js';
 import { requireObject } from '../core/input.js';

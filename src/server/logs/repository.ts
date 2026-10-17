@@ -1,10 +1,17 @@
-import type { EventKind } from '../contracts/api.js';
-import type { EventStatus } from '../contracts/api.js';
 import type Database from 'better-sqlite3';
 import { nullable } from '../core/db.js';
 import { nowIso } from '../core/db.js';
-import type { FetchEventStatus } from '../contracts/api.js';
 import { subtractDaysIso } from '../core/db.js';
+
+export type EventKind = 'fetch' | 'delivery' | 'translation';
+
+export type FetchEventStatus = 'ok' | 'not_modified' | 'error';
+
+export type DeliveryEventStatus = 'success' | 'failed';
+
+export type TranslationEventStatus = 'success' | 'failed' | 'cache_hit' | 'skipped';
+
+export type EventStatus = FetchEventStatus | DeliveryEventStatus | TranslationEventStatus;
 
 export interface EventLogRecord {
   id: number;
@@ -18,6 +25,7 @@ export interface EventLogRecord {
   durationMs: number | null;
   itemCount: number | null;
   detail: string | null;
+  sourceName: string | null;
 }
 
 export interface AppendEventInput {
@@ -36,6 +44,9 @@ export interface AppendEventInput {
 
 const COLUMNS = `id, created_at AS createdAt, kind, status, source_id AS sourceId, item_id AS itemId, job_id AS jobId,
   http_status AS httpStatus, duration_ms AS durationMs, item_count AS itemCount, detail`;
+
+const LIST_COLUMNS = `e.id, e.created_at AS createdAt, e.kind, e.status, e.source_id AS sourceId, e.item_id AS itemId, e.job_id AS jobId,
+  e.http_status AS httpStatus, e.duration_ms AS durationMs, e.item_count AS itemCount, e.detail, s.name AS sourceName`;
 
 const MAX_DETAIL_LENGTH = 1000;
 
@@ -68,9 +79,9 @@ export class EventLogRepository {
     before?: number;
     limit?: number
   } = {}): EventLogRecord[] {
-    return this.db.prepare(`SELECT ${COLUMNS} FROM event_log
-      WHERE (@kind IS NULL OR kind = @kind) AND (@before IS NULL OR id < @before)
-      ORDER BY id DESC LIMIT @limit`).all({
+    return this.db.prepare(`SELECT ${LIST_COLUMNS} FROM event_log e LEFT JOIN sources s ON s.id = e.source_id
+      WHERE (@kind IS NULL OR e.kind = @kind) AND (@before IS NULL OR e.id < @before)
+      ORDER BY e.id DESC LIMIT @limit`).all({
       kind: options.kind ?? null,
       before: options.before ?? null,
       limit: options.limit ?? 100
@@ -78,7 +89,7 @@ export class EventLogRepository {
   }
 
   listAfterId(afterId: number, limit = 100): EventLogRecord[] {
-    return this.db.prepare(`SELECT ${COLUMNS} FROM event_log WHERE id > ? ORDER BY id ASC LIMIT ?`)
+    return this.db.prepare(`SELECT ${LIST_COLUMNS} FROM event_log e LEFT JOIN sources s ON s.id = e.source_id WHERE e.id > ? ORDER BY e.id ASC LIMIT ?`)
       .all(afterId, limit) as EventLogRecord[];
   }
 
@@ -99,9 +110,9 @@ export class EventLogRepository {
   }
 
   /** 가장 최근의 실제 번역 요청 결과다. 캐시 사용과 건너뛰기는 제외한다. */
-  latestTranslationRequest(): EventLogRecord | null {
+  latestTranslationRequest(): Omit<EventLogRecord, 'sourceName'> | null {
     return this.db.prepare(`SELECT ${COLUMNS} FROM event_log
-      WHERE kind = 'translation' AND status IN ('success', 'failed') ORDER BY id DESC LIMIT 1`).get() as EventLogRecord ?? null;
+      WHERE kind = 'translation' AND status IN ('success', 'failed') ORDER BY id DESC LIMIT 1`).get() as Omit<EventLogRecord, 'sourceName'> ?? null;
   }
 
   countByStatus(kind: EventKind): Record<string, number> {

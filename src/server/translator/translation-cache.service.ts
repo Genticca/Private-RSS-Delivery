@@ -1,7 +1,7 @@
 import type { ItemRecord } from '../feed/repository.js';
-import type { SourceRecord } from '../db/source.repository.js';
+import type { SourceRecord } from '../sources/repository.js';
 import type { TranslationCacheRepository } from '../db/translation-cache.repository.js';
-import type { EventLogRepository } from '../db/event-log.repository.js';
+import type { EventLogRepository } from '../logs/repository.js';
 import type { ModelTranslator } from './translator.js';
 import { nowIso } from '../core/db.js';
 import type { TranslationField } from '../domain/translation/policy.js';

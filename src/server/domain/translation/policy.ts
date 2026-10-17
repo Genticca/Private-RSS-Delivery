@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
+import type { SourceRecord } from '../../sources/repository.js';
 import Handlebars from 'handlebars';
-import type { SourceRecord } from '../../db/source.repository.js';
 
 export type TranslationField = 'title' | 'summary';
+
 export const TRANSLATION_POLICY_VERSION = '2';
 
 export function translationCacheKey(field: TranslationField, inputText: string, contextProfile: string, targetLang = 'ko'): string {

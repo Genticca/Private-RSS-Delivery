@@ -1,12 +1,12 @@
 import { describe } from 'vitest';
 import { it } from 'vitest';
 import { expect } from 'vitest';
-import { PRESET_VARIABLES } from '../../../src/server/contracts/render-context.js';
-import { PRESET_HELPERS } from '../../../src/server/contracts/render-context.js';
-import type { PresetRenderContext } from '../../../src/server/contracts/render-context.js';
-import type { SourceDto } from '../../../src/server/contracts/api.js';
-import type { GroupDto } from '../../../src/server/contracts/api.js';
-import type { LogsResponse } from '../../../src/server/contracts/api.js';
+import { PRESET_VARIABLES } from '../../../src/server/templates/render.js';
+import { PRESET_HELPERS } from '../../../src/server/templates/render.js';
+import type { PresetRenderContext } from '../../../src/server/templates/render.js';
+import type { SourceDto } from '../../../src/server/sources/service.js';
+import type { GroupDto } from '../../../src/server/groups/service.js';
+import type { LogsResponse } from '../../../src/server/logs/service.js';
 import type { ModelDiagnosticsResponse } from '../../../src/server/contracts/api.js';
 import type { PreviewError } from '../../../src/server/contracts/api.js';
 import type { DashboardViewModel } from '../../../src/server/contracts/view-models.js';

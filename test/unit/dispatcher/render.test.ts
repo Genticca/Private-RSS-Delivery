@@ -1,12 +1,12 @@
 import { describe } from 'vitest';
 import { it } from 'vitest';
-import { renderTemplate } from '../../../src/server/dispatcher/render.js';
+import { renderTemplate } from '../../../src/server/templates/render.js';
 import { expect } from 'vitest';
-import { buildPresetRenderContext } from '../../../src/server/dispatcher/render.js';
-import { renderDiscordPayload } from '../../../src/server/dispatcher/render.js';
-import { formatKstTimestamp } from '../../../src/server/dispatcher/render.js';
-import type { TranslatedItem } from '../../../src/server/dispatcher/render.js';
-import type { SourceRecord } from '../../../src/server/db/source.repository.js';
+import { buildPresetRenderContext } from '../../../src/server/templates/render.js';
+import { renderDiscordPayload } from '../../../src/server/templates/render.js';
+import { formatKstTimestamp } from '../../../src/server/templates/render.js';
+import type { TranslatedItem } from '../../../src/server/templates/render.js';
+import type { SourceRecord } from '../../../src/server/sources/repository.js';
 
 describe('dispatcher render', () => {
   it('escapes JSON string values without Handlebars HTML escaping', () => {

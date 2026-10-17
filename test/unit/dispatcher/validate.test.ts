@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { DiscordPayloadValidationError, validateDiscordPayload } from '../../../src/server/dispatcher/validate.js';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { expect } from 'vitest';
+import { validateDiscordPayload } from '../../../src/server/templates/payload.js';
+import { DiscordPayloadValidationError } from '../../../src/server/templates/payload.js';
 
 describe('dispatcher Discord payload validation', () => {
   it('accepts a valid embed payload', () => {

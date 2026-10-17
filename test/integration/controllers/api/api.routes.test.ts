@@ -7,7 +7,7 @@ import { expect } from 'vitest';
 import type { WebhookPostRequest } from '../../../../src/server/dispatcher/discord-client.js';
 import { DeliveryWorker } from '../../../../src/server/workers/delivery-worker.js';
 import { DeliveryService } from '../../../../src/server/services/delivery.service.js';
-import { createSseConnectionLimiter } from '../../../../src/server/controllers/api/logs.js';
+import { createSseConnectionLimiter } from '../../../../src/server/logs/routes.js';
 import { createContainer } from '../../../../src/server/container.js';
 import { createApp } from '../../../../src/server/app.js';
 

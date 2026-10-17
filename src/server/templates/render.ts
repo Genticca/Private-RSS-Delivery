@@ -1,12 +1,95 @@
+import type { SourceProfile } from '../feed/parse.js';
+import type { NormalizedItem } from '../feed/parse.js';
+import type { Profile } from '../feed/parse.js';
 import Handlebars from 'handlebars';
 import type { ItemRecord } from '../feed/repository.js';
-import type { NormalizedItem } from '../feed/parse.js';
-import type { SourceRecord } from '../db/source.repository.js';
-import type { PresetRenderContext } from '../contracts/render-context.js';
 import { effectiveProfile } from '../feed/normalize.js';
-import type { DiscordWebhookPayload } from '../contracts/render-context.js';
-import { validateDiscordPayload } from './validate.js';
-import type { PresetRenderItem } from '../contracts/render-context.js';
+import { validateDiscordPayload } from './payload.js';
+
+export interface PresetRenderItem extends NormalizedItem {
+  publishedAtFormatted?: string;
+}
+
+export interface PresetRenderSource {
+  id: string;
+  name: string;
+  feedUrl?: string;
+  profile?: Profile;
+}
+
+export interface PresetRenderContext {
+  // Discord 프리셋에 공개하는 입력만 모은다. DB 레코드 전체를 템플릿에 노출하지 않는다.
+  item: PresetRenderItem;
+  source: PresetRenderSource;
+}
+
+export const PRESET_VARIABLES = [
+  'item.title',
+  'item.link',
+  'item.summary',
+  'item.publishedAtFormatted',
+  'item.author',
+  'source.name',
+  'item.incidentStage',
+  'item.commentsUrl',
+  'item.image',
+  'source.feedUrl',
+  'source.profile'
+] as const;
+
+export const PRESET_HELPERS = ['truncate', 'stageColor', 'stageLabel', 'eq', 'json'] as const;
+
+export type PresetVariable = (typeof PRESET_VARIABLES)[number];
+
+export interface DiscordEmbedField {
+  name: string;
+  value: string;
+  inline?: boolean;
+}
+
+export interface DiscordEmbedFooter {
+  text: string;
+  icon_url?: string;
+}
+
+export interface DiscordEmbedAuthor {
+  name: string;
+  url?: string;
+  icon_url?: string;
+}
+
+export interface DiscordEmbedMedia {
+  url: string;
+}
+
+export interface DiscordEmbed {
+  title?: string;
+  description?: string;
+  url?: string;
+  color?: number;
+  fields?: DiscordEmbedField[];
+  footer?: DiscordEmbedFooter;
+  author?: DiscordEmbedAuthor;
+  thumbnail?: DiscordEmbedMedia;
+  image?: DiscordEmbedMedia;
+  timestamp?: string;
+}
+
+export interface DiscordWebhookPayload {
+  content?: string;
+  username?: string;
+  avatar_url?: string;
+  flags?: number;
+  thread_name?: string;
+  applied_tags?: string[];
+  embeds?: DiscordEmbed[];
+  allowed_mentions?: {
+    parse?: Array<'roles' | 'users' | 'everyone'>;
+    roles?: string[];
+    users?: string[];
+    replied_user?: boolean;
+  };
+}
 
 const handlebars = Handlebars.create();
 
@@ -31,7 +114,7 @@ export type TranslatedItem = ItemRecord & {
 
 export function buildPresetRenderContext(
   item: TranslatedItem | NormalizedItem,
-  source: SourceRecord,
+  source: RenderSource,
   options: BuildPresetRenderContextOptions = {}
 ): PresetRenderContext {
   const renderItem = isItemRecord(item)
@@ -164,7 +247,7 @@ function isItemRecord(item: TranslatedItem | NormalizedItem): item is Translated
   return 'sourceId' in item && 'contentRevision' in item;
 }
 
-function fallbackSourceName(source: SourceRecord): string {
+function fallbackSourceName(source: RenderSource): string {
   const name = source.name?.trim();
   if (name) return name;
   return source.feedUrl || source.id;
@@ -173,4 +256,12 @@ function fallbackSourceName(source: SourceRecord): string {
 function toText(value: unknown): string {
   if (value === null || value === undefined) return '';
   return String(value);
+}
+
+export interface RenderSource {
+  id: string;
+  name: string | null;
+  feedUrl: string;
+  profileSetting: SourceProfile;
+  detectedProfile: Profile | null;
 }

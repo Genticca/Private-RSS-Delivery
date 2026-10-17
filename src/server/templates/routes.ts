@@ -1,14 +1,14 @@
+import type { TemplateService } from './service.js';
 import type { FastifyInstance } from 'fastify';
-import type { ServiceRegistry } from '../../container.js';
-import type { IdParam } from '../../core/http.js';
-import { parseIdParam } from '../../core/input.js';
-import { mutationReply } from '../../core/http.js';
-import { requestBody } from '../../core/http.js';
-import { templateRow } from '../../core/http.js';
-import { flash } from '../../core/http.js';
+import type { IdParam } from '../core/http.js';
+import { parseIdParam } from '../core/input.js';
+import { mutationReply } from '../core/http.js';
+import { requestBody } from '../core/http.js';
+import { flash } from '../core/http.js';
+import { renderPartial } from '../core/http.js';
 
 /** Discord 메시지 템플릿을 조회하고 편집한다. 템플릿 검증과 저장 정책은 서비스가 담당한다. */
-export async function registerTemplateRoutes(app: FastifyInstance, services: ServiceRegistry): Promise<void> {
+export async function registerTemplateRoutes(app: FastifyInstance, services: { templates: TemplateService }): Promise<void> {
   app.get('/api/templates', async () => services.templates.list());
 
   app.get<{
@@ -37,4 +37,8 @@ export async function registerTemplateRoutes(app: FastifyInstance, services: Ser
     services.templates.remove(parseIdParam(request.params.id));
     reply.status(204).send();
   });
+}
+
+export function templateRow(value: unknown): string {
+  return renderPartial('template-row', value);
 }

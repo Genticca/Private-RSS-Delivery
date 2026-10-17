@@ -1,17 +1,35 @@
-import type { EventKind } from '../contracts/api.js';
-import type { EventLogRepository } from '../db/event-log.repository.js';
-import type { SourceRepository } from '../db/source.repository.js';
-import type { EventLogDto } from '../contracts/api.js';
-import type { LogsResponse } from '../contracts/api.js';
-import type { EventLogRecord } from '../db/event-log.repository.js';
-import { toEventLogDto } from './serialization.js';
+import type { EventKind } from './repository.js';
+import type { EventStatus } from './repository.js';
+import type { EventLogRepository } from './repository.js';
+import type { EventLogRecord } from './repository.js';
+
+export interface EventLogDto {
+  id: number;
+  createdAt: string;
+  kind: EventKind;
+  status: EventStatus;
+  sourceId: string | null;
+  sourceName: string | null;
+  itemId: number | null;
+  jobId: number | null;
+  httpStatus: number | null;
+  durationMs: number | null;
+  itemCount: number | null;
+  detail: string | null;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  nextBefore: number | null;
+}
+
+export type LogsResponse = PaginatedResponse<EventLogDto>;
 
 export type LogType = EventKind;
 
 export interface LogServiceOptions {
   repositories: {
     eventLog: Pick<EventLogRepository, 'list' | 'listAfterId'>;
-    sources: Pick<SourceRepository, 'getById'>;
   };
 }
 
@@ -47,17 +65,15 @@ export class LogService {
 
   /** 로그에 사람이 알아볼 소스 이름을 붙인다(이름 미설정 시 null → 화면이 ID로 표시). */
   private toDtos(rows: readonly EventLogRecord[]): EventLogDto[] {
-    const names = new Map<string, string | null>();
-    return rows.map((row) => {
-      if (row.sourceId !== null && !names.has(row.sourceId)) {
-        names.set(row.sourceId, this.options.repositories.sources.getById(row.sourceId)?.name ?? null);
-      }
-      return toEventLogDto(row, row.sourceId === null ? null : names.get(row.sourceId) ?? null);
-    });
+    return rows.map((row) => toEventLogDto(row, row.sourceName ?? null));
   }
 }
 
 function clampLimit(limit: number | undefined): number {
   if (!limit || !Number.isInteger(limit)) return 100;
   return Math.max(1, Math.min(limit, 500));
+}
+
+export function toEventLogDto(record: EventLogRecord, sourceName: string | null): EventLogDto {
+  return { ...record, sourceName };
 }

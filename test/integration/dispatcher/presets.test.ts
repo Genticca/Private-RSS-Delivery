@@ -2,10 +2,10 @@ import type { Container } from '../../../src/server/container.js';
 import { afterEach } from 'vitest';
 import { describe } from 'vitest';
 import { it } from 'vitest';
-import { BUILTIN_PRESETS } from '../../../src/server/dispatcher/presets.js';
+import { BUILTIN_PRESETS } from '../../../src/server/templates/repository.js';
 import { expect } from 'vitest';
-import { renderDiscordPayload } from '../../../src/server/dispatcher/render.js';
-import { buildPresetRenderContext } from '../../../src/server/dispatcher/render.js';
+import { renderDiscordPayload } from '../../../src/server/templates/render.js';
+import { buildPresetRenderContext } from '../../../src/server/templates/render.js';
 import { createContainer } from '../../../src/server/container.js';
 
 const containers: Container[] = [];

@@ -1,4 +1,4 @@
-import type { EventLogRepository } from '../db/event-log.repository.js';
+import type { EventLogRepository } from '../logs/repository.js';
 import type Database from 'better-sqlite3';
 import { subtractDaysIso } from '../core/db.js';
 

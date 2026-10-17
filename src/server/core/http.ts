@@ -16,18 +16,6 @@ export function queryInt(value: unknown): number | undefined {
   return Number.isInteger(parsed) ? parsed : undefined;
 }
 
-export function sourceRow(value: unknown): string {
-  return renderPartial('source-row', value);
-}
-
-export function groupRow(value: unknown): string {
-  return renderPartial('group-row', value);
-}
-
-export function templateRow(value: unknown): string {
-  return renderPartial('template-row', value);
-}
-
 export function translationDiagnostic(value: unknown): string {
   return renderPartial('translation-diagnostic', value);
 }
@@ -100,7 +88,7 @@ export function isHtmxRequest(request: FastifyRequest): boolean {
 
 const partialCache = new Map<string, Handlebars.TemplateDelegate>();
 
-function renderPartial(name: string, context: unknown): string {
+export function renderPartial(name: string, context: unknown): string {
   // 같은 부분 템플릿을 요청마다 다시 읽고 컴파일하지 않도록 최초 결과를 재사용한다.
   let template = partialCache.get(name);
   if (!template) {

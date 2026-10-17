@@ -1,15 +1,72 @@
+import type { CreateSourceRequest } from './service.js';
+import { requireObject } from '../core/input.js';
+import { optionalString } from '../core/input.js';
+import { optionalInteger } from '../core/input.js';
+import { optionalBoolean } from '../core/input.js';
+import { parseDiscordIdList } from '../core/input.js';
+import { parseDiscordId } from '../core/input.js';
+import { parseDiscordTagIds } from '../core/input.js';
+import type { UpdateSourceRequest } from './service.js';
 import type { SourceProfile } from '../feed/parse.js';
 import { SOURCE_PROFILE_OPTIONS } from '../feed/parse.js';
 import { validationError } from '../core/errors.js';
 import { requiredString } from '../core/input.js';
 import { assertSafeFeedUrl } from '../net/address.js';
 import { securityValidationError } from '../core/input.js';
-import { optionalString } from '../core/input.js';
-import { assertSafeWebhookUrl } from '../net/webhook-url.js';
 import { parseHttpUrl } from '../net/address.js';
 import { SecurityError } from '../core/errors.js';
 import type { FetchOptions } from '../net/fetch.js';
-import { optionalInteger } from '../core/input.js';
+
+export function normalizeSourceCreate(value: unknown): Required<Pick<CreateSourceRequest, 'feedUrl'>> & CreateSourceRequest {
+  const body = requireObject(value);
+  return {
+    feedUrl: validateFeedUrl(body.feedUrl),
+    name: optionalString(body.name, 'name', 200),
+    profile: parseSourceProfile(body.profile),
+    pollIntervalSeconds: optionalInteger(body.pollIntervalSeconds, 'pollIntervalSeconds', 60, 86400),
+    translate: optionalBoolean(body.translate),
+    templateId: optionalInteger(body.templateId, 'templateId', 1, Number.MAX_SAFE_INTEGER) ?? null,
+    webhookName: optionalString(body.webhookName, 'webhookName', 80),
+    webhookAvatarUrl: validateOptionalHttpUrl(body.webhookAvatarUrl, 'webhookAvatarUrl', 2048),
+    fetchOptions: validateFetchOptions(body.fetchOptions),
+    groupIds: parseGroupIds(body.groupIds),
+    silent: optionalBoolean(body.silent),
+    mentionRoleIds: parseDiscordIdList(body.mentionRoleIds, 'mentionRoleIds'),
+    mentionUserIds: parseDiscordIdList(body.mentionUserIds, 'mentionUserIds'),
+    mentionEveryone: optionalBoolean(body.mentionEveryone),
+    mentionHere: optionalBoolean(body.mentionHere),
+    threadId: parseDiscordId(body.threadId, 'threadId'),
+    threadName: optionalString(body.threadName, 'threadName', 100),
+    appliedTags: parseDiscordTagIds(body.appliedTags, 'appliedTags', 5),
+    editInPlace: optionalBoolean(body.editInPlace)
+  };
+}
+
+export function normalizeSourceUpdate(value: unknown): UpdateSourceRequest {
+  // undefined는 기존 값 유지, null은 명시적 비우기다. 부분 수정에서 두 값을 구분한다.
+  const body = requireObject(value);
+  return {
+    feedUrl: body.feedUrl === undefined ? undefined : validateFeedUrl(body.feedUrl),
+    name: optionalString(body.name, 'name', 200),
+    profile: parseSourceProfile(body.profile),
+    pollIntervalSeconds: optionalInteger(body.pollIntervalSeconds, 'pollIntervalSeconds', 60, 86400),
+    translate: optionalBoolean(body.translate),
+    templateId: body.templateId === null || body.templateId === '' ? null : optionalInteger(body.templateId, 'templateId', 1, Number.MAX_SAFE_INTEGER),
+    webhookName: optionalString(body.webhookName, 'webhookName', 80),
+    webhookAvatarUrl: validateOptionalHttpUrl(body.webhookAvatarUrl, 'webhookAvatarUrl', 2048),
+    fetchOptions: validateFetchOptions(body.fetchOptions),
+    groupIds: parseGroupIds(body.groupIds),
+    silent: optionalBoolean(body.silent),
+    mentionRoleIds: parseDiscordIdList(body.mentionRoleIds, 'mentionRoleIds'),
+    mentionUserIds: parseDiscordIdList(body.mentionUserIds, 'mentionUserIds'),
+    mentionEveryone: optionalBoolean(body.mentionEveryone),
+    mentionHere: optionalBoolean(body.mentionHere),
+    threadId: parseDiscordId(body.threadId, 'threadId'),
+    threadName: optionalString(body.threadName, 'threadName', 100),
+    appliedTags: parseDiscordTagIds(body.appliedTags, 'appliedTags', 5),
+    editInPlace: optionalBoolean(body.editInPlace)
+  };
+}
 
 export function parseSourceProfile(value: unknown): SourceProfile | undefined {
   if (value === undefined || value === null || value === '') return undefined;
@@ -42,16 +99,6 @@ export function validateFeedUrl(value: unknown): string {
     return assertSafeFeedUrl(feedUrl).toString();
   } catch (error) {
     throw securityValidationError(error, 'feedUrl');
-  }
-}
-
-export function validateOptionalWebhookUrl(value: unknown): string | null | undefined {
-  const webhookUrl = optionalString(value, 'webhookUrl', 2048);
-  if (webhookUrl === undefined || webhookUrl === null) return webhookUrl;
-  try {
-    return assertSafeWebhookUrl(webhookUrl).toString();
-  } catch (error) {
-    throw securityValidationError(error, 'webhookUrl');
   }
 }
 

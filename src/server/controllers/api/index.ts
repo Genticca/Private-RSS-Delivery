@@ -1,11 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import type { ServiceRegistry } from '../../container.js';
-import { registerSourceRoutes } from './sources.js';
-import { registerGroupRoutes } from './groups.js';
-import { registerTemplateRoutes } from './templates.js';
+import { registerSourceRoutes } from '../../sources/routes.js';
+import { registerGroupRoutes } from '../../groups/routes.js';
+import { registerTemplateRoutes } from '../../templates/routes.js';
 import { registerPreviewRoutes } from './preview.js';
 import { registerModelRoutes } from './model.js';
-import { registerLogRoutes } from './logs.js';
+import { registerLogRoutes } from '../../logs/routes.js';
 import { registerExportImportRoutes } from './export-import.js';
 import { registerDeliveryJobRoutes } from './delivery-jobs.js';
 

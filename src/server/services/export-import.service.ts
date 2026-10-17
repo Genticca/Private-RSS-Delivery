@@ -1,9 +1,9 @@
 import type { DeliveryBindingService } from './delivery-binding.service.js';
 import type Database from 'better-sqlite3';
-import type { GroupRepository } from '../db/group.repository.js';
-import type { SourceRepository } from '../db/source.repository.js';
-import type { TemplateRepository } from '../db/template.repository.js';
-import type { SourceGroupRepository } from '../db/source-group.repository.js';
+import type { GroupRepository } from '../groups/repository.js';
+import type { SourceRepository } from '../sources/repository.js';
+import type { TemplateRepository } from '../templates/repository.js';
+import type { SourceGroupRepository } from '../sources/repository.js';
 import type { ExportDocumentV1 } from './export-import.document.js';
 import { sanitizeFetchOptions } from './export-import.document.js';
 import type { ImportMode } from './export-import.document.js';
@@ -14,7 +14,7 @@ import { validateDocument } from './export-import.document.js';
 import type { ExportSource } from './export-import.document.js';
 import { verifyFeedUrlSafe } from '../net/address.js';
 import type { ExportGroup } from './export-import.document.js';
-import { validateOptionalWebhookUrl } from './validation.js';
+import { validateOptionalWebhookUrl } from '../groups/service.js';
 import { verifyWebhookUrlSafe } from '../net/webhook-url.js';
 import { nowIso } from '../core/db.js';
 

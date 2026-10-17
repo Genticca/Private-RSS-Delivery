@@ -1,4 +1,4 @@
-import type { EventLogRepository } from '../db/event-log.repository.js';
+import type { EventLogRepository } from '../logs/repository.js';
 import type { TranslationProvider } from './types.js';
 import type { TranslationCacheRepository } from '../db/translation-cache.repository.js';
 import type { ModelCredential } from './keys.js';
@@ -15,8 +15,8 @@ import type { ModelKeyDiagnostics } from '../contracts/api.js';
 import { nowIso } from '../core/db.js';
 import { TranslationCacheService } from './translation-cache.service.js';
 import type { ItemRecord } from '../feed/repository.js';
-import type { SourceRecord } from '../db/source.repository.js';
-import type { TranslatedItem } from '../dispatcher/render.js';
+import type { SourceRecord } from '../sources/repository.js';
+import type { TranslatedItem } from '../templates/render.js';
 import { TranslationProviderError } from './types.js';
 
 export interface ModelTranslatorOptions {

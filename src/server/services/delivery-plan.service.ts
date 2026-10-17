@@ -1,9 +1,9 @@
 import type { DeliveryBindingRepository } from '../db/delivery-binding.repository.js';
 import type { DeliveryJobRepository } from '../db/delivery-job.repository.js';
 import type { ItemDeliveryRepository } from '../db/item-delivery.repository.js';
-import type { TemplateRepository } from '../db/template.repository.js';
+import type { TemplateRepository } from '../templates/repository.js';
 import type { ItemRecord } from '../feed/repository.js';
-import type { SourceRecord } from '../db/source.repository.js';
+import type { SourceRecord } from '../sources/repository.js';
 import { updateOperation } from '../domain/delivery/policy.js';
 
 export interface DeliveryPlanRepositories {

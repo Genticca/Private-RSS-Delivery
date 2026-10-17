@@ -1,20 +1,41 @@
 import type Database from 'better-sqlite3';
-import type { GroupRepository } from '../db/group.repository.js';
-import type { DeliveryBindingService } from './delivery-binding.service.js';
-import type { GroupDto } from '../contracts/api.js';
-import { toGroupDto } from './serialization.js';
+import type { GroupRepository } from './repository.js';
 import { conflict } from '../core/errors.js';
 import { validationError } from '../core/errors.js';
 import { notFound } from '../core/errors.js';
 import { verifyWebhookUrlSafe } from '../net/webhook-url.js';
 import { nowIso } from '../core/db.js';
-import type { CreateGroupRequest } from '../contracts/api.js';
 import { requireObject } from '../core/input.js';
 import { requiredString } from '../core/input.js';
-import { validateOptionalWebhookUrl } from './validation.js';
 import { optionalString } from '../core/input.js';
-import type { UpdateGroupRequest } from '../contracts/api.js';
 import { optionalBoolean } from '../core/input.js';
+import type { GroupRecord } from './repository.js';
+import { assertSafeWebhookUrl } from '../net/webhook-url.js';
+import { securityValidationError } from '../core/input.js';
+
+export type GroupId = number;
+
+export interface GroupDto {
+  id: GroupId;
+  name: string;
+  webhookName: string | null;
+  webhookAvatarUrl: string | null;
+  hasWebhook: boolean;
+  maskedWebhookUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateGroupRequest {
+  name: string;
+  webhookUrl?: string | null;
+  webhookName?: string | null;
+  webhookAvatarUrl?: string | null;
+}
+
+export type UpdateGroupRequest = Partial<CreateGroupRequest> & {
+  clearWebhook?: boolean;
+};
 
 export interface GroupServiceOptions {
   db: Database.Database;
@@ -23,7 +44,7 @@ export interface GroupServiceOptions {
   };
   now?: () => string;
   verifyWebhookUrl?: (value: string) => Promise<unknown>;
-  bindings?: DeliveryBindingService;
+  reconcileAllDestinations?: (now: string) => void;
 }
 
 /** 그룹 입력을 검증하고 웹훅 변경에 맞춰 소스의 발송 연결을 함께 조정한다. */
@@ -79,7 +100,7 @@ export class GroupService {
         updatedAt: this.now()
       });
       // 변경된 웹훅으로 기존 발송 이력을 옮기지 않고 새 연결 세대로 반영한다.
-      this.options.bindings?.reconcileAll(this.now());
+      this.options.reconcileAllDestinations?.(this.now());
       return toGroupDto(updated);
     })();
   }
@@ -88,7 +109,7 @@ export class GroupService {
     this.requireGroup(id);
     this.options.db.transaction(() => {
       if (!this.options.repositories.groups.delete(id)) throw notFound('그룹을 찾을 수 없습니다.');
-      this.options.bindings?.reconcileAll(this.now());
+      this.options.reconcileAllDestinations?.(this.now());
     })();
   }
 
@@ -126,4 +147,47 @@ function normalizeGroupUpdate(value: unknown): UpdateGroupRequest {
     webhookName: optionalString(body.webhookName, 'webhookName', 80),
     webhookAvatarUrl: optionalString(body.webhookAvatarUrl, 'webhookAvatarUrl', 2048)
   };
+}
+
+export function toGroupDto(group: GroupRecord): GroupDto {
+  // 웹훅 토큰 원문 대신 설정 여부와 마스킹한 주소만 관리 화면에 전달한다.
+  return {
+    id: group.id,
+    name: group.name,
+    webhookName: group.webhookName,
+    webhookAvatarUrl: group.webhookAvatarUrl,
+    hasWebhook: group.webhookUrl !== null,
+    maskedWebhookUrl: maskWebhookUrl(group.webhookUrl),
+    createdAt: group.createdAt,
+    updatedAt: group.updatedAt
+  };
+}
+
+export function maskWebhookUrl(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    const parts = url.pathname.split('/').filter(Boolean);
+    const token = parts.at(-1) ?? '';
+    const suffix = token.slice(-4);
+    parts[parts.length - 1] = suffix ? `...${suffix}` : '...';
+    url.pathname = `/${parts.join('/')}`;
+    url.search = '';
+    url.hash = '';
+    url.username = '';
+    url.password = '';
+    return url.toString();
+  } catch {
+    return '...';
+  }
+}
+
+export function validateOptionalWebhookUrl(value: unknown): string | null | undefined {
+  const webhookUrl = optionalString(value, 'webhookUrl', 2048);
+  if (webhookUrl === undefined || webhookUrl === null) return webhookUrl;
+  try {
+    return assertSafeWebhookUrl(webhookUrl).toString();
+  } catch (error) {
+    throw securityValidationError(error, 'webhookUrl');
+  }
 }

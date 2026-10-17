@@ -1,4 +1,4 @@
-import type { SourceRecord } from '../../db/source.repository.js';
+import type { SourceRecord } from '../../sources/repository.js';
 
 export type DeliveryOperation = 'initial_post' | 'edit' | 'update_post';
 

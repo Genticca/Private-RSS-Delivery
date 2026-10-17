@@ -1,9 +1,9 @@
-import type { SourceDto } from './api.js';
+import type { SourceDto } from '../sources/service.js';
 import type { SourceProfile } from '../feed/parse.js';
-import type { EventLogDto } from './api.js';
-import type { GroupDto } from './api.js';
-import type { TemplateDto } from './api.js';
-import type { PresetVariable } from './render-context.js';
+import type { EventLogDto } from '../logs/service.js';
+import type { GroupDto } from '../groups/service.js';
+import type { TemplateDto } from '../templates/service.js';
+import type { PresetVariable } from '../templates/render.js';
 
 export interface DashboardSourceSummary {
   id: string;

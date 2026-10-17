@@ -1,10 +1,10 @@
-import type { SourceRepository } from '../db/source.repository.js';
+import type { SourceRepository } from '../sources/repository.js';
 import type { PollService } from '../services/poll.service.js';
 import { TaskTracker } from '../core/worker.js';
 import type { PollSourceResult } from '../services/poll.service.js';
 import { mapConcurrent } from '../core/worker.js';
 import { emptyResult } from '../services/poll.service.js';
-import type { SourceRecord } from '../db/source.repository.js';
+import type { SourceRecord } from '../sources/repository.js';
 import { nowIso } from '../core/db.js';
 
 export interface PollWorkerOptions {
