@@ -16,7 +16,7 @@ export interface DeliveryBindingRecord {
   baselineAt: string | null;
 }
 
-const COLUMNS = `id, source_id AS sourceId, destination_key AS destinationKey, bucket_key AS bucketKey,
+const BINDING_COLUMNS = `id, source_id AS sourceId, destination_key AS destinationKey, bucket_key AS bucketKey,
   label, created_at AS createdAt, ended_at AS endedAt,
   baseline_item_id AS baselineItemId, baseline_at AS baselineAt`;
 
@@ -24,11 +24,11 @@ export class DeliveryBindingRepository {
   constructor(private readonly db: Database.Database) { }
 
   getById(id: number): DeliveryBindingRecord | null {
-    return this.db.prepare(`SELECT ${COLUMNS} FROM delivery_bindings WHERE id = ?`).get(id) as DeliveryBindingRecord ?? null;
+    return this.db.prepare(`SELECT ${BINDING_COLUMNS} FROM delivery_bindings WHERE id = ?`).get(id) as DeliveryBindingRecord ?? null;
   }
 
   listActive(sourceId: string): DeliveryBindingRecord[] {
-    return this.db.prepare(`SELECT ${COLUMNS} FROM delivery_bindings
+    return this.db.prepare(`SELECT ${BINDING_COLUMNS} FROM delivery_bindings
       WHERE source_id = ? AND ended_at IS NULL ORDER BY id`).all(sourceId) as DeliveryBindingRecord[];
   }
 
@@ -75,7 +75,7 @@ export interface DeliveryJobRecord {
   completedAt: string | null;
 }
 
-const deliveryJobRepositoryCOLUMNS = `j.id, j.item_id AS itemId, j.binding_id AS bindingId, j.operation, j.revision, j.state,
+const JOB_COLUMNS = `j.id, j.item_id AS itemId, j.binding_id AS bindingId, j.operation, j.revision, j.state,
   j.item_snapshot AS itemSnapshot, j.source_snapshot AS sourceSnapshot, j.template_body AS templateBody,
   j.payload, j.attempt_count AS attemptCount, j.next_attempt_at AS nextAttemptAt,
   j.claim_token AS claimToken, j.request_started_at AS requestStartedAt, j.error,
@@ -94,7 +94,7 @@ export class DeliveryJobRepository {
   constructor(private readonly db: Database.Database) { }
 
   getById(id: number): DeliveryJobRecord | null {
-    return this.db.prepare(`SELECT ${deliveryJobRepositoryCOLUMNS} FROM delivery_jobs j WHERE j.id = ?`).get(id) as DeliveryJobRecord ?? null;
+    return this.db.prepare(`SELECT ${JOB_COLUMNS} FROM delivery_jobs j WHERE j.id = ?`).get(id) as DeliveryJobRecord ?? null;
   }
 
   list(options: {
@@ -104,7 +104,7 @@ export class DeliveryJobRepository {
     before?: number;
     limit?: number
   } = {}): DeliveryJobRecord[] {
-    return this.db.prepare(`SELECT ${deliveryJobRepositoryCOLUMNS} FROM delivery_jobs j JOIN items i ON i.id = j.item_id
+    return this.db.prepare(`SELECT ${JOB_COLUMNS} FROM delivery_jobs j JOIN items i ON i.id = j.item_id
       WHERE (@sourceId IS NULL OR i.source_id = @sourceId) AND (@itemId IS NULL OR j.item_id = @itemId)
         AND (@state IS NULL OR j.state = @state) AND (@before IS NULL OR j.id < @before) ORDER BY j.id DESC LIMIT @limit`).all({
       sourceId: options.sourceId ?? null,
@@ -144,7 +144,7 @@ export class DeliveryJobRepository {
   }
 
   findDue(now: string, limit = 50): DeliveryJobRecord[] {
-    return this.db.prepare(`SELECT ${deliveryJobRepositoryCOLUMNS} FROM delivery_jobs j
+    return this.db.prepare(`SELECT ${JOB_COLUMNS} FROM delivery_jobs j
       JOIN items i ON i.id = j.item_id JOIN sources s ON s.id = i.source_id
       JOIN delivery_bindings b ON b.id = j.binding_id
       LEFT JOIN destination_cooldowns c ON c.bucket_key = b.bucket_key
@@ -244,7 +244,7 @@ export interface ItemDeliveryRecord {
   firstDeliveredAt: string;
 }
 
-const itemDeliveryRepositoryCOLUMNS = `item_id AS itemId, binding_id AS bindingId, message_id AS messageId,
+const ITEM_DELIVERY_COLUMNS = `item_id AS itemId, binding_id AS bindingId, message_id AS messageId,
   channel_id AS channelId, thread_id AS threadId, applied_revision AS appliedRevision,
   first_delivered_at AS firstDeliveredAt`;
 
@@ -253,11 +253,11 @@ export class ItemDeliveryRepository {
   constructor(private readonly db: Database.Database) { }
 
   get(itemId: number, bindingId: number): ItemDeliveryRecord | null {
-    return this.db.prepare(`SELECT ${itemDeliveryRepositoryCOLUMNS} FROM item_deliveries WHERE item_id = ? AND binding_id = ?`).get(itemId, bindingId) as ItemDeliveryRecord ?? null;
+    return this.db.prepare(`SELECT ${ITEM_DELIVERY_COLUMNS} FROM item_deliveries WHERE item_id = ? AND binding_id = ?`).get(itemId, bindingId) as ItemDeliveryRecord ?? null;
   }
 
   listForItem(itemId: number): ItemDeliveryRecord[] {
-    return this.db.prepare(`SELECT ${itemDeliveryRepositoryCOLUMNS} FROM item_deliveries WHERE item_id = ?`).all(itemId) as ItemDeliveryRecord[];
+    return this.db.prepare(`SELECT ${ITEM_DELIVERY_COLUMNS} FROM item_deliveries WHERE item_id = ?`).all(itemId) as ItemDeliveryRecord[];
   }
 
   save(record: ItemDeliveryRecord): void {

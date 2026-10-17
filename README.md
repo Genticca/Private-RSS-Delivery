@@ -66,8 +66,7 @@ npm start
 ```bash
 npm run typecheck        # 서버 + 테스트 tsconfig 양쪽 검사
 npm test                 # 전체 (vitest)
-npm run test:unit
-npm run test:integration
+npm run smoke            # 빌드 후 실제 서버를 띄워 주요 화면·API 확인
 npm run benchmark        # 빌드 후 외부 API 없이 25개 피드 수집·발송 측정
 ```
 

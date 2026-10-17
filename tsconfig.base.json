@@ -11,9 +11,7 @@
     "verbatimModuleSyntax": true,
     "baseUrl": ".",
     "paths": {
-      "@server/*": ["src/server/*"],
-      "@domain/*": ["src/server/domain/*"],
-      "@db/*": ["src/server/db/*"]
+      "@server/*": ["src/server/*"]
     }
   }
 }

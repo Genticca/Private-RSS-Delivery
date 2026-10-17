@@ -6,3 +6,5 @@ data/
 *.sqlite-wal
 .env
 .env.local
+/AGENTS.md
+/Docs/

@@ -94,7 +94,7 @@ function specifiers(source: string): string[] {
 
 function targetOf(file: string, module: string): string | null {
   if (module.startsWith('file:')) return fileURLToPath(module).replace(/\.js$/, '.ts');
-  const aliases: Record<string, string> = { '@server/': ROOT, '@domain/': join(ROOT, 'domain'), '@db/': join(ROOT, 'db') };
+  const aliases: Record<string, string> = { '@server/': ROOT };
   for (const [prefix, dir] of Object.entries(aliases)) {
     if (module.startsWith(prefix)) return resolve(dir, module.slice(prefix.length)).replace(/\.js$/, '.ts');
   }
@@ -153,6 +153,14 @@ describe('server package dependencies', () => {
 
   it('has no barrel index files or empty-folder markers', () => {
     expect(allFiles.filter((file) => /(?:^|[\\/])(?:index\.ts|\.gitkeep)$/.test(file)).map((file) => relative(ROOT, file))).toEqual([]);
+  });
+
+  it('has no empty-folder markers anywhere in the repository', () => {
+    const skip = new Set(['node_modules', '.git', 'dist', 'data']);
+    const walk = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+      entry.isDirectory() ? (skip.has(entry.name) ? [] : walk(join(dir, entry.name)))
+        : entry.name === '.gitkeep' ? [relative(resolve('.'), join(dir, entry.name))] : []);
+    expect(walk(resolve('.'))).toEqual([]);
   });
 
   it('keeps new modules at least 40 lines apart from route and cleanup exceptions', () => {
