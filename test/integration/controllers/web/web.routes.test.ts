@@ -57,8 +57,8 @@ describe('web routes and inbound middleware', () => {
       ['/groups', ['data-page="groups"', 'id="group-table"', 'hx-patch="/api/groups/', 'name="clearWebhook"']],
       ['/templates', ['data-page="templates"', 'id="template-table"', 'name="cloneFrom"', 'Duplicate']],
       [`/templates/${template?.id}`, ['data-page="template-editor"', 'id="template-form"', 'hx-patch="/api/templates/', '기본 제공 템플릿은 읽기 전용', 'id="template-body"', 'id="preview"', 'data-insert-var="item.title"']],
-      ['/logs', ['data-page="logs"', 'id="log-stream" data-sse="/api/logs/stream"', 'id="model-usage"']],
-      ['/model', ['data-page="model"', 'id="model-config"', 'hx-patch="/api/model/config"', 'hx-swap="none"', 'PRIMARY_MODEL_API_KEY 환경 변수를 설정해야 Gemini 번역을 사용할 수 있습니다.']]
+      ['/logs', ['data-page="logs"', 'id="log-stream" data-sse="/api/logs/stream"', 'data-log-type="translation"']],
+      ['/model', ['data-page="model"', 'id="model-diagnostics"', 'hx-post="/api/model/diagnose"', 'gemini-3.1-flash-lite', 'PRIMARY_MODEL_API_KEY 환경 변수를 설정해야 Gemini 번역을 사용할 수 있습니다.']]
     ];
 
     for (const [url, needles] of expectations) {
@@ -137,17 +137,6 @@ describe('web routes and inbound middleware', () => {
     expect(createdTemplate.body).toContain('id="template-');
     expect(createdTemplate.body).toContain('hx-delete="/api/templates/');
     expect(createdTemplate.body).toContain('name="cloneFrom"');
-
-    const model = await app.inject({
-      method: 'PATCH',
-      url: '/api/model/config',
-      payload: { promptLogMaxBytes: 1024 },
-      headers: { host: 'localhost:8080' }
-    });
-    expect(model.statusCode).toBe(200);
-    expect(model.body).toContain('id="flash"');
-    expect(model.body).toContain('hx-swap-oob="true"');
-    expect(model.body).not.toContain('id="model-config"');
   });
 
   it('supports real htmx source/model form posts and inline validation fragments', async () => {
@@ -173,15 +162,16 @@ describe('web routes and inbound middleware', () => {
     expect(String(invalid.headers['content-type'])).toContain('text/html');
     expect(invalid.body).toContain('form-error');
 
-    const model = await app.inject({
-      method: 'PATCH',
-      url: '/api/model/config',
-      payload: 'primary.provider=gemini&primary.model=gemini-test&primary.enabled=false&promptLogMaxBytes=2048',
+    const diagnose = await app.inject({
+      method: 'POST',
+      url: '/api/model/diagnose',
+      payload: 'title=Hello&summary=World',
       headers: { host: 'localhost:8080', 'hx-request': 'true', 'content-type': 'application/x-www-form-urlencoded' }
     });
-    expect(model.statusCode).toBe(200);
-    expect(model.body).toContain('모델 설정을 저장했습니다.');
-    expect(container.repositories.modelConfig.getByRole('primary')).toMatchObject({ model: 'gemini-test', enabled: false, promptLogMaxBytes: 2048 });
+    expect(diagnose.statusCode).toBe(200);
+    expect(diagnose.body).toContain('번역 실패 또는 비활성');
+    expect(diagnose.body).toContain('id="model-diagnostics"');
+    expect(container.repositories.eventLog.list({ kind: 'translation' })[0]).toMatchObject({ status: 'skipped', detail: 'missing-key' });
   });
 
   it('serves liveness/readiness probes outside the admin UI guard', async () => {

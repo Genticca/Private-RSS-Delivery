@@ -74,14 +74,8 @@ export async function registerWebRoutes(app: FastifyInstance, services: ServiceR
   });
 
   app.get('/model', async (_request, reply) => {
-    const status = services.model.getStatus();
-    return render(reply, 'pages/model.hbs', {
-      config: services.model.getConfig(),
-      status,
-      diagnostics: services.model.getDiagnostics(),
-      statusGuidance: modelStatusGuidance(status),
-      usage: services.model.listUsage({ limit: 50 })
-    });
+    const diagnostics = services.model.getDiagnostics();
+    return render(reply, 'pages/model.hbs', { diagnostics, statusGuidance: modelStatusGuidance(diagnostics.status) });
   });
 }
 
@@ -151,16 +145,10 @@ function presetVars(): Array<{
   return PRESET_VARIABLES.map((name) => ({ name, description: descriptions[name] ?? name }));
 }
 
-function modelStatusGuidance(status: {
-  primary: string
-}): Array<{
-  role: string;
-  message: string
-}> {
-  const role = 'primary';
-  if (status.primary === 'missing-key') return [{ role, message: 'PRIMARY_MODEL_API_KEY 환경 변수를 설정해야 Gemini 번역을 사용할 수 있습니다.' }];
-  if (status.primary === 'invalid-key') return [{ role, message: 'PRIMARY_MODEL_API_KEY 값을 교체하거나 model 설정을 확인하세요.' }];
-  return [];
+function modelStatusGuidance(status: string): string | null {
+  if (status === 'missing-key') return 'PRIMARY_MODEL_API_KEY 환경 변수를 설정해야 Gemini 번역을 사용할 수 있습니다.';
+  if (status === 'invalid-key') return 'PRIMARY_MODEL_API_KEY 값을 교체하거나 GEMINI_MODEL 설정을 확인하세요.';
+  return null;
 }
 
 function render(reply: FastifyReply, view: string, model: object): unknown {

@@ -23,7 +23,7 @@ flowchart LR
 
 - 들어오는 요청: 관리 화면(Handlebars + htmx)과 JSON API, 로그 SSE. Host·Origin 검증과 rate limit(분당 120회)을 적용한다.
 - 나가는 요청: 피드·웹훅 URL 모두 SSRF 검사를 거친다. 웹훅은 Discord 도메인만 허용한다.
-- 비밀값: 번역 API 키는 환경 변수에만 있다. 웹훅 URL은 DB의 `groups.webhook_url`에만 있다.
+- 비밀값: 번역 API 키와 모델 이름은 환경 변수에만 있다. 웹훅 URL은 DB의 `groups.webhook_url`에만 있다.
 
 ## 2. 프로세스 구성과 디렉터리
 
@@ -195,7 +195,7 @@ flowchart TD
   I2 -->|"3xx, 최대 3회"| I4["대상도 SSRF 검사<br/>301·308이면 feedUrl 갱신"]
   I4 --> I2
   I2 -->|"15초 초과(본문 포함) · 5MiB 초과 · 4xx · 5xx"| ERR
-  I2 -->|304| N304["markPolled · 연속 실패 0<br/>fetch_log 304"]
+  I2 -->|304| N304["markPolled · 연속 실패 0<br/>event_log fetch not_modified"]
   I2 -->|200| TX{"트랜잭션:<br/>설정 버전이 그대로이고 활성?"}
   TX -->|"바뀜 · 비활성"| Z2["결과 폐기<br/>다음 poll에서 다시 수집"]
   TX -->|그대로| P1["Stage 1 파싱<br/>Stage 2 정규화 + contentHash"]
@@ -213,16 +213,16 @@ flowchart TD
   NEW --> END
   UPD --> END
   DISP --> END
-  END["새 연결 baseline 완료<br/>markPolled · 연속 실패 0 · fetch_log 200"]
-  ERR["오류:<br/>연속 실패 +1<br/>다음 poll = 주기 × 2^(n-1), 최대 24시간<br/>fetch_log error"]
+  END["새 연결 baseline 완료<br/>markPolled · 연속 실패 0 · event_log fetch ok"]
+  ERR["오류:<br/>연속 실패 +1<br/>다음 poll = 주기 × 2^(n-1), 최대 24시간<br/>event_log fetch error"]
 ```
 
 | 상황 | 처리 | 기록 |
 | --- | --- | --- |
-| SSRF 차단, 4xx, 5xx, 타임아웃, 크기 초과, 파싱 실패 | 다음 poll을 지수적으로 미룸(최대 24시간) | `fetch_log` error, `sources.consecutive_failures` |
+| SSRF 차단, 4xx, 5xx, 타임아웃, 크기 초과, 파싱 실패 | 다음 poll을 지수적으로 미룸(최대 24시간) | `event_log`(fetch error), `sources.consecutive_failures` |
 | 403·TLS 핸드셰이크 실패 | TLS 1.2로 한 번 재시도. 성공하면 `fetch_options`에 고정, 하루 뒤 기본 설정으로 재검사 | |
 | 인증서 오류 | 재시도하지 않음 | error |
-| 304 | 본문 없이 종료, 재감지 없음 | `fetch_log` 304 |
+| 304 | 본문 없이 종료, 재감지 없음 | `event_log`(fetch not_modified) |
 | poll 도중 설정 변경 | 결과를 버림(설정 버전 비교) | 없음 |
 | 목적지 없는 소스 | 수집하지 않고 다음 주기로 | 없음 |
 
@@ -278,7 +278,7 @@ flowchart TD
 | 렌더·검증 오류 | `failed` | `failed` |
 | SSRF·웹훅 검증 실패 | `failed`(guard_blocked) | 같음 |
 
-`unknown`·`held`·`uneditable`·`legacy_unknown`은 자동으로 다시 보내지 않는다. 관리자가 `/delivery-jobs`에서 처리한다(§8).
+`unknown`·`held`·`uneditable`은 자동으로 다시 보내지 않는다. 관리자가 `/delivery-jobs`에서 처리한다(§8).
 
 ## 7. 번역 (발송 중 payload를 만들 때)
 
@@ -292,13 +292,14 @@ flowchart LR
   B -->|"실패 cooldown 중(5분)"| O[원문]
   B -->|같은 입력 요청 진행 중| SF[결과 공유]
   B -->|miss| M["Gemini 요청<br/>15초"]
-  M -->|"비활성 · 키 없음 · 오류 · 타임아웃 ·<br/>출력 잘림 · JSON 파싱 실패"| O2["원문 + 실패 캐시"]
+  M -->|"키 없음 · 오류 · 타임아웃 ·<br/>출력 잘림 · JSON 파싱 실패"| O2["원문 + 실패 캐시"]
   M -->|성공| S[성공 캐시]
 ```
 
 - 캐시 미스인 필드는 한 번의 요청으로 묶는다.
 - 번역에 실패해도 원문으로 렌더한 payload가 저장되므로, Discord 재시도 때 번역을 다시 호출하지 않는다.
 - 미리보기는 번역하지 않는다.
+- 모델 요청 결과(성공·실패 코드·소요 시간), 캐시 사용, 건너뜀은 `event_log`(kind `translation`)에 남는다. 번역문은 항목에 저장하지 않는다.
 
 ## 8. 작업 상태와 관리자 조치
 
@@ -319,7 +320,6 @@ stateDiagram-v2
   unknown --> succeeded: "관리자가 message ID 등록"
   unknown --> cancelled: 관리자 보관
   uneditable --> cancelled: 관리자 보관
-  legacy_unknown --> cancelled: 관리자 보관
   pending --> cancelled: 연결 종료
 ```
 
@@ -345,14 +345,14 @@ flowchart LR
 | --- | --- | --- | --- | --- | --- | --- |
 | 소스 관리 | `/sources`, `/sources/new`, `/sources/:id` (`sources.hbs`, `source-form.hbs`) | `GET·POST /api/sources`, `GET·PATCH·DELETE /api/sources/:id`, `PATCH …/enabled`, `POST …/poll`, `POST …/test`, `POST …/retry-failed`, `GET …/sample-item` | SourceService(`source-input`), SchedulerService, TestSendService, PreviewService | PollWorker(수동 수집) | `sources`, `source_groups` | api.routes, web.routes, configuration-bindings |
 | 그룹·연결 세대 | `/groups` (`groups.hbs`) | `GET·POST /api/groups`, `PATCH·DELETE /api/groups/:id` | GroupService, DeliveryBindingService | — | `groups`, `source_groups`, `delivery_bindings` | configuration-bindings, resolve-destinations |
-| 수집 | 대시보드 상태, 소스 행 연속 실패 | — | PollService, DeliveryPlanService | PollWorker | `sources`, `items`, `fetch_log` | poll-service, feed-limits, parser, normalize, security |
-| 발송 | — | — | DeliveryService, DeliveryPlanService | DeliveryWorker | `delivery_jobs`, `item_deliveries`, `delivery_bindings`, `destination_cooldowns`, `delivery_log` | delivery-jobs, discord-client, render, validate |
+| 수집 | 대시보드 상태, 소스 행 연속 실패 | — | PollService, DeliveryPlanService | PollWorker | `sources`, `items`, `event_log` | poll-service, feed-limits, parser, normalize, security |
+| 발송 | — | — | DeliveryService, DeliveryPlanService | DeliveryWorker | `delivery_jobs`, `item_deliveries`, `delivery_bindings`, `destination_cooldowns`, `event_log` | delivery-jobs, discord-client, render, validate |
 | 발송 작업 검토 | `/delivery-jobs` (`delivery-jobs.hbs`) | `GET /api/delivery-jobs`, `POST /api/delivery-jobs/:id/review` | DeliveryManagementService | — | `delivery_jobs`, `item_deliveries` | delivery-management |
-| 번역·모델 | `/model` (`model.hbs`, `model-diagnostics`, `translation-diagnostic`) | `GET·PATCH /api/model/config`, `GET /api/model/status`, `GET /api/model/diagnostics`, `POST /api/model/diagnose`, `GET /api/model/usage` | ModelService, TranslationCacheService, DispatchTranslationService, ModelTranslator | DeliveryWorker(발송 시) | `model_config`, `model_usage`, `translation_cache`, `translation_events` | translation-cache, translator, gemini-adapter |
+| 번역 | `/model` (`model.hbs`, `model-diagnostics`, `translation-diagnostic`) — 상태·진단만, 설정은 env | `GET /api/model/diagnostics`, `POST /api/model/diagnose` | ModelService, TranslationCacheService, DispatchTranslationService, ModelTranslator | DeliveryWorker(발송 시) | `translation_cache`, `event_log` | translation-cache, translator, gemini-adapter |
 | 템플릿·미리보기 | `/templates`, `/templates/:id` (`template-editor.hbs`) | `GET·POST /api/templates`, `GET·PATCH·DELETE /api/templates/:id`, `POST /api/preview` | TemplateService, PreviewService | — | `templates` | presets, render, frontend-contracts |
-| 로그 | `/logs` (`logs.hbs`, `log-entry`) | `GET /api/logs`, `GET /api/logs/stream`(SSE) | LogService | — | `delivery_log`, `fetch_log` | log-stream |
+| 로그 | `/logs` (`logs.hbs`) — 전송·수집·번역 탭 | `GET /api/logs?type=`(`delivery`·`fetch`·`translation`), `GET /api/logs/stream`(SSE, 단일 cursor) | LogService | — | `event_log` | log-stream |
 | Export·Import | 소스 화면 | `GET /api/export`, `POST /api/import/dry-run`, `POST /api/import` | ExportImportService(`export-import.document`), DeliveryBindingService | — | `sources`, `groups`, `source_groups`, `templates` | api.routes |
-| 정리 | — | — | CleanupService | CleanupWorker | 로그·캐시·`items` 본문·`delivery_jobs` snapshot | cleanup-worker |
+| 정리 | — | — | CleanupService | CleanupWorker | `event_log`·캐시·`items` 본문·`delivery_jobs` snapshot | cleanup-worker |
 | 런타임 | — | `/healthz`, `/ready` | — | 전체 | `schema_migrations` | environment, shutdown, migrator, config, db-schema-doc |
 
 테스트 이름은 `test/{unit,integration}/**/<이름>.test.ts`를 줄여 적었다.
@@ -372,7 +372,7 @@ PollWorker.runDuePolls → PollService.poll
   ├ security.fetchFeed
   └ 트랜잭션: domain.parseFeed → domain.normalize
               → items insert/update → DeliveryPlanService.planNew / planUpdate
-              → DeliveryBindingService.completeBaselines → fetch_log
+              → DeliveryBindingService.completeBaselines → event_log(fetch)
 
 발송 한 건
 DeliveryWorker.runDueDeliveries → DeliveryService.processJob
@@ -380,7 +380,7 @@ DeliveryWorker.runDueDeliveries → DeliveryService.processJob
   ├ DispatchTranslationService → TranslationCacheService → ModelTranslator
   ├ dispatcher.render · validate → delivery_jobs.savePayload
   ├ dispatcher.discord-client (POST / PATCH)
-  └ 트랜잭션: delivery_jobs.finish · item_deliveries.save · delivery_log · syncItemState
+  └ 트랜잭션: delivery_jobs.finish · item_deliveries.save · event_log(delivery)
 ```
 
 ## 11. 설정값
@@ -394,6 +394,7 @@ DeliveryWorker.runDueDeliveries → DeliveryService.processJob
 | `PORT` | `8080` | 1–65535 | |
 | `DATABASE_PATH` | `./data/rss-discord-bridge.sqlite` | | 실행 위치 기준 상대 경로 |
 | `PRIMARY_MODEL_API_KEY` | — | | Gemini API 키. 비우면 번역 비활성(`missing-key`) |
+| `GEMINI_MODEL` | `gemini-3.1-flash-lite` | `gemini-*` 형식만 | 번역 모델 이름. 형식이 틀리면 부팅 중단 |
 | `POLL_CONCURRENCY` | 2 | 1–16 | 동시에 수집할 소스 수 |
 | `DELIVERY_CONCURRENCY` | 2 | 1–16 | 동시에 처리할 웹훅 bucket 수 |
 | `SHUTDOWN_TIMEOUT_MS` | 30000 | 100–300000 | 종료 시 작업을 기다리는 시간 |
@@ -403,7 +404,7 @@ DeliveryWorker.runDueDeliveries → DeliveryService.processJob
 | `NEW_ITEMS_HOLD_RATIO` | 0.8 | 0 초과 1 이하 | 신규가 스냅샷에서 차지하는 비율 |
 | `ITEM_CONTENT_RETENTION_DAYS` | 180 | 1–3650 | 피드에서 사라진 항목의 본문 보존 기간 |
 
-모델 이름·대상 언어·프롬프트 기록 크기는 env가 아니라 DB `model_config`에서 관리한다(관리 화면 `/model`).
+번역 대상 언어는 한국어(`ko`)로 고정이다. 모델·키를 바꾸면 서비스를 다시 시작한다. 관리 화면 `/model`은 상태 확인과 번역 진단만 한다.
 
 코드 내부 고정값: 피드 요청 타임아웃 15초(소스별 `fetch_options.timeoutMs`로 변경), 리다이렉트 최대 3회, Discord 요청 타임아웃 10초, 번역 provider 타임아웃 15초, 번역 실패 cooldown 5분, 발송 재시도 최대 5회(1·2·4·8분), 로그 보존 90일.
 

@@ -150,7 +150,6 @@ export class ExportImportService {
           pollIntervalSeconds: source.pollIntervalSeconds,
           translate: source.translate,
           templateId,
-          webhookUrl: null,
           webhookName: source.webhookName ?? null,
           webhookAvatarUrl: source.webhookAvatarUrl ?? null,
           fetchOptions: source.fetchOptions ?? {},

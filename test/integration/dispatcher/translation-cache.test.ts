@@ -21,7 +21,7 @@ describe('shared translation cache and frozen delivery payload', () => {
     await service.translateItemForDispatch(h.item(), h.source(), BASE);
     await service.translateItemForDispatch(h.item('two'), h.source(), BASE);
     expect(translator.translate).toHaveBeenCalledTimes(1);
-    expect(h.r.translationCache.statistics().cache_hit).toBe(4);
+    expect(h.r.eventLog.countByStatus('translation').cache_hit).toBe(4);
   });
 
   it('reuses title cache and requests only a changed summary', async () => {
@@ -67,10 +67,10 @@ describe('shared translation cache and frozen delivery payload', () => {
   it('clears reserved single-flight work when cache bookkeeping fails before model execution', async () => {
     const h = await harness({ translate: true }); await h.baseline(); await h.poll([{ id: 'one', title: 'Title', summary: '한국어 본문' }]);
     const translator = fakeTranslator(); const service = new DispatchTranslationService({ repositories: h.r, translator });
-    const originalEvent = h.r.translationCache.event.bind(h.r.translationCache);
-    h.r.translationCache.event = () => { throw new Error('cache bookkeeping failed'); };
+    const originalAppend = h.r.eventLog.append.bind(h.r.eventLog);
+    h.r.eventLog.append = () => { throw new Error('cache bookkeeping failed'); };
     await expect(service.translateItemForDispatch(h.item(), h.source(), BASE)).rejects.toThrow('cache bookkeeping failed');
-    h.r.translationCache.event = originalEvent;
+    h.r.eventLog.append = originalAppend;
     await service.translateItemForDispatch(h.item(), h.source(), BASE);
     expect(translator.translate).toHaveBeenCalledTimes(1);
   });
@@ -85,31 +85,21 @@ describe('shared translation cache and frozen delivery payload', () => {
     const translator = fakeTranslator();
     translator.translate.mockResolvedValueOnce({ title: 'Title', summary: 'Body', translated: false });
     const service = new DispatchTranslationService({ repositories: h.r, translator });
-    await service.translateItemForDispatch(h.item(), h.source(), BASE);
-    expect(h.item().translatedAt).toBeNull();
+    expect((await service.translateItemForDispatch(h.item(), h.source(), BASE)).translatedTitle).toBe('Title');
     await service.translateItemForDispatch(h.item(), h.source(), addSecondsIso(BASE, 60));
     expect(translator.translate).toHaveBeenCalledTimes(1);
-    await service.translateItemForDispatch(h.item(), h.source(), addSecondsIso(BASE, 301));
+    expect(h.r.eventLog.countByStatus('translation').skipped).toBe(2);
+    const later = await service.translateItemForDispatch(h.item(), h.source(), addSecondsIso(BASE, 301));
     expect(translator.translate).toHaveBeenCalledTimes(2);
-    expect(h.item().translatedAt).not.toBeNull();
+    expect(later.translatedTitle).toBe('번역 Title');
     expect(h.post).not.toHaveBeenCalled();
-  });
-
-  it('does not overwrite newer item content with a late translation', async () => {
-    const h = await harness({ translate: true }); await h.baseline(); await h.poll([{ id: 'one', title: 'Old title' }]);
-    let release!: (value: TranslationResult) => void;
-    const service = new DispatchTranslationService({ repositories: h.r, translator: { translate: () => new Promise((resolve) => { release = resolve; }) } });
-    const translating = service.translateItemForDispatch(h.item(), h.source(), BASE);
-    await h.poll([{ id: 'one', title: 'New title' }]);
-    release({ title: '옛 제목', summary: '옛 본문', translated: true }); await translating;
-    expect(h.item()).toMatchObject({ title: 'New title', translatedAt: null, contentRevision: 2 });
   });
 
   it('handles empty and clearly Korean input locally', async () => {
     const h = await harness({ translate: true }); await h.baseline(); await h.poll([{ id: 'one', title: '장애가 해결되었습니다', summary: '' }]);
     const translator = fakeTranslator(); const service = new DispatchTranslationService({ repositories: h.r, translator });
     await service.translateItemForDispatch(h.item(), h.source(), BASE);
-    expect(translator.translate).not.toHaveBeenCalled(); expect(h.r.translationCache.statistics().local_skip).toBe(2);
+    expect(translator.translate).not.toHaveBeenCalled(); expect(h.r.eventLog.countByStatus('translation').skipped).toBe(2);
   });
 
   it('translates ordinary text that overlaps an Object prototype property', async () => {
@@ -136,7 +126,7 @@ describe('shared translation cache and frozen delivery payload', () => {
 
   it('shares translation across destination jobs and renders translated forum titles', async () => {
     const provider = { generate: vi.fn(async () => ({ text: '{"title":"번역 제목","summary":"번역 본문"}' })) };
-    const h = await harness({ translate: true, appliedTags: ['555'] }, { env: { DATABASE_PATH: ':memory:', PRIMARY_MODEL_API_KEY: 'test-key' }, translationProviders: { gemini: provider } });
+    const h = await harness({ translate: true, appliedTags: ['555'] }, { env: { DATABASE_PATH: ':memory:', PRIMARY_MODEL_API_KEY: 'test-key' }, translationProvider: provider });
     const b = await h.container.services.groups.create({ name: 'B', webhookUrl: WEBHOOK_B });
     await h.container.services.sources.update(h.source().id, { groupIds: [h.group.id, b.id] }); await h.baseline();
     await h.poll([{ id: 'one' }]); await h.run();
@@ -146,18 +136,18 @@ describe('shared translation cache and frozen delivery payload', () => {
 
   it('pins original fallback payload across Discord rate-limit retry without pretending translation succeeded', async () => {
     const provider = { generate: vi.fn(async () => ({ text: 'invalid JSON' })) };
-    const h = await harness({ translate: true }, { env: { DATABASE_PATH: ':memory:', PRIMARY_MODEL_API_KEY: 'test-key' }, translationProviders: { gemini: provider } });
+    const h = await harness({ translate: true }, { env: { DATABASE_PATH: ':memory:', PRIMARY_MODEL_API_KEY: 'test-key' }, translationProvider: provider });
     await h.baseline(); await h.poll([{ id: 'one', title: 'Article' }]);
     h.post.mockResolvedValueOnce({ statusCode: 429, retryAfterMs: 1000 });
     await h.run(); await h.run(addSecondsIso(BASE, 301));
     expect(provider.generate).toHaveBeenCalledTimes(1); expect(h.post).toHaveBeenCalledTimes(2);
     expect(h.post.mock.calls.every(([request]) => request.payload.embeds?.[0]?.title === 'Article')).toBe(true);
-    expect(h.item().translatedAt).toBeNull();
+    expect(h.r.eventLog.countByStatus('translation')).toEqual({ failed: 1 });
   });
 
   it('does not translate a cancelled connection job', async () => {
     const provider = { generate: vi.fn(async () => ({ text: '{"title":"번역","summary":""}' })) };
-    const h = await harness({ translate: true }, { env: { DATABASE_PATH: ':memory:', PRIMARY_MODEL_API_KEY: 'test-key' }, translationProviders: { gemini: provider } });
+    const h = await harness({ translate: true }, { env: { DATABASE_PATH: ':memory:', PRIMARY_MODEL_API_KEY: 'test-key' }, translationProvider: provider });
     await h.baseline(); await h.poll([{ id: 'one' }]);
     await h.container.services.groups.update(h.group.id, { clearWebhook: true }); await h.run();
     expect(provider.generate).not.toHaveBeenCalled();
@@ -166,9 +156,10 @@ describe('shared translation cache and frozen delivery payload', () => {
   it('does not persist credentials echoed in a provider exception', async () => {
     const secret = 'fixture-credential-do-not-store';
     const h = await harness({ translate: true }, { env: { DATABASE_PATH: ':memory:', PRIMARY_MODEL_API_KEY: secret },
-      translationProviders: { gemini: { generate: async () => { throw new Error('request failed key=' + secret); } } } });
+      translationProvider: { generate: async () => { throw new Error('request failed key=' + secret); } } });
     await h.baseline(); await h.poll([{ id: 'one' }]); await h.run();
-    const usage = h.container.db.prepare('SELECT prompt_log, error FROM model_usage').all();
+    const usage = h.container.db.prepare('SELECT detail FROM event_log').all();
+    expect(usage).toContainEqual({ detail: 'provider-error' });
     expect(JSON.stringify(usage)).not.toContain(secret);
     expect(h.post).toHaveBeenCalledTimes(1);
   });

@@ -1,7 +1,7 @@
 <section id="model-diagnostics" class="panel compact" {{#if oob}}hx-swap-oob="outerHTML"{{/if}}>
   <h2>번역 동작 상태</h2>
-  <p class="muted">ready는 API 키가 설정되었다는 뜻입니다. 최근 실제 요청 결과는 아래에 표시됩니다.</p>
-  {{#each roles}}<p>{{role}}: {{keyStatus}} · 최근 요청 {{lastRequestAt}} · {{lastRequestResult}}</p>{{/each}}
-  <p>실제 요청 {{requests.requests}}회 · 실패 {{requests.failed}}회 · 잘림 {{requests.truncated}}회</p>
-  <p>캐시 재사용 {{cache.cache_hit}}회 · 로컬 처리 {{cache.local_skip}}회 · 동시 요청 합침 {{cache.single_flight}}회</p>
+  <p class="muted">모델은 <code>GEMINI_MODEL</code>, API 키는 <code>PRIMARY_MODEL_API_KEY</code> 환경 변수에서 읽습니다. 바꾼 뒤에는 서비스를 다시 시작하세요.</p>
+  <p>모델 <code>{{model}}</code> · 상태 <span class="badge {{status}}">{{status}}</span></p>
+  <p>최근 요청 {{#if lastRequestAt}}{{lastRequestAt}}{{else}}-{{/if}} · {{lastRequestResult}}</p>
+  <p>보존 기간 내 기록: 성공 {{counts.success}}회 · 실패 {{counts.failed}}회 · 캐시 사용 {{counts.cache_hit}}회 · 건너뜀 {{counts.skipped}}회</p>
 </section>

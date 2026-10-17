@@ -1,10 +1,8 @@
-import type { ModelProvider, SourceId } from '../contracts/api.js';
+import type { SourceId } from '../contracts/api.js';
 import { PROFILES, SOURCE_PROFILE_OPTIONS, type SourceProfile } from '../domain/normalize/types.js';
 import type { FetchOptions } from '../security/types.js';
 import { assertSafeFeedUrl, assertSafeWebhookUrl, parseHttpUrl, SecurityError } from '../security/index.js';
 import { validationError } from './errors.js';
-
-const MODEL_PROVIDERS = new Set<ModelProvider>(['gemini']);
 
 export function requireObject(value: unknown): Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
@@ -241,15 +239,6 @@ function validateHeaders(value: unknown): Record<string, string> | undefined {
     output[name] = headerValue;
   }
   return Object.keys(output).length > 0 ? output : undefined;
-}
-
-export function validateProvider(value: unknown): ModelProvider | undefined {
-  if (value === undefined) return undefined;
-  const provider = String(value).trim() as ModelProvider;
-  if (!MODEL_PROVIDERS.has(provider)) {
-    throw validationError('provider 값이 올바르지 않습니다.', { provider: 'gemini만 허용됩니다.' });
-  }
-  return provider;
 }
 
 export function knownProfiles(): string[] {

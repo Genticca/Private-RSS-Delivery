@@ -107,7 +107,6 @@ export class PreviewService {
       lastPolledAt: null,
       nextPollAt: null,
       templateId: null,
-      webhookUrl: null,
       webhookName: null,
       webhookAvatarUrl: null,
       pollIntervalSeconds: 300,

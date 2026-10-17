@@ -57,6 +57,7 @@ HOST=127.0.0.1          # production 에서는 loopback 외 값이면 기동 거
 PORT=8080
 DATABASE_PATH=./data/rss-discord-bridge.sqlite
 PRIMARY_MODEL_API_KEY=   # (선택) Gemini API 키. 비우면 번역 OFF
+GEMINI_MODEL=            # (선택) 비우면 gemini-3.1-flash-lite
 ```
 ```bash
 sudo -u rssbridge mkdir -p data
@@ -104,12 +105,13 @@ sudo systemctl restart rss-discord-bridge
 
 새 마이그레이션이 들어간 업데이트는 먼저 정지된 운영 DB 사본으로 이관을 확인하고 백업한 뒤 적용한다.
 
-2026-10-17에 마이그레이션을 `0001_init` 하나로 합쳤다. 그 이전에 만든 DB로는 부팅이 거부되므로(`schema_migrations`에 파일에 없는 버전이 남음) 서비스를 멈추고 `data/rss-discord-bridge.sqlite`(+ `-wal`/`-shm`)를 지운 뒤 새 DB로 시작한다. 소스·그룹 설정은 지우기 전에 관리 화면의 Export로 받아 두었다가 Import로 되살린다(웹훅 URL은 다시 입력).
+2026-10-17에 마이그레이션을 `0001_init` 하나로 합쳤고, 2026-10-18에 그 파일의 스키마를 정리했다(D28). 그 이전에 만든 DB는 서비스를 멈추고 `data/rss-discord-bridge.sqlite`(+ `-wal`/`-shm`)를 지운 뒤 새 DB로 시작한다. 통합 이전 DB는 migrator가 부팅을 거부하지만, 2026-10-17판 `0001_init`으로 만든 DB는 거부되지 않으므로 직접 지워야 한다. 소스·그룹 설정은 지우기 전에 관리 화면의 Export로 받아 두었다가 Import로 되살린다(웹훅 URL은 다시 입력).
 
 ## 8. 운영 메모
 
 - **백업**: 런타임 DB 는 `data/rss-discord-bridge.sqlite`(+ `-wal`/`-shm`). 정지 또는 일관 스냅샷 후 백업.
-- **번역 켜기**: `.env` 에 키 입력 후 `systemctl restart`. (Gemini 하나: `PRIMARY_MODEL_API_KEY`)
+- **번역 켜기**: `.env` 에 키 입력 후 `systemctl restart`. (Gemini 하나: `PRIMARY_MODEL_API_KEY`, 모델 변경은 `GEMINI_MODEL`)
+- **로그 보기**: 수집·전송·번역 결과는 관리 화면 `/logs`(90일 보존), 앱 내부 오류는 `journalctl -u rss-discord-bridge`.
 - **HOST 변경 금지**: production 에서 `127.0.0.1`/`localhost`/`::1` 외 값이면 기동이 실패한다(의도된 안전장치).
   외부 노출이 꼭 필요하면 앱이 아니라 **앞단에 리버스 프록시**(nginx 등)를 두고 TLS·인증을 별도로 구성한다.
 - **포트 충돌**: 8080 사용 중이면 `.env` PORT 변경 후 재시작(터널 포트도 함께 조정).

@@ -18,7 +18,7 @@ Group=rssbridge
 # 앱 루트. config.ts 가 cwd 기준으로 .env 와 ./data/...sqlite 를 해석하므로 반드시 정확해야 함.
 WorkingDirectory=/opt/rss-discord-bridge
 
-# .env 를 프로세스 환경변수로 로드 — Gemini API 키(PRIMARY_MODEL_API_KEY)·HOST·PORT·DATABASE_PATH.
+# .env 를 프로세스 환경변수로 로드 — Gemini API 키(PRIMARY_MODEL_API_KEY)·모델(GEMINI_MODEL)·HOST·PORT·DATABASE_PATH.
 #   앱도 WorkingDirectory 의 .env 를 직접 읽지만(process.env 가 우선), 같은 값을 systemd 에서도 보이게 둔다.
 #   '-' 접두사 = 파일 없어도 기동(번역만 OFF).
 #   주의: systemd 는 값 줄의 인라인 '# 주석'을 미지원 → 각 줄은 반드시 `KEY=value` 형식만(주석은 줄 맨 앞 #).

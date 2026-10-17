@@ -73,7 +73,7 @@ describe('repository foundation', () => {
     expect(sources.findDuePoll(addSecondsIso(base, 60))).toEqual([]);
   });
 
-  it('persists item delivery state, rendered fields, and translation cache transitions', () => {
+  it('stores item content and versions without delivery or translation state', () => {
     const container = openContainer();
     const { items, sources } = container.repositories;
     const base = '2026-05-29T00:00:00.000Z';
@@ -93,152 +93,53 @@ describe('repository foundation', () => {
       author: 'CISA',
       commentsUrl: 'https://example.com/comments',
       image: 'https://example.com/image.png',
-      nextAttemptAt: base,
       createdAt: base
     });
-
+    expect(item).toMatchObject({ historical: false, contentRevision: 1, contentPruned: false });
     expect(items.findByAtomId(source.id, 'atom-1')?.id).toBe(item.id);
-    expect(items.findDueDeliveries(base).map((record) => record.id)).toEqual([item.id]);
-    expect(items.saveTranslation(item.id, '제목', '요약', base).translatedTitle).toBe('제목');
+    expect(Object.keys(item)).not.toContain('deliveryStatus');
+    expect(Object.keys(item)).not.toContain('translatedTitle');
 
-    const delivered = items.markDelivered(item.id, addSecondsIso(base, 1));
-    expect(delivered.deliveryStatus).toBe('delivered');
-    expect(delivered.nextAttemptAt).toBeNull();
-    expect(items.findDueDeliveries(addSecondsIso(base, 2))).toEqual([]);
+    // 표시 필드만 바뀌면 revision을 유지하고, 내용 해시가 바뀔 때만 올린다.
+    expect(items.updateContentHash(item.id, { title: 'Title', summary: 'Summary changed', contentHash: 'hash-1' }).contentRevision).toBe(1);
+    const updated = items.updateContentHash(item.id, { title: 'Title changed', link: 'https://example.com/item', summary: 'Summary changed', contentHash: 'hash-2' });
+    expect(updated).toMatchObject({ contentHash: 'hash-2', contentRevision: 2, title: 'Title changed' });
 
-    const updated = items.updateContentHash(item.id, {
-      title: 'Title changed',
-      link: 'https://example.com/item',
-      summary: 'Summary changed',
-      contentHash: 'hash-2'
-    });
-    expect(updated).toMatchObject({
-      contentHash: 'hash-2',
-      translatedTitle: null,
-      translatedSummary: null,
-      translatedAt: null
-    });
-
-    const requeued = items.requeueForDelivery(item.id, addSecondsIso(base, 3));
-    expect(requeued.deliveryStatus).toBe('pending');
-    expect(requeued.deliveredAt).toBeNull();
-    expect(requeued.attemptCount).toBe(0);
-    expect(requeued.translatedTitle).toBeNull();
-    expect(items.incrementAttempt(item.id)).toBe(1);
-
-    const failed = items.markFailed(item.id, 'network', addSecondsIso(base, 4));
-    expect(failed.deliveryStatus).toBe('failed');
-    expect(failed.failureReason).toBe('network');
-    expect(failed.nextAttemptAt).toBeNull();
-
-    const failedStale = items.insert({
-      sourceId: source.id,
-      atomId: 'failed-stale',
-      title: 'Failed stale',
-      contentHash: 'hash-stale',
-      deliveryStatus: 'failed',
-      deliveredAt: base,
-      failedAt: base,
-      failureReason: 'network',
-      createdAt: base
-    });
-    const retryAt = addSecondsIso(base, 5);
-    expect(items.requeueFailedBySource(source.id, retryAt)).toBe(2);
-    expect(items.getById(item.id)).toMatchObject({ deliveryStatus: 'pending', deliveredAt: null, nextAttemptAt: retryAt });
-    expect(items.getById(failedStale.id)).toMatchObject({ deliveryStatus: 'pending', deliveredAt: null, nextAttemptAt: retryAt });
-    items.markDelivered(item.id, addSecondsIso(base, 6));
-    items.markDelivered(failedStale.id, addSecondsIso(base, 6));
-
-    const historical = items.insert({
-      sourceId: source.id,
-      atomId: 'baseline',
-      title: 'Baseline',
-      contentHash: 'hash-3',
-      deliveryStatus: 'pending',
-      nextAttemptAt: base
-    });
-    expect(items.markHistorical(historical.id).deliveryStatus).toBe('historical');
-    expect(items.findDueDeliveries(addSecondsIso(base, 10))).toEqual([]);
+    const historical = items.insert({ sourceId: source.id, atomId: 'baseline', title: 'Baseline', contentHash: 'hash-3', historical: true });
+    expect(historical.historical).toBe(true);
+    expect(items.latestForSource(source.id)?.id).toBe(historical.id);
+    expect(items.deleteBySourceId(source.id)).toBe(2);
   });
 
-  it('records delivery/fetch/model logs with id cursors and retention pruning', () => {
+  it('records fetch, delivery and translation events with id cursors and retention pruning', () => {
     const container = openContainer();
-    const { deliveryLogs, fetchLogs, items, modelConfig, modelUsage, sources } = container.repositories;
+    const { eventLog, items, sources } = container.repositories;
     const base = '2026-05-29T00:00:00.000Z';
     const old = '2025-01-01T00:00:00.000Z';
     const source = sources.create({ feedUrl: 'https://example.com/logs.xml', createdAt: base });
+    const other = sources.create({ feedUrl: 'https://example.com/other.xml', createdAt: base });
     const item = items.insert({ sourceId: source.id, atomId: 'atom-log', contentHash: 'hash-log', createdAt: base });
 
-    const success = deliveryLogs.append({
-      itemId: item.id,
-      attemptNo: 1,
-      status: 'success',
-      httpStatus: 204,
-      renderedBytes: 512,
-      destinationKey: 'dest-1',
-      contentHash: 'hash-log',
-      discordMessageId: '9001',
-      createdAt: base
-    });
-    deliveryLogs.append({
-      itemId: item.id,
-      attemptNo: 2,
-      status: 'failed',
-      failureReason: 'webhook_rejected',
-      destinationKey: 'dest-2',
-      contentHash: 'hash-log',
-      createdAt: addSecondsIso(base, 1)
-    });
-    deliveryLogs.append({ itemId: item.id, attemptNo: 1, status: 'failed', createdAt: old });
+    const fetched = eventLog.append({ kind: 'fetch', status: 'ok', sourceId: source.id, httpStatus: 200, durationMs: 25, itemCount: 1, createdAt: base });
+    eventLog.append({ kind: 'fetch', status: 'error', sourceId: other.id, detail: 'timeout', createdAt: base });
+    const delivered = eventLog.append({ kind: 'delivery', status: 'success', itemId: item.id, jobId: 7, httpStatus: 204, createdAt: base });
+    eventLog.append({ kind: 'translation', status: 'failed', detail: 'x'.repeat(2000), createdAt: base });
+    eventLog.append({ kind: 'fetch', status: 'not_modified', sourceId: source.id, httpStatus: 304, createdAt: old });
 
-    expect(deliveryLogs.findResolved(item.id, 'dest-1', 'hash-log')?.id).toBe(success.id);
-    expect(deliveryLogs.findLatestMessageId(item.id, 'dest-1')).toBe('9001');
-    expect(deliveryLogs.findResolved(item.id, 'dest-2', 'hash-log')?.failureReason).toBe('webhook_rejected');
-    expect(deliveryLogs.list({ before: success.id + 10, limit: 1 })).toHaveLength(1);
-    expect(deliveryLogs.pruneOlderThan(30, base)).toBe(1);
+    // 소스를 생략하면 항목의 소스를 기록한다.
+    expect(eventLog.list({ kind: 'delivery' })[0]).toMatchObject({ id: delivered, sourceId: source.id, itemId: item.id, jobId: 7 });
+    expect(eventLog.list({ kind: 'translation' })[0].detail).toHaveLength(1000);
+    expect(eventLog.list({ kind: 'fetch', before: fetched + 1 }).map((event) => event.id)).toEqual([fetched]);
+    expect(eventLog.listAfterId(fetched).map((event) => event.kind)).toEqual(['fetch', 'delivery', 'translation', 'fetch']);
+    // 가장 최근 수집 결과는 id 기준이다(시각이 과거여도 나중에 기록된 결과).
+    expect(Object.fromEntries(eventLog.latestFetchStatusBySourceIds([source.id, other.id]))).toEqual({ [source.id]: 'not_modified', [other.id]: 'error' });
+    expect(eventLog.latestTranslationRequest()?.status).toBe('failed');
+    expect(eventLog.countByStatus('fetch')).toEqual({ ok: 1, error: 1, not_modified: 1 });
+    expect(() => eventLog.append({ kind: 'fetch', status: 'success' })).toThrow();
+    expect(eventLog.pruneOlderThan(30, base)).toBe(1);
 
-    const fetchLog = fetchLogs.append({
-      sourceId: source.id,
-      outcome: '200',
-      httpStatus: 200,
-      itemsNew: 1,
-      durationMs: 25,
-      createdAt: base
-    });
-    fetchLogs.append({ sourceId: source.id, outcome: 'error', error: 'timeout', createdAt: old });
-    expect(fetchLogs.list({ sourceId: source.id, before: fetchLog.id + 1 }).map((log) => log.id)).toContain(fetchLog.id);
-    expect(fetchLogs.pruneOlderThan(30, base)).toBe(1);
-
-    expect(modelConfig.getByRole('primary')).toMatchObject({
-      provider: 'gemini',
-      model: 'gemini-3.1-flash-lite',
-      enabled: true,
-      promptLogMaxBytes: 32768
-    });
-    const disabledPrimary = modelConfig.updateRole('primary', { enabled: false, updatedAt: base });
-    expect(disabledPrimary.enabled).toBe(false);
-
-    const usage = modelUsage.append({
-      role: 'primary',
-      provider: 'gemini',
-      model: 'gemini-3.1-flash-lite',
-      inputTokens: 10,
-      outputTokens: 20,
-      latencyMs: 30,
-      promptLog: 'system prompt + user prompt',
-      createdAt: base
-    });
-    modelUsage.append({
-      role: 'primary',
-      provider: 'gemini',
-      model: 'gemini-3.1-flash-lite',
-      error: 'disabled',
-      createdAt: old
-    });
-    const usageList = modelUsage.list({ before: usage.id + 1 });
-    expect(usageList[0]).toMatchObject({ id: usage.id, inputTokens: 10, outputTokens: 20 });
-    expect(Object.prototype.hasOwnProperty.call(usageList[0], 'promptLog')).toBe(false);
-    expect(modelUsage.pruneOlderThan(30, base)).toBe(1);
+    sources.delete(source.id);
+    expect(eventLog.list().map((event) => event.sourceId)).toEqual([null, other.id]);
   });
 });
 

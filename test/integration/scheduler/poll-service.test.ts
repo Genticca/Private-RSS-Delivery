@@ -15,7 +15,8 @@ describe('polling and delivery planning', () => {
   it('queues only new post-cutoff and undated items after a completed baseline', async () => {
     const h = await harness(); await h.baseline();
     await h.poll([{ id: 'old', publishedAt: '2026-01-01T00:00:00.000Z' }, { id: 'one', publishedAt: addSecondsIso(BASE, 1) }, { id: 'undated' }]);
-    expect(h.item('old').deliveryStatus).toBe('historical');
+    expect(h.item('old').historical).toBe(true);
+    expect(h.item('one').historical).toBe(false);
     expect(h.jobs()).toHaveLength(2);
   });
 
@@ -30,7 +31,7 @@ describe('polling and delivery planning', () => {
   it('keeps changed historical items historical', async () => {
     const h = await harness(); await h.poll([{ id: 'one', title: 'First' }]);
     await h.poll([{ id: 'one', title: 'Changed' }]);
-    expect(h.item()).toMatchObject({ deliveryStatus: 'historical', contentRevision: 2 }); expect(h.jobs()).toEqual([]);
+    expect(h.item()).toMatchObject({ historical: true, contentRevision: 2 }); expect(h.jobs()).toEqual([]);
   });
 
   it('persists a permanent redirect while preserving source identity and existing receipts', async () => {
@@ -43,9 +44,9 @@ describe('polling and delivery planning', () => {
     expect(h.post).toHaveBeenCalledTimes(1); expect(h.edit).toHaveBeenCalledTimes(1);
   });
 
-  it('does not create jobs for a bare legacy pending item', async () => {
+  it('does not create jobs when an item without any delivery job changes', async () => {
     const h = await harness(); await h.baseline();
-    h.r.items.insert({ sourceId: h.source().id, atomId: 'one', title: 'Old', contentHash: 'legacy', nextAttemptAt: BASE });
+    h.r.items.insert({ sourceId: h.source().id, atomId: 'one', title: 'Old', contentHash: 'stored-without-job' });
     await h.poll([{ id: 'one', title: 'Changed old' }]); await h.run();
     expect(h.jobs()).toEqual([]); expect(h.post).not.toHaveBeenCalled();
   });
@@ -86,7 +87,7 @@ describe('polling and delivery planning', () => {
     expect(h.r.deliveryJobs.reviewHeld(send.id, 'send', BASE)).toBe(true);
     expect(h.r.deliveryJobs.reviewHeld(historical.id, 'historical', BASE)).toBe(true);
     await h.run(); expect(h.post).toHaveBeenCalledTimes(1);
-    expect(h.r.items.getById(historical.itemId)?.deliveryStatus).toBe('historical');
+    expect(h.r.deliveryJobs.getById(historical.id)?.state).toBe('cancelled');
   });
 
   it('discards a response when fetch settings change during an active request', async () => {

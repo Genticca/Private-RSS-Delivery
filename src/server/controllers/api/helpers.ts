@@ -26,10 +26,6 @@ export function templateRow(value: unknown): string {
   return renderPartial('template-row', value);
 }
 
-export function modelRow(): string {
-  return flash('모델 설정을 저장했습니다.');
-}
-
 export function translationDiagnostic(value: unknown): string {
   return renderPartial('translation-diagnostic', value);
 }
@@ -96,29 +92,6 @@ export function requestBody(request: FastifyRequest): unknown {
   return request.body ?? {};
 }
 
-
-export function expandDottedBody(value: unknown): unknown {
-  // 체크박스의 hidden 값과 선택 값이 함께 오면 마지막 값을 사용한다.
-  // fetchOptions.headers 같은 점 표기 필드는 중첩 객체로 복원한다.
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
-  const output: Record<string, unknown> = {};
-  for (const [key, rawValue] of Object.entries(value as Record<string, unknown>)) {
-    const valueForKey = Array.isArray(rawValue) ? rawValue.at(-1) : rawValue;
-    const parts = key.split('.').filter(Boolean);
-    if (parts.length <= 1) {
-      output[key] = valueForKey;
-      continue;
-    }
-    let cursor = output;
-    for (const part of parts.slice(0, -1)) {
-      const next = cursor[part];
-      if (typeof next !== 'object' || next === null || Array.isArray(next)) cursor[part] = {};
-      cursor = cursor[part] as Record<string, unknown>;
-    }
-    cursor[parts.at(-1)!] = valueForKey;
-  }
-  return output;
-}
 
 export function isHtmxRequest(request: FastifyRequest): boolean {
   return String(request.headers['hx-request'] ?? '').toLowerCase() === 'true';

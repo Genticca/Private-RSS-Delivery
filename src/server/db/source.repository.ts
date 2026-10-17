@@ -29,7 +29,6 @@ export interface SourceRecord {
   lastPolledAt: string | null;
   nextPollAt: string | null;
   templateId: number | null;
-  webhookUrl: string | null;
   webhookName: string | null;
   webhookAvatarUrl: string | null;
   pollIntervalSeconds: number;
@@ -61,7 +60,6 @@ export interface CreateSourceInput {
   lastPolledAt?: string | null;
   nextPollAt?: string | null;
   templateId?: number | null;
-  webhookUrl?: string | null;
   webhookName?: string | null;
   webhookAvatarUrl?: string | null;
   pollIntervalSeconds?: number;
@@ -92,7 +90,6 @@ export interface UpdateSourceInput {
   lastPolledAt?: string | null;
   nextPollAt?: string | null;
   templateId?: number | null;
-  webhookUrl?: string | null;
   webhookName?: string | null;
   webhookAvatarUrl?: string | null;
   pollIntervalSeconds?: number;
@@ -125,7 +122,6 @@ interface SourceRow {
   last_polled_at: string | null;
   next_poll_at: string | null;
   template_id: number | null;
-  webhook_url: string | null;
   webhook_name: string | null;
   webhook_avatar_url: string | null;
   poll_interval_seconds: number;
@@ -147,7 +143,7 @@ const SOURCE_COLUMNS = `
   config_revision, consecutive_failures,
   id, feed_url, name, enabled, profile, detected_profile, initialized,
   delivery_cutoff_at, etag, last_modified, last_polled_at, next_poll_at,
-  template_id, webhook_url, webhook_name, webhook_avatar_url,
+  template_id, webhook_name, webhook_avatar_url,
   poll_interval_seconds, fetch_options, translate, silent, mention_role_ids,
   mention_user_ids, mention_everyone, mention_here, thread_id, thread_name, applied_tags,
   edit_in_place, created_at
@@ -195,11 +191,11 @@ export class SourceRepository {
         `INSERT INTO sources (
            id, feed_url, name, enabled, profile, detected_profile, initialized,
            delivery_cutoff_at, etag, last_modified, last_polled_at, next_poll_at,
-           template_id, webhook_url, webhook_name, webhook_avatar_url,
+           template_id, webhook_name, webhook_avatar_url,
            poll_interval_seconds, fetch_options, translate, silent, mention_role_ids,
            mention_user_ids, mention_everyone, mention_here, thread_id, thread_name, applied_tags,
            edit_in_place, created_at
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         id,
@@ -215,7 +211,6 @@ export class SourceRepository {
         nullable(input.lastPolledAt),
         nullable(input.nextPollAt),
         nullable(input.templateId),
-        nullable(input.webhookUrl),
         nullable(input.webhookName),
         nullable(input.webhookAvatarUrl),
         input.pollIntervalSeconds ?? 300,
@@ -256,7 +251,6 @@ export class SourceRepository {
     if (input.lastPolledAt !== undefined) add('last_polled_at', input.lastPolledAt);
     if (input.nextPollAt !== undefined) add('next_poll_at', input.nextPollAt);
     if (input.templateId !== undefined) add('template_id', input.templateId);
-    if (input.webhookUrl !== undefined) add('webhook_url', input.webhookUrl);
     if (input.webhookName !== undefined) add('webhook_name', input.webhookName);
     if (input.webhookAvatarUrl !== undefined) add('webhook_avatar_url', input.webhookAvatarUrl);
     if (input.pollIntervalSeconds !== undefined) add('poll_interval_seconds', input.pollIntervalSeconds);
@@ -338,7 +332,6 @@ function mapSourceRow(row: SourceRow): SourceRecord {
     lastPolledAt: row.last_polled_at,
     nextPollAt: row.next_poll_at,
     templateId: row.template_id,
-    webhookUrl: row.webhook_url,
     webhookName: row.webhook_name,
     webhookAvatarUrl: row.webhook_avatar_url,
     pollIntervalSeconds: row.poll_interval_seconds,

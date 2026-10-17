@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import type Database from 'better-sqlite3';
 import { createContainer, type Container } from '../../../src/server/runtime/container.js';
+import { resolveModelName } from '../../../src/server/translator/keys.js';
 import { ModelTranslator } from '../../../src/server/translator/translator.js';
 import { TranslationProviderError, type TranslationProvider, type TranslationProviderRequest, type TranslationProviderResponse } from '../../../src/server/translator/types.js';
 
@@ -14,29 +14,23 @@ afterEach(() => {
 });
 
 describe('ModelTranslator', () => {
-  it('uses primary provider success and records usage with prompt log truncation', async () => {
+  it('translates with the configured Gemini model and records the request', async () => {
     const container = openContainer();
-    container.repositories.modelConfig.updateRole('primary', { promptLogMaxBytes: 80, updatedAt: base });
     const gemini = new FakeProvider([{ text: '{"title":"번역 제목","summary":"번역 요약"}', inputTokens: 11, outputTokens: 7 }]);
     const translator = new ModelTranslator({
       repositories: container.repositories,
       env: { PRIMARY_MODEL_API_KEY: 'primary-key' },
-      providers: { gemini },
+      model: 'gemini-test-model',
+      provider: gemini,
       now: () => base
     });
 
-    const result = await translator.translate({ title: 'Original title', summary: 'Original summary '.repeat(10) });
+    const result = await translator.translate({ title: 'Original title', summary: 'Original summary' });
 
     expect(result).toEqual({ title: '번역 제목', summary: '번역 요약', translated: true });
     expect(gemini.calls).toHaveLength(1);
-    expect(container.repositories.modelUsage.list()).toMatchObject([
-      { role: 'primary', provider: 'gemini', model: 'gemini-3.1-flash-lite', inputTokens: 11, outputTokens: 7, error: null }
-    ]);
-    const promptLog = rawPromptLogs(container.db)[0]?.prompt_log;
-    expect(promptLog).toBeTruthy();
-    expect(Buffer.byteLength(promptLog ?? '', 'utf8')).toBeLessThanOrEqual(80);
-    expect(promptLog?.endsWith('…')).toBe(true);
-    expect(Object.prototype.hasOwnProperty.call(container.repositories.modelUsage.list()[0], 'promptLog')).toBe(false);
+    expect(gemini.calls[0]).toMatchObject({ apiKey: 'primary-key', model: 'gemini-test-model' });
+    expect(translationEvents(container)).toEqual([{ status: 'success', detail: null }]);
   });
 
   it('returns original text after an invalid key error', async () => {
@@ -45,7 +39,7 @@ describe('ModelTranslator', () => {
     const translator = new ModelTranslator({
       repositories: container.repositories,
       env: { PRIMARY_MODEL_API_KEY: 'bad-key' },
-      providers: { gemini },
+      provider: gemini,
       now: () => base
     });
 
@@ -53,9 +47,8 @@ describe('ModelTranslator', () => {
 
     expect(result).toEqual({ title: 'Title', summary: 'Summary', translated: false });
     expect(gemini.calls).toHaveLength(1);
-    expect(container.repositories.modelUsage.list().map((usage) => ({ role: usage.role, error: usage.error }))).toEqual([
-      { role: 'primary', error: 'invalid-key' }
-    ]);
+    expect(translationEvents(container)).toEqual([{ status: 'failed', detail: 'invalid-key' }]);
+    expect(container.services.model.getDiagnostics()).toMatchObject({ lastRequestAt: base, lastRequestResult: 'invalid-key' });
   });
 
   it('returns original text when the provider returns length-truncated output', async () => {
@@ -64,16 +57,14 @@ describe('ModelTranslator', () => {
     const translator = new ModelTranslator({
       repositories: container.repositories,
       env: { PRIMARY_MODEL_API_KEY: 'primary-key' },
-      providers: { gemini },
+      provider: gemini,
       now: () => base
     });
 
     const result = await translator.translate({ title: 'Original title', summary: 'Original summary' });
 
     expect(result).toEqual({ title: 'Original title', summary: 'Original summary', translated: false });
-    expect(container.repositories.modelUsage.list().map((usage) => ({ role: usage.role, error: usage.error }))).toEqual([
-      { role: 'primary', error: 'length' }
-    ]);
+    expect(translationEvents(container)).toEqual([{ status: 'failed', detail: 'length' }]);
   });
 
   it('returns original text when the provider returns unparsable JSON', async () => {
@@ -82,16 +73,14 @@ describe('ModelTranslator', () => {
     const translator = new ModelTranslator({
       repositories: container.repositories,
       env: { PRIMARY_MODEL_API_KEY: 'primary-key' },
-      providers: { gemini },
+      provider: gemini,
       now: () => base
     });
 
     const result = await translator.translate({ title: 'Original title', summary: 'Original summary' });
 
     expect(result).toEqual({ title: 'Original title', summary: 'Original summary', translated: false });
-    expect(container.repositories.modelUsage.list().map((usage) => ({ role: usage.role, error: usage.error }))).toEqual([
-      { role: 'primary', error: 'parse' }
-    ]);
+    expect(translationEvents(container)).toEqual([{ status: 'failed', detail: 'parse' }]);
   });
 
   it('aborts and returns original text when the provider times out', async () => {
@@ -100,7 +89,7 @@ describe('ModelTranslator', () => {
     const translator = new ModelTranslator({
       repositories: container.repositories,
       env: { PRIMARY_MODEL_API_KEY: 'primary-key' },
-      providers: { gemini },
+      provider: gemini,
       now: () => base,
       providerTimeoutMs: 5
     });
@@ -110,18 +99,16 @@ describe('ModelTranslator', () => {
     expect(result).toEqual({ title: 'Original title', summary: 'Original summary', translated: false });
     expect(gemini.calls).toHaveLength(1);
     expect(gemini.calls[0]?.signal?.aborted).toBe(true);
-    expect(container.repositories.modelUsage.list().map((usage) => ({ role: usage.role, error: usage.error }))).toEqual([
-      { role: 'primary', error: 'timeout' }
-    ]);
+    expect(translationEvents(container)).toEqual([{ status: 'failed', detail: 'timeout' }]);
   });
 
-  it('logs a missing key without calling the provider', async () => {
+  it('records a missing key as skipped without calling the provider', async () => {
     const container = openContainer();
     const gemini = new FakeProvider([]);
     const translator = new ModelTranslator({
       repositories: container.repositories,
       env: {},
-      providers: { gemini },
+      provider: gemini,
       now: () => base
     });
 
@@ -129,9 +116,15 @@ describe('ModelTranslator', () => {
 
     expect(result).toEqual({ title: 'Title', summary: 'Summary', translated: false });
     expect(gemini.calls).toEqual([]);
-    expect(container.repositories.modelUsage.list().map((usage) => ({ role: usage.role, error: usage.error }))).toEqual([
-      { role: 'primary', error: 'missing-key' }
-    ]);
+    expect(translationEvents(container)).toEqual([{ status: 'skipped', detail: 'missing-key' }]);
+    expect(container.services.model.getDiagnostics().status).toBe('missing-key');
+  });
+
+  it('reads the model name from GEMINI_MODEL and rejects non-Gemini names', () => {
+    expect(resolveModelName({})).toBe('gemini-3.1-flash-lite');
+    expect(resolveModelName({ GEMINI_MODEL: ' gemini-2.5-pro ' })).toBe('gemini-2.5-pro');
+    expect(() => resolveModelName({ GEMINI_MODEL: 'nvidia/llama' })).toThrow('GEMINI_MODEL');
+    expect(() => createContainer({ env: { DATABASE_PATH: ':memory:', GEMINI_MODEL: 'gpt-4o' } })).toThrow('GEMINI_MODEL');
   });
 });
 
@@ -164,6 +157,6 @@ function openContainer(): Container {
   return container;
 }
 
-function rawPromptLogs(db: Database.Database): Array<{ prompt_log: string | null }> {
-  return db.prepare('SELECT prompt_log FROM model_usage ORDER BY id DESC').all() as Array<{ prompt_log: string | null }>;
+function translationEvents(container: Container): Array<{ status: string; detail: string | null }> {
+  return container.repositories.eventLog.list({ kind: 'translation' }).map(({ status, detail }) => ({ status, detail }));
 }

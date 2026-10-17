@@ -8,12 +8,12 @@ import type { DeliveryPlanService } from './delivery-plan.service.js';
 
 const DELIVERY_JOB_STATES: readonly DeliveryJobState[] = [
   'pending', 'running', 'succeeded', 'failed', 'cancelled',
-  'held', 'unknown', 'legacy_unknown', 'uneditable'
+  'held', 'unknown', 'uneditable'
 ];
-const ARCHIVABLE_STATES: readonly DeliveryJobState[] = ['held', 'unknown', 'legacy_unknown', 'uneditable'];
-const UNRESOLVED_STATES: readonly DeliveryJobState[] = ['unknown', 'legacy_unknown', 'uneditable'];
+const ARCHIVABLE_STATES: readonly DeliveryJobState[] = ['held', 'unknown', 'uneditable'];
+const UNRESOLVED_STATES: readonly DeliveryJobState[] = ['unknown', 'uneditable'];
 
-/** 자동 발송이 멈춘 작업에 관리자 결정을 반영하고 발송 이력과 항목 표시 상태를 맞춘다. */
+/** 자동 발송이 멈춘 작업에 관리자 결정을 반영한다. */
 export class DeliveryManagementService {
   constructor(
     private readonly db: Database.Database,
@@ -49,7 +49,7 @@ export class DeliveryManagementService {
     if (!job) throw notFound('발송 작업을 찾을 수 없습니다.');
     const item = repositories.items.getById(job.itemId);
     const source = item ? repositories.sources.getById(item.sourceId) : null;
-    const binding = job.bindingId ? repositories.deliveryBindings.getById(job.bindingId) : null;
+    const binding = repositories.deliveryBindings.getById(job.bindingId);
     return {
       id: job.id,
       itemId: job.itemId,
@@ -81,7 +81,7 @@ export class DeliveryManagementService {
         if (!repositories.deliveryJobs.reviewHeld(id, decision, now)) throw validationError('종료된 연결에는 발송할 수 없습니다.');
       } else if (decision === 'historical' && UNRESOLVED_STATES.includes(job.state)) {
         this.db.prepare("UPDATE delivery_jobs SET state = 'cancelled', error = 'Archived after administrator review', completed_at = ? WHERE id = ?").run(now, id);
-      } else if (decision === 'confirm_delivered' && job.state === 'unknown' && job.bindingId !== null) {
+      } else if (decision === 'confirm_delivered' && job.state === 'unknown') {
         // 결과가 불명확한 POST는 다시 전송하지 않고, 관리자가 확인한 원본 메시지 ID를 등록한다.
         const messageId = parseDiscordId(body.messageId, 'messageId');
         if (!messageId) throw validationError('확인한 Discord 메시지 ID가 필요합니다.');
@@ -101,8 +101,6 @@ export class DeliveryManagementService {
         const source = item ? repositories.sources.getById(item.sourceId) : null;
         if (item && source) this.planner.planUpdate(item, source, now);
       } else throw validationError('현재 작업 상태에서는 선택한 처리를 할 수 없습니다.');
-      // 결정을 저장한 같은 트랜잭션 안에서 목록에 표시할 항목 상태도 갱신한다.
-      repositories.deliveryJobs.syncItemState(job.itemId, now);
     })();
     return this.get(id);
   }

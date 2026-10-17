@@ -15,7 +15,7 @@ RSS 2.0 / Atom 피드를 폴링해 **Discord 웹훅으로 전달**하는 셀프�
 - **메시지 옵션** — 조용히 보내기·멘션·Forum 스레드/태그·수정(edit-in-place).
 - **번역(→ 한국어)** — 필요한 필드만 번역하고 항목·웹훅 사이에서 입력별 캐시를 공유. 모델은 Gemini 하나이고, 실패하면 원문으로 보낸다. 별도 번역 진단 지원.
 - **Export/Import** — 소스·그룹 설정을 JSON 1파일로 백업/이전(웹훅 URL 등 시크릿 제외).
-- **관리 UI** — 서버 렌더 Handlebars + htmx + CodeMirror + 라이브 로그 SSE. React/번들러 없음.
+- **관리 UI** — 서버 렌더 Handlebars + htmx + CodeMirror + 라이브 로그 SSE(수집·전송·번역). React/번들러 없음.
 
 ## 아키텍처 한눈에
 
@@ -84,6 +84,7 @@ env는 프로젝트 루트의 `.env`(gitignore)에서 읽는다. 템플릿은 `d
 | `PORT` | `8080` | 바인딩 포트 |
 | `DATABASE_PATH` | `./data/rss-discord-bridge.sqlite` | 실행 cwd 기준 상대경로 |
 | `PRIMARY_MODEL_API_KEY` | — | 번역용 Gemini API 키. 비우면 번역 OFF |
+| `GEMINI_MODEL` | `gemini-3.1-flash-lite` | 번역 모델 이름(`gemini-*`만) |
 
 > 🔒 **API 키는 env 전용** — DB에 저장하지 않는다. 비워도 부팅은 정상이며, 번역 없이 원문이 전송된다.
 

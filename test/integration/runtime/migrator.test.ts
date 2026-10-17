@@ -26,23 +26,24 @@ describe('runMigrations', () => {
       expect(secondRun).toEqual([]);
       expect(readMigrationVersions(db)).toEqual(firstRun);
 
-      expect(tableNames(db)).toEqual(
-        expect.arrayContaining([
-          'delivery_log',
-          'fetch_log',
-          'groups',
-          'items',
-          'model_config',
-          'model_usage',
-          'source_groups',
-          'sources',
-          'templates'
-        ])
-      );
+      expect(tableNames(db).filter((name) => !name.startsWith('sqlite_'))).toEqual([
+        'delivery_bindings',
+        'delivery_jobs',
+        'destination_cooldowns',
+        'event_log',
+        'groups',
+        'item_deliveries',
+        'items',
+        'schema_migrations',
+        'source_groups',
+        'sources',
+        'templates',
+        'translation_cache'
+      ]);
+      expect(columnNames(db, 'sources')).not.toContain('webhook_url');
       expect(columnNames(db, 'sources')).toEqual(
         expect.arrayContaining([
           'template_id',
-          'webhook_url',
           'webhook_name',
           'webhook_avatar_url',
           'poll_interval_seconds',
@@ -61,44 +62,23 @@ describe('runMigrations', () => {
           'edit_in_place'
         ])
       );
-      expect(columnNames(db, 'items')).toEqual(
-        expect.arrayContaining([
-          'atom_id',
-          'link',
-          'author',
-          'comments_url',
-          'image',
-          'delivery_status',
-          'attempt_count',
-          'failed_at',
-          'failure_reason',
-          'translated_title',
-          'translated_summary',
-          'translated_at'
-        ])
-      );
-      expect(columnNames(db, 'delivery_log')).toEqual(
-        expect.arrayContaining(['destination_key', 'content_hash', 'failure_reason', 'discord_message_id'])
-      );
-      expect(tableNames(db)).not.toContain('source_destinations');
+      // 항목은 내용과 버전만 가진다. 발송 상태는 delivery_jobs·item_deliveries에만 있다.
+      expect(columnNames(db, 'items')).toEqual([
+        'id', 'source_id', 'atom_id', 'title', 'summary', 'link', 'author', 'comments_url', 'image', 'incident_stage',
+        'published_at', 'updated_at', 'content_hash', 'content_revision', 'historical', 'content_pruned', 'last_seen_at', 'created_at'
+      ]);
+      expect(columnNames(db, 'event_log')).toEqual([
+        'id', 'created_at', 'kind', 'status', 'source_id', 'item_id', 'job_id', 'http_status', 'duration_ms', 'item_count', 'detail'
+      ]);
+      expect(columnInfo(db, 'delivery_jobs', 'binding_id')?.notnull).toBe(1);
       expect(columnInfo(db, 'groups', 'webhook_url')?.notnull).toBe(0);
       expect(foreignKeyTargets(db, 'source_groups')).toEqual(expect.arrayContaining(['sources', 'groups']));
+      expect(foreignKeyTargets(db, 'event_log')).toEqual(['sources']);
       expect(indexNames(db, 'sources')).toEqual(expect.arrayContaining(['idx_sources_enabled_next_poll', 'idx_sources_feed_url_unique']));
-      expect(indexNames(db, 'items')).toEqual(expect.arrayContaining(['idx_items_pending_next_attempt']));
-      expect(indexNames(db, 'delivery_log')).toEqual(expect.arrayContaining(['idx_delivery_log_resolution', 'idx_delivery_log_message']));
-      expect(indexNames(db, 'sources')).not.toContain('idx_sources_enabled_poll');
-      expect(readModelConfigTimestamps(db).every((row) => row.created_at.includes('T') && row.created_at.endsWith('Z') && row.updated_at.includes('T') && row.updated_at.endsWith('Z'))).toBe(true);
+      expect(indexNames(db, 'event_log')).toEqual(expect.arrayContaining(['idx_event_log_kind', 'idx_event_log_source']));
+      expect(indexNames(db, 'delivery_jobs')).not.toContain('idx_legacy_unknown');
       expect(readMigrationTimestamps(db).every((row) => row.applied_at.includes('T') && row.applied_at.endsWith('Z'))).toBe(true);
-      expect(readModelConfigDefaults(db)).toEqual([
-        {
-          role: 'primary',
-          provider: 'gemini',
-          model: 'gemini-3.1-flash-lite',
-          enabled: 1,
-          target_lang: 'ko',
-          prompt_log_max_bytes: 32768
-        }
-      ]);
+      expect(() => db.prepare("INSERT INTO event_log(created_at, kind, status) VALUES ('x', 'fetch', 'success')").run()).toThrow(/CHECK/);
     } finally {
       db.close();
     }
@@ -148,13 +128,10 @@ describe('createContainer', () => {
       expect(Object.keys(container.repositories).sort()).toEqual([
         'deliveryBindings',
         'deliveryJobs',
-        'deliveryLogs',
-        'fetchLogs',
+        'eventLog',
         'groups',
         'itemDeliveries',
         'items',
-        'modelConfig',
-        'modelUsage',
         'sourceGroups',
         'sources',
         'templates',
@@ -235,38 +212,8 @@ function indexNames(db: Database.Database, tableName: string): string[] {
     .map((row) => (row as { name: string }).name);
 }
 
-function readModelConfigTimestamps(db: Database.Database): Array<{ created_at: string; updated_at: string }> {
-  return db.prepare('SELECT created_at, updated_at FROM model_config ORDER BY role').all() as Array<{ created_at: string; updated_at: string }>;
-}
-
 function readMigrationTimestamps(db: Database.Database): Array<{ applied_at: string }> {
   return db.prepare('SELECT applied_at FROM schema_migrations ORDER BY version').all() as Array<{ applied_at: string }>;
-}
-
-function readModelConfigDefaults(
-  db: Database.Database
-): Array<{
-  role: string;
-  provider: string;
-  model: string;
-  enabled: number;
-  target_lang: string;
-  prompt_log_max_bytes: number;
-}> {
-  return db
-    .prepare(
-      `SELECT role, provider, model, enabled, target_lang, prompt_log_max_bytes
-       FROM model_config
-       ORDER BY role`
-    )
-    .all() as Array<{
-    role: string;
-    provider: string;
-    model: string;
-    enabled: number;
-    target_lang: string;
-    prompt_log_max_bytes: number;
-  }>;
 }
 
 function quoteIdentifier(value: string): string {

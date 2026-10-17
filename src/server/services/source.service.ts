@@ -6,7 +6,7 @@ import type {
   SourceRepository,
   SourceGroupRepository,
   GroupRepository,
-  FetchLogRepository,
+  EventLogRepository,
   ItemRepository,
   DeliveryJobRepository,
   TemplateRepository
@@ -23,7 +23,7 @@ export interface SourceServiceOptions {
     sources: Pick<SourceRepository, 'list' | 'findByFeedUrl' | 'create' | 'update' | 'delete' | 'setEnabled' | 'getById'>;
     sourceGroups: Pick<SourceGroupRepository, 'listGroupIdsBySourceIds' | 'setGroups' | 'listGroupIdsForSource'>;
     groups: Pick<GroupRepository, 'listNamesByIds' | 'getById'>;
-    fetchLogs: Pick<FetchLogRepository, 'listLatestOutcomeBySourceIds' | 'list'>;
+    eventLog: Pick<EventLogRepository, 'latestFetchStatusBySourceIds'>;
     items: Pick<ItemRepository, 'deleteBySourceId'>;
     deliveryJobs: Pick<DeliveryJobRepository, 'retryFailed'>;
     templates: Pick<TemplateRepository, 'getById'>;
@@ -42,7 +42,7 @@ export class SourceService {
     const sourceIds = sources.map((source) => source.id);
     const groupIdsBySource = this.options.repositories.sourceGroups.listGroupIdsBySourceIds(sourceIds);
     const groupNameById = this.options.repositories.groups.listNamesByIds(uniqueNumbers([...groupIdsBySource.values()].flat()));
-    const latestOutcomeBySource = this.options.repositories.fetchLogs.listLatestOutcomeBySourceIds(sourceIds);
+    const latestOutcomeBySource = this.options.repositories.eventLog.latestFetchStatusBySourceIds(sourceIds);
     return sources.map((source) => {
       const groupIds = groupIdsBySource.get(source.id) ?? [];
       const groupNames = groupIds
@@ -74,7 +74,6 @@ export class SourceService {
         pollIntervalSeconds: input.pollIntervalSeconds ?? 300,
         translate: input.translate ?? false,
         templateId: input.templateId ?? null,
-        webhookUrl: null,
         webhookName: input.webhookName ?? null,
         webhookAvatarUrl: input.webhookAvatarUrl ?? null,
         fetchOptions: input.fetchOptions ?? {},
@@ -186,8 +185,8 @@ export class SourceService {
     const groupNames = groupIds
       .map((groupId) => this.options.repositories.groups.getById(groupId)?.name)
       .filter((name): name is string => typeof name === 'string' && name.length > 0);
-    const latestFetch = this.options.repositories.fetchLogs.list({ sourceId: id, limit: 1 })[0];
-    return toSourceDto(source, groupIds, groupNames, latestFetch?.outcome ?? null);
+    const latestFetch = this.options.repositories.eventLog.latestFetchStatusBySourceIds([id]).get(id);
+    return toSourceDto(source, groupIds, groupNames, latestFetch ?? null);
   }
 
   private requireSource(id: string) {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildPresetRenderContext, formatKstTimestamp, renderDiscordPayload, renderTemplate } from '../../../src/server/dispatcher/render.js';
-import type { ItemRecord, SourceRecord } from '../../../src/server/db/index.js';
+import { buildPresetRenderContext, formatKstTimestamp, renderDiscordPayload, renderTemplate, type TranslatedItem } from '../../../src/server/dispatcher/render.js';
+import type { SourceRecord } from '../../../src/server/db/index.js';
 
 describe('dispatcher render', () => {
   it('escapes JSON string values without Handlebars HTML escaping', () => {
@@ -69,14 +69,15 @@ describe('dispatcher render', () => {
   });
 });
 
-function contextFrom(itemPatch: Partial<ItemRecord> = {}) {
+function contextFrom(itemPatch: Partial<TranslatedItem> = {}) {
   return buildPresetRenderContext(itemRecord(itemPatch), sourceRecord());
 }
 
-function itemRecord(patch: Partial<ItemRecord> = {}): ItemRecord {
+function itemRecord(patch: Partial<TranslatedItem> = {}): TranslatedItem {
   return {
     id: 1,
     contentRevision: 1,
+    historical: false,
     lastSeenAt: null,
     contentPruned: false,
     sourceId: 'source-1',
@@ -88,19 +89,10 @@ function itemRecord(patch: Partial<ItemRecord> = {}): ItemRecord {
     incidentStage: null,
     publishedAt: '2026-05-29T00:00:00.000Z',
     updatedAt: null,
-    deliveredAt: null,
-    nextAttemptAt: null,
     createdAt: '2026-05-29T00:00:00.000Z',
     author: null,
     commentsUrl: null,
     image: null,
-    deliveryStatus: 'pending',
-    attemptCount: 0,
-    failedAt: null,
-    failureReason: null,
-    translatedTitle: null,
-    translatedSummary: null,
-    translatedAt: null,
     ...patch
   };
 }
@@ -122,7 +114,6 @@ function sourceRecord(patch: Partial<SourceRecord> = {}): SourceRecord {
     lastPolledAt: null,
     nextPollAt: null,
     templateId: null,
-    webhookUrl: null,
     webhookName: null,
     webhookAvatarUrl: null,
     pollIntervalSeconds: 300,

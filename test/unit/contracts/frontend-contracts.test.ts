@@ -14,7 +14,7 @@ import type {
 import type {
   GroupDto,
   LogsResponse,
-  ModelConfigResponse,
+  ModelDiagnosticsResponse,
   PreviewError,
   SourceDto
 } from '../../../src/server/contracts/api.js';
@@ -85,7 +85,7 @@ describe('Turn 0 frontend/backend contracts', () => {
       threadName: null,
       appliedTags: [],
       editInPlace: false,
-      lastOutcome: '200'
+      lastOutcome: 'ok'
     } satisfies SourceDto;
 
     const group = {
@@ -103,47 +103,42 @@ describe('Turn 0 frontend/backend contracts', () => {
       items: [
         {
           id: 10,
-          itemId: 1,
-          attemptNo: 1,
+          createdAt: '2026-05-28T00:00:00.000Z',
+          kind: 'delivery',
           status: 'success',
+          sourceId: 'source-1',
+          sourceName: 'Example RSS',
+          itemId: 1,
+          jobId: 3,
           httpStatus: 204,
-          error: null,
-          renderedBytes: 256,
-          destinationKey: 'dest-hash',
-          contentHash: 'content-hash',
-          failureReason: null,
-          discordMessageId: null,
-          createdAt: '2026-05-28T00:00:00.000Z'
+          durationMs: null,
+          itemCount: null,
+          detail: '발송 → Security'
         }
       ],
       nextBefore: 10
     } satisfies LogsResponse;
 
-    const config = {
-      primary: {
-        role: 'primary',
-        provider: 'gemini',
-        model: 'gemini-3.1-flash-lite',
-        enabled: true,
-        targetLang: 'ko',
-        promptLogMaxBytes: 32768
-      },
-      targetLang: 'ko',
-      promptLogMaxBytes: 32768
-    } satisfies ModelConfigResponse;
+    const model = {
+      model: 'gemini-3.1-flash-lite',
+      status: 'ready',
+      lastRequestAt: null,
+      lastRequestResult: '아직 호출하지 않음',
+      counts: { success: 0, failed: 0, cache_hit: 0, skipped: 0 }
+    } satisfies ModelDiagnosticsResponse;
 
     const previewError = { stage: 'validate', message: 'Invalid payload', path: '/embeds/0/title' } satisfies PreviewError;
 
     expect('webhookUrl' in source).toBe(false);
     expect('webhookUrl' in group).toBe(false);
     expect(logs.nextBefore).toBe(10);
-    expect(config.promptLogMaxBytes).toBe(32768);
+    expect('apiKey' in model).toBe(false);
     expect(previewError.stage).toBe('validate');
   });
 
   it('keeps page view-model shapes aligned with backend-spec', () => {
     const dashboard = {
-      sources: [{ id: 'source-1', name: 'Example RSS', enabled: true, lastOutcome: '200', profile: 'generic' }],
+      sources: [{ id: 'source-1', name: 'Example RSS', enabled: true, lastOutcome: 'ok', profile: 'generic' }],
       counts: { sources: 1, enabled: 1, errors: 0 }
     } satisfies DashboardViewModel;
 

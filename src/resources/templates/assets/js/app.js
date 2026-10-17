@@ -1,5 +1,5 @@
 (() => {
-  const state = { logType: 'delivery', logBefore: { delivery: null, fetch: null }, usageBefore: null, logsPaused: false, logFilterError: false, seenLogs: new Set(), logStreamRetryMs: 1000 };
+  const state = { logType: 'delivery', logBefore: { delivery: null, fetch: null, translation: null }, logsPaused: false, logFilterError: false, seenLogs: new Set(), logStreamRetryMs: 1000 };
 
   document.addEventListener('DOMContentLoaded', () => {
     highlightActiveNav();
@@ -7,7 +7,6 @@
     initDashboard();
     initTemplateEditor();
     initLogs();
-    initModelUsage();
     bindGlobalErrors();
     startSystemStatusHeartbeat();
     initGlobalModalOutsideClick();
@@ -278,6 +277,7 @@
     };
     source.addEventListener('delivery', appendLive);
     source.addEventListener('fetch', appendLive);
+    source.addEventListener('translation', appendLive);
     source.onopen = () => { 
       state.logStreamRetryMs = 1000; 
       updateSystemStatus(true);
@@ -307,37 +307,28 @@
     else stream.append(...rows);
   }
 
+  const LOG_BADGES = { delivery: '✉️ 전송', fetch: '🔄 수집', translation: '🌐 번역' };
+  const LOG_MESSAGES = {
+    delivery: { success: '디스코드 전송 완료', failed: '디스코드 전송 실패' },
+    fetch: { ok: '피드 수집 완료', not_modified: '피드 변경 없음', error: '피드 수집 실패' },
+    translation: { success: '번역 완료', failed: '번역 실패(원문 사용)', cache_hit: '번역 캐시 사용', skipped: '번역 건너뜀' }
+  };
+
   function logRow(type, item) {
     const row = document.createElement('div');
-    row.className = `log-entry log-${type} log-${item.status || item.outcome || ''}`;
-    
-    let icon = '';
-    let typeBadge = '';
-    let messageHtml = '';
-    
-    if (type === 'delivery') {
-      typeBadge = `<span class="log-badge badge-delivery">✉️ 전송</span>`;
-      if (item.status === 'success') {
-        icon = `<span class="log-indicator success">✔</span>`;
-        messageHtml = `<span class="log-msg success">디스코드 전송 완료 <span class="log-meta">항목 ID: <code>${escapeHtml(item.itemId)}</code></span></span>`;
-      } else {
-        icon = `<span class="log-indicator fail">✖</span>`;
-        messageHtml = `<span class="log-msg fail">디스코드 전송 실패 <span class="log-meta">항목 ID: <code>${escapeHtml(item.itemId)}</code></span> <span class="log-error-detail">오류: ${escapeHtml(item.failureReason || item.error || '')}</span></span>`;
-      }
-    } else {
-      typeBadge = `<span class="log-badge badge-fetch">🔄 수집</span>`;
-      if (item.outcome === '304') {
-        icon = `<span class="log-indicator success">↻</span>`;
-        messageHtml = `<span class="log-msg">피드 변경 없음 <span class="log-meta">소스: <code>${escapeHtml(item.sourceName || item.sourceId)}</code></span></span>`;
-      } else if (item.outcome !== 'error') {
-        icon = `<span class="log-indicator success">✔</span>`;
-        messageHtml = `<span class="log-msg success">피드 수집 완료 <span class="log-stats">새 항목: <strong>${item.itemsNew}</strong>건 | 변경: <strong>${item.itemsChanged}</strong>건 | 소스: <code>${escapeHtml(item.sourceName || item.sourceId)}</code></span></span>`;
-      } else {
-        icon = `<span class="log-indicator fail">⚠</span>`;
-        messageHtml = `<span class="log-msg fail">피드 수집 실패 <span class="log-meta">소스: <code>${escapeHtml(item.sourceName || item.sourceId)}</code></span> <span class="log-error-detail">오류: ${escapeHtml(item.error || '')}</span></span>`;
-      }
-    }
-    
+    row.className = `log-entry log-${type} log-${item.status || ''}`;
+    const failed = isFailedLog(item);
+    const icon = `<span class="log-indicator ${failed ? 'fail' : 'success'}">${failed ? '✖' : item.status === 'not_modified' ? '↻' : '✔'}</span>`;
+    const meta = [];
+    if (item.sourceId) meta.push(`소스: <code>${escapeHtml(item.sourceName || item.sourceId)}</code>`);
+    if (item.itemId !== null && item.itemId !== undefined) meta.push(`항목 ID: <code>${escapeHtml(item.itemId)}</code>`);
+    if (type === 'fetch' && item.status === 'ok') meta.push(`새 항목: <strong>${escapeHtml(item.itemCount ?? 0)}</strong>건`);
+    if (item.durationMs !== null && item.durationMs !== undefined) meta.push(`${escapeHtml(item.durationMs)}ms`);
+    const detail = item.detail ? ` <span class="${failed ? 'log-error-detail' : 'log-meta'}">${failed ? '오류: ' : ''}${escapeHtml(item.detail)}</span>` : '';
+    const label = LOG_MESSAGES[type]?.[item.status] || item.status;
+    const messageHtml = `<span class="log-msg ${failed ? 'fail' : 'success'}">${escapeHtml(label)} <span class="log-meta">${meta.join(' | ')}</span>${detail}</span>`;
+    const typeBadge = `<span class="log-badge badge-${type}">${LOG_BADGES[type] || type}</span>`;
+
     row.innerHTML = `
       <span class="log-time">${fmtKst(item.createdAt)}</span>
       ${typeBadge}
@@ -347,27 +338,12 @@
     return row;
   }
 
-  function shouldShowLog(type, item) {
-    if (!state.logFilterError) return true;
-    return type === 'delivery' ? item.status === 'failed' || Boolean(item.error || item.failureReason) : item.outcome === 'error' || Boolean(item.error);
+  function isFailedLog(item) {
+    return item.status === 'failed' || item.status === 'error';
   }
 
-  function initModelUsage() {
-    if (!document.getElementById('model-usage')) return;
-    document.getElementById('load-more-usage')?.addEventListener('click', () => void loadUsage(true));
-    void loadUsage(false).catch(showError);
-    setInterval(() => void loadUsage(false).catch(showError), 10_000);
-  }
-
-  async function loadUsage(append) {
-    const before = append ? state.usageBefore : null;
-    const result = await fetchJson(`/api/model/usage?limit=50${before ? `&before=${before}` : ''}`);
-    state.usageBefore = result.nextBefore;
-    const body = document.getElementById('model-usage');
-    if (!body) return;
-    const html = result.items.map((item) => `<tr><td>${escapeHtml(item.role)}</td><td>${item.httpRequested ? '요청' : '설정 확인'}</td><td>${escapeHtml(item.provider)}</td><td>${escapeHtml(item.model)}</td><td>${item.inputTokens ?? ''}/${item.outputTokens ?? ''}</td><td>${item.latencyMs ?? ''}</td><td>${escapeHtml(item.error || '')}</td></tr>`).join('');
-    if (!append) body.innerHTML = html || `<tr><td colspan="7" class="muted" style="text-align:center; padding:2rem 1rem;">아직 AI 모델 호출 이력이 없습니다. 번역이 켜진 소스가 전송될 때 기록됩니다.</td></tr>`;
-    else body.insertAdjacentHTML('beforeend', html);
+  function shouldShowLog(_type, item) {
+    return !state.logFilterError || isFailedLog(item);
   }
 
   function bindGlobalErrors() {

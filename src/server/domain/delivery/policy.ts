@@ -1,7 +1,7 @@
 import type { ItemRecord, SourceRecord } from '../../db/index.js';
 
 export type DeliveryOperation = 'initial_post' | 'edit' | 'update_post';
-export type DeliveryJobState = 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'held' | 'unknown' | 'legacy_unknown' | 'uneditable';
+export type DeliveryJobState = 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'held' | 'unknown' | 'uneditable';
 
 export function updateOperation(source: Pick<SourceRecord, 'editInPlace'>): DeliveryOperation {
   return source.editInPlace ? 'edit' : 'update_post';

@@ -1,9 +1,7 @@
 /** 서버가 Handlebars 화면에 전달하는 표시용 데이터의 형태를 정의한다. */
 import type {
   GroupDto,
-  ModelConfigResponse,
-  ModelStatusResponse,
-  ModelUsageResponse,
+  ModelDiagnosticsResponse,
   SourceDto,
   TemplateDto
 } from './api.js';
@@ -68,15 +66,8 @@ export interface TemplateEditorViewModel {
 
 export type LogsViewModel = Record<string, never>;
 
-/** missing-key/invalid-key일 때만 노출되는 안내 행 — web.ts modelStatusGuidance. */
-export interface ModelStatusGuidanceRow {
-  role: string;
-  message: string;
-}
-
 export interface ModelViewModel {
-  config: ModelConfigResponse;
-  status: ModelStatusResponse;
-  usage: ModelUsageResponse;
-  statusGuidance: ModelStatusGuidanceRow[];
+  diagnostics: ModelDiagnosticsResponse;
+  /** missing-key/invalid-key일 때만 채우는 안내 문구 — web.ts modelStatusGuidance. */
+  statusGuidance: string | null;
 }

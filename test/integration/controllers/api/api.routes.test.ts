@@ -74,7 +74,7 @@ describe('API controllers', () => {
     });
 
     const sourceId = sources[0].id as string;
-    expect(container.repositories.sources.getById(sourceId)?.webhookUrl).toBeNull();
+    expect(container.repositories.sources.getById(sourceId)).not.toHaveProperty('webhookUrl');
     container.repositories.sources.update(sourceId, {
       initialized: true,
       detectedProfile: 'generic',
@@ -88,8 +88,6 @@ describe('API controllers', () => {
       atomId: 'atom-1',
       title: 'Before',
       contentHash: 'hash-before',
-      deliveryStatus: 'delivered',
-      deliveredAt: base,
       createdAt: base
     });
     expect(container.repositories.items.getById(item.id)).not.toBeNull();
@@ -114,7 +112,7 @@ describe('API controllers', () => {
       nextPollAt: null
     });
     expect(updated?.deliveryCutoffAt).not.toBeNull();
-    expect(updated?.webhookUrl).toBeNull();
+    expect(updated).not.toHaveProperty('webhookUrl');
   });
 
   it('validates CRUD conflicts and returns typed errors for JSON routes', async () => {
@@ -193,7 +191,7 @@ describe('API controllers', () => {
     expect(response.statusCode).toBe(200);
     const source = container.repositories.sources.findByFeedUrl('https://example.com/group-channel.xml');
     expect(source).not.toBeNull();
-    expect(source?.webhookUrl).toBeNull();
+    expect(source).not.toHaveProperty('webhookUrl');
 
     const calls: WebhookPostRequest[] = [];
     const dispatcher = new DeliveryWorker({
@@ -213,7 +211,6 @@ describe('API controllers', () => {
       title: 'Group Channel',
       summary: 'Summary',
       contentHash: 'hash-group-channel',
-      nextAttemptAt: base,
       createdAt: base
     });
 
@@ -480,60 +477,37 @@ describe('API controllers', () => {
     expect(response.body).toContain('validation_error');
   });
 
-  it('accepts only gemini models and ignores targetLang writes', async () => {
-    const { app, container } = await openApp();
+  it('exposes model status only and has no model settings write routes', async () => {
+    const { app } = await openApp();
 
-    const ignoredTarget = await app.inject({
-      method: 'PATCH',
-      url: '/api/model/config',
-      payload: { primary: { provider: 'gemini', model: 'gemini-3.1-flash-lite', targetLang: 'en' }, targetLang: 'en' }
-    });
-    expect(ignoredTarget.statusCode).toBe(200);
-    expect(container.repositories.modelConfig.getByRole('primary')?.targetLang).toBe('ko');
+    const diagnostics = await app.inject({ method: 'GET', url: '/api/model/diagnostics' });
+    expect(diagnostics.statusCode).toBe(200);
+    expect(diagnostics.json()).toMatchObject({ model: 'gemini-3.1-flash-lite', status: 'missing-key', lastRequestAt: null });
 
-    const mismatch = await app.inject({
-      method: 'PATCH',
-      url: '/api/model/config',
-      payload: { primary: { provider: 'gemini', model: 'qwen3-coder-480b-a35b-instruct' } }
-    });
-    expect(mismatch.statusCode).toBe(400);
-    expect(mismatch.body).toContain('model 값이 올바르지 않습니다.');
-
-    const removedProvider = await app.inject({
-      method: 'PATCH',
-      url: '/api/model/config',
-      payload: { primary: { provider: 'nvidia-nim' } }
-    });
-    expect(removedProvider.statusCode).toBe(400);
-    expect(removedProvider.body).toContain('provider 값이 올바르지 않습니다.');
+    for (const url of ['/api/model/config', '/api/model/usage', '/api/model/status']) {
+      expect((await app.inject({ method: 'GET', url })).statusCode).toBe(404);
+    }
+    expect((await app.inject({ method: 'PATCH', url: '/api/model/config', payload: { primary: { model: 'gemini-x' } } })).statusCode).toBe(404);
   });
 
-  it('returns model usage/log pagination and excludes prompt logs from usage responses', async () => {
+  it('returns paginated fetch, delivery and translation events', async () => {
     const { app, container } = await openApp();
-    const source = container.repositories.sources.create({ feedUrl: 'https://example.com/log.xml', createdAt: base });
+    const source = container.repositories.sources.create({ feedUrl: 'https://example.com/log.xml', name: 'Log Feed', createdAt: base });
     const item = container.repositories.items.insert({ sourceId: source.id, atomId: 'atom-log', contentHash: 'hash-log', createdAt: base });
-    container.repositories.deliveryLogs.append({ itemId: item.id, attemptNo: 1, status: 'success', destinationKey: 'dest', contentHash: 'hash-log', createdAt: base });
-    container.repositories.fetchLogs.append({ sourceId: source.id, outcome: '200', httpStatus: 200, itemsNew: 1, createdAt: base });
-    container.repositories.modelUsage.append({
-      role: 'primary',
-      provider: 'gemini',
-      model: 'gemini-3.1-flash-lite',
-      promptLog: 'input/output should stay server-side',
-      createdAt: base
-    });
+    container.repositories.eventLog.append({ kind: 'delivery', status: 'success', itemId: item.id, jobId: 1, httpStatus: 200, createdAt: base });
+    container.repositories.eventLog.append({ kind: 'fetch', status: 'ok', sourceId: source.id, httpStatus: 200, itemCount: 1, createdAt: base });
+    container.repositories.eventLog.append({ kind: 'translation', status: 'failed', itemId: item.id, detail: 'timeout', createdAt: base });
 
     const delivery = await app.inject({ method: 'GET', url: '/api/logs?type=delivery&limit=1' });
     expect(delivery.statusCode).toBe(200);
-    expect(delivery.json()).toMatchObject({ items: [{ status: 'success', itemId: item.id }] });
+    expect(delivery.json()).toMatchObject({ items: [{ kind: 'delivery', status: 'success', itemId: item.id, sourceId: source.id, sourceName: 'Log Feed' }], nextBefore: expect.any(Number) });
 
     const fetch = await app.inject({ method: 'GET', url: '/api/logs?type=fetch&limit=1' });
     expect(fetch.statusCode).toBe(200);
-    expect(fetch.json()).toMatchObject({ items: [{ outcome: '200', sourceId: source.id }] });
+    expect(fetch.json()).toMatchObject({ items: [{ status: 'ok', sourceId: source.id, itemCount: 1 }] });
 
-    const usage = await app.inject({ method: 'GET', url: '/api/model/usage?limit=1' });
-    expect(usage.statusCode).toBe(200);
-    expect(JSON.stringify(usage.json())).not.toContain('promptLog');
-    expect(JSON.stringify(usage.json())).not.toContain('input/output should stay server-side');
+    const translation = await app.inject({ method: 'GET', url: '/api/logs?type=translation' });
+    expect(translation.json()).toMatchObject({ items: [{ status: 'failed', detail: 'timeout', sourceId: source.id }], nextBefore: null });
   });
 
 
@@ -671,7 +645,6 @@ describe('API controllers', () => {
     const imported = targetContainer.repositories.sources.findByFeedUrl('https://example.com/export.xml');
     expect(imported).toMatchObject({
       initialized: false,
-      webhookUrl: null,
       silent: true,
       mentionRoleIds: ['111', '222'],
       mentionUserIds: ['333'],
@@ -748,7 +721,8 @@ describe('API controllers', () => {
     const committed = await app.inject({ method: 'POST', url: '/api/import', payload: { content: JSON.stringify(document), mode: 'skip' } });
     expect(committed.statusCode).toBe(204);
     const imported = container.repositories.sources.findByFeedUrl('https://example.com/group-webhook-import.xml');
-    expect(imported).toMatchObject({ webhookUrl: null, webhookName: 'Source Bot' });
+    expect(imported).toMatchObject({ webhookName: 'Source Bot' });
+    expect(imported).not.toHaveProperty('webhookUrl');
     const importedGroup = container.repositories.groups.findByNameNocase('Legacy Ops');
     expect(importedGroup).toMatchObject({
       webhookUrl: 'https://discord.com/api/webhooks/777/group-token',
@@ -865,14 +839,14 @@ describe('API controllers', () => {
   it('labels fetch logs with the source name and falls back to null when unnamed', async () => {
     const { app, container } = await openApp();
     const named = container.repositories.sources.create({ feedUrl: 'https://example.com/named-log.xml', name: 'Named Source', createdAt: base });
-    container.repositories.fetchLogs.append({ sourceId: named.id, outcome: '200', httpStatus: 200, itemsNew: 1, createdAt: base });
+    container.repositories.eventLog.append({ kind: 'fetch', status: 'ok', sourceId: named.id, httpStatus: 200, itemCount: 1, createdAt: base });
 
     const namedLogs = await app.inject({ method: 'GET', url: '/api/logs?type=fetch' });
     expect(namedLogs.statusCode).toBe(200);
     expect(namedLogs.json()).toMatchObject({ items: [{ sourceId: named.id, sourceName: 'Named Source' }] });
 
     const unnamed = container.repositories.sources.create({ feedUrl: 'https://example.com/unnamed-log.xml', name: null, createdAt: base });
-    container.repositories.fetchLogs.append({ sourceId: unnamed.id, outcome: '200', httpStatus: 200, itemsNew: 1, createdAt: base });
+    container.repositories.eventLog.append({ kind: 'fetch', status: 'ok', sourceId: unnamed.id, httpStatus: 200, itemCount: 1, createdAt: base });
 
     const allLogs = await app.inject({ method: 'GET', url: '/api/logs?type=fetch' });
     expect(allLogs.statusCode).toBe(200);

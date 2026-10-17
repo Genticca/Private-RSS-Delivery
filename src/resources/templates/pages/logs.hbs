@@ -1,12 +1,13 @@
 <header class="page-header">
   <h1>시스템 로그</h1>
-  <p class="muted" style="margin-bottom:1.5rem;">수집(피드 가져오기)과 전송(디스코드 발행) 이력을 실시간으로 보여줍니다. 아래 버튼으로 종류를 전환하거나 오류만 필터링할 수 있습니다.</p>
+  <p class="muted" style="margin-bottom:1.5rem;">수집(피드 가져오기), 전송(디스코드 발행), 번역 결과를 실시간으로 보여줍니다. 아래 버튼으로 종류를 전환하거나 오류만 필터링할 수 있습니다.</p>
 </header>
 
 <section data-page="logs">
   <div class="toolbar" style="margin-bottom: 1rem;">
     <button type="button" data-log-type="delivery" class="secondary active">✉️ 전송 이력</button>
     <button type="button" data-log-type="fetch" class="secondary">🔄 수집 이력</button>
+    <button type="button" data-log-type="translation" class="secondary">🌐 번역 이력</button>
     <button type="button" data-log-filter="error" class="danger">⚠️ 오류만 보기</button>
     <button type="button" data-log-pause class="secondary">⏸️ 실시간 스트림 일시정지</button>
   </div>
@@ -25,23 +26,4 @@
   </div>
   
   <button type="button" id="load-more-logs" class="secondary" style="margin-bottom: 2rem; width: 100%;">이전 로그 더 불러오기</button>
-
-  <section class="panel compact">
-    <h2>🤖 AI 모델 호출 이력 (최근 50건)</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>호출 유형</th>
-          <th>실제 요청</th>
-          <th>제공사 (Provider)</th>
-          <th>모델</th>
-          <th>토큰 (입력/출력)</th>
-          <th>응답 시간 (Latency)</th>
-          <th>오류 내용</th>
-        </tr>
-      </thead>
-      <tbody id="model-usage"></tbody>
-    </table>
-    <button type="button" id="load-more-usage" class="secondary" style="width: 100%;">더 불러오기</button>
-  </section>
 </section>

@@ -4,7 +4,7 @@
 | --- | --- |
 | 구성·런타임·수집/발송 흐름·설정값·기능별 파일 연결 | [architecture.md](architecture.md) |
 | 테이블·컬럼·상태 값의 정확한 정의 🔒 | [db-schema.md](db-schema.md) |
-| 왜 이렇게 만들었나 (D1~D26) 🔒 | [decisions.md](decisions.md) |
+| 왜 이렇게 만들었나 (D1~D28) 🔒 | [decisions.md](decisions.md) |
 | 배포·운영 | [deploy.md](deploy.md) (systemd 유닛: [rss-discord-bridge.service](rss-discord-bridge.service)) |
 | 옛 설계·스펙·조사 보고서 | [Archive/2026-10-17/Docs/history/](../Archive/2026-10-17/Docs/history/) — 현재 기준이 아니다 |
 

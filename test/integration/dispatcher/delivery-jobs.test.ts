@@ -6,7 +6,7 @@ describe('destination-bound delivery jobs', () => {
   it('stores the first source snapshot as historical without POST', async () => {
     const h = await harness();
     await h.poll([{ id: 'old' }]); await h.run();
-    expect(h.item('old').deliveryStatus).toBe('historical');
+    expect(h.item('old').historical).toBe(true);
     expect(h.jobs()).toEqual([]); expect(h.post).not.toHaveBeenCalled();
   });
 
@@ -17,7 +17,8 @@ describe('destination-bound delivery jobs', () => {
     expect(h.post.mock.calls[0][0].captureMessageId).toBe(true);
     const binding = h.r.deliveryBindings.listActive(h.source().id)[0];
     expect(h.r.itemDeliveries.get(h.item().id, binding.id)?.messageId).toBeTruthy();
-    expect(h.item().deliveryStatus).toBe('delivered');
+    expect(h.jobs()[0].state).toBe('succeeded');
+    expect(h.r.eventLog.list({ kind: 'delivery' })[0]).toMatchObject({ status: 'success', itemId: h.item().id, sourceId: h.source().id });
   });
 
   it('does not transfer a pending job when webhook A changes to B', async () => {
@@ -80,7 +81,7 @@ describe('destination-bound delivery jobs', () => {
 
   it('uses durable receipts after audit logs are pruned', async () => {
     const h = await harness(); await h.baseline(); await h.poll([{ id: 'one', title: 'H1' }]); await h.run();
-    h.container.db.prepare('DELETE FROM delivery_log').run();
+    h.container.db.prepare('DELETE FROM event_log').run();
     await h.poll([{ id: 'one', title: 'H2' }]); await h.run();
     expect(h.post).toHaveBeenCalledTimes(1); expect(h.edit).toHaveBeenCalledTimes(1);
   });
@@ -137,9 +138,9 @@ describe('destination-bound delivery jobs', () => {
 
   it('does not re-POST after an external success followed by a rolled-back DB commit', async () => {
     const h = await harness(); await h.baseline(); await h.poll([{ id: 'one' }]);
-    const append = h.r.deliveryLogs.append.bind(h.r.deliveryLogs);
+    const append = h.r.eventLog.append.bind(h.r.eventLog);
     let fail = true;
-    h.r.deliveryLogs.append = (input) => { if (fail) { fail = false; throw new Error('commit failed'); } return append(input); };
+    h.r.eventLog.append = (input) => { if (fail && input.kind === 'delivery') { fail = false; throw new Error('commit failed'); } return append(input); };
     await h.run(); await h.run(addSecondsIso(BASE, 1000));
     expect(h.post).toHaveBeenCalledTimes(1); expect(h.jobs()[0].state).toBe('unknown');
   });
@@ -199,7 +200,7 @@ describe('destination-bound delivery jobs', () => {
   it('cancels prepared work if its connection changes during translation', async () => {
     let release!: (value: { text: string }) => void;
     const h = await harness({ translate: true }, { env: { DATABASE_PATH: ':memory:', PRIMARY_MODEL_API_KEY: 'test' },
-      translationProviders: { gemini: { generate: () => new Promise((resolve) => { release = resolve; }) } } });
+      translationProvider: { generate: () => new Promise((resolve) => { release = resolve; }) } });
     await h.baseline(); await h.poll([{ id: 'one' }]);
     const running = h.run();
     await new Promise((resolve) => setImmediate(resolve));

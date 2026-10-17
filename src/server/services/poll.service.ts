@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3';
 import type {
   DeliveryBindingRepository,
-  FetchLogRepository,
+  EventLogRepository,
   GroupRepository,
   ItemRepository,
   SourceGroupRepository,
@@ -38,7 +38,7 @@ export interface PollServiceOptions {
   repositories: {
     sources: SourceRepository;
     items: ItemRepository;
-    fetchLogs: FetchLogRepository;
+    eventLog: EventLogRepository;
     groups: GroupRepository;
     sourceGroups: SourceGroupRepository;
     deliveryBindings: DeliveryBindingRepository
@@ -90,9 +90,10 @@ export class PollService {
         if (result.kind === 'not-modified') {
           repositories.sources.markPolled(sourceId, polledAt, { etag: result.etag, lastModified: result.lastModified });
           db.prepare('UPDATE sources SET consecutive_failures = 0 WHERE id = ?').run(sourceId);
-          repositories.fetchLogs.append({
+          repositories.eventLog.append({
+            kind: 'fetch',
+            status: 'not_modified',
             sourceId,
-            outcome: '304',
             httpStatus: 304,
             durationMs: Date.now() - started,
             createdAt: polledAt
@@ -111,12 +112,13 @@ export class PollService {
         const delay = Math.min(86_400_000, current.pollIntervalSeconds * 1000 * 2 ** Math.min(failures - 1, 8));
         db.prepare('UPDATE sources SET consecutive_failures = ?, last_polled_at = ?, next_poll_at = ? WHERE id = ?')
           .run(failures, polledAt, new Date(Date.parse(polledAt) + delay).toISOString(), sourceId);
-        repositories.fetchLogs.append({
+        repositories.eventLog.append({
+          kind: 'fetch',
+          status: 'error',
           sourceId,
-          outcome: 'error',
           httpStatus: status,
           durationMs: Date.now() - started,
-          error: message,
+          detail: message,
           createdAt: polledAt
         });
         return {
@@ -161,8 +163,7 @@ export class PollService {
           ...fields,
           sourceId: source.id,
           atomId: item.atomId,
-          deliveryStatus: queue ? 'pending' : 'historical',
-          nextAttemptAt: queue && !held ? now : null,
+          historical: !queue,
           createdAt: now
         });
         if (queue) {
@@ -198,12 +199,14 @@ export class PollService {
       detectedProfile: detectedProfile ?? undefined
     });
     db.prepare('UPDATE sources SET consecutive_failures = 0 WHERE id = ?').run(source.id);
-    repositories.fetchLogs.append({
+    repositories.eventLog.append({
+      kind: 'fetch',
+      status: 'ok',
       sourceId: source.id,
-      outcome: '200',
       httpStatus: result.statusCode,
-      ...counts,
       durationMs,
+      itemCount: counts.itemsNew,
+      detail: `변경 ${counts.itemsChanged}건 · 과거 ${counts.itemsHistorical}건`,
       createdAt: now
     });
     return {

@@ -1,3 +1,6 @@
+/** 번역 대상 언어는 한국어로 고정한다. */
+export const TARGET_LANG = 'ko';
+
 export interface TranslationPromptInput {
   title: string;
   summary: string;
@@ -30,31 +33,6 @@ export function parseTranslationResponse(value: string): ParsedTranslation {
     throw new Error('Translation response must include string title and summary.');
   }
   return { title: record.title, summary: record.summary };
-}
-
-export function buildPromptLog(input: TranslationPromptInput, output: string, maxBytes: number): string | null {
-  if (maxBytes <= 0) return null;
-  return truncateUtf8(`input:
-${buildTranslationPrompt(input)}
-
-output:
-${output}`, maxBytes);
-}
-
-export function truncateUtf8(value: string, maxBytes: number): string {
-  if (Buffer.byteLength(value, 'utf8') <= maxBytes) return value;
-  const marker = '…';
-  const markerBytes = Buffer.byteLength(marker, 'utf8');
-  if (maxBytes <= markerBytes) return '';
-
-  const bodyLimit = maxBytes - markerBytes;
-  let end = bodyLimit;
-  const buffer = Buffer.from(value, 'utf8');
-  // 멀티바이트 문자 중간에서 자르면 대체 문자가 생기므로 문자 시작점까지 되돌린다.
-  while (end > 0 && (buffer[end] & 0b1100_0000) === 0b1000_0000) {
-    end -= 1;
-  }
-  return `${buffer.subarray(0, end).toString('utf8')}${marker}`;
 }
 
 function extractJsonObject(value: string): string {

@@ -23,7 +23,7 @@ export class DeliveryPlanService {
   }
 
   planUpdate(item: ItemRecord, source: SourceRecord, now: string): void {
-    if (item.deliveryStatus === 'historical') return;
+    if (item.historical) return;
     const templateBody = this.resolveTemplateBody(source);
     for (const binding of this.repositories.deliveryBindings.listActive(source.id)) {
       const receipt = this.repositories.itemDeliveries.get(item.id, binding.id);

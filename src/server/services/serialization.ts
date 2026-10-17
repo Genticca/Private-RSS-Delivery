@@ -1,21 +1,16 @@
 import type {
-  DeliveryLogDto,
-  FetchLogDto,
+  EventLogDto,
+  FetchEventStatus,
   GroupDto,
-  ModelConfigEntryDto,
-  ModelUsageDto,
   SourceDto,
   TemplateDto
 } from '../contracts/api.js';
-import type { DeliveryLogRecord } from '../db/delivery-log.repository.js';
-import type { FetchLogRecord } from '../db/fetch-log.repository.js';
+import type { EventLogRecord } from '../db/event-log.repository.js';
 import type { GroupRecord } from '../db/group.repository.js';
-import type { ModelConfigRecord } from '../db/model-config.repository.js';
-import type { ModelUsageRecord } from '../db/model-usage.repository.js';
 import type { SourceRecord } from '../db/source.repository.js';
 import type { TemplateRecord } from '../db/template.repository.js';
 
-export function toSourceDto(source: SourceRecord, groupIds: number[], groupNames: string[], lastOutcome: FetchLogDto['outcome'] | null): SourceDto {
+export function toSourceDto(source: SourceRecord, groupIds: number[], groupNames: string[], lastOutcome: FetchEventStatus | null): SourceDto {
   return {
     consecutiveFailures: source.consecutiveFailures,
     id: source.id,
@@ -70,66 +65,8 @@ export function toTemplateDto(template: TemplateRecord): TemplateDto {
   };
 }
 
-export function toModelConfigEntryDto(record: ModelConfigRecord): ModelConfigEntryDto {
-  return {
-    role: record.role,
-    provider: record.provider,
-    model: record.model,
-    enabled: record.enabled,
-    targetLang: record.targetLang,
-    promptLogMaxBytes: record.promptLogMaxBytes
-  };
-}
-
-export function toModelUsageDto(record: ModelUsageRecord): ModelUsageDto {
-  return {
-    httpRequested: record.httpRequested,
-    itemId: record.itemId,
-    jobId: record.jobId,
-    id: record.id,
-    role: record.role,
-    provider: record.provider,
-    model: record.model,
-    inputTokens: record.inputTokens,
-    outputTokens: record.outputTokens,
-    latencyMs: record.latencyMs,
-    error: record.error,
-    createdAt: record.createdAt
-  };
-}
-
-export function toDeliveryLogDto(record: DeliveryLogRecord): DeliveryLogDto {
-  return {
-    id: record.id,
-    itemId: record.itemId,
-    attemptNo: record.attemptNo,
-    status: record.status,
-    httpStatus: record.httpStatus,
-    error: record.error,
-    renderedBytes: record.renderedBytes,
-    destinationKey: record.destinationKey,
-    contentHash: record.contentHash,
-    failureReason: record.failureReason,
-    discordMessageId: record.discordMessageId,
-    createdAt: record.createdAt
-  };
-}
-
-export function toFetchLogDto(record: FetchLogRecord, sourceName: string | null): FetchLogDto {
-  return {
-    id: record.id,
-    sourceId: record.sourceId,
-    sourceName,
-    outcome: record.outcome,
-    httpStatus: record.httpStatus,
-    itemsNew: record.itemsNew,
-    itemsHistorical: record.itemsHistorical,
-    itemsChanged: record.itemsChanged,
-    itemsSkipped: record.itemsSkipped,
-    durationMs: record.durationMs,
-    error: record.error,
-    createdAt: record.createdAt
-  };
+export function toEventLogDto(record: EventLogRecord, sourceName: string | null): EventLogDto {
+  return { ...record, sourceName };
 }
 
 export function maskWebhookUrl(value: string | null): string | null {

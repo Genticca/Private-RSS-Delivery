@@ -16,7 +16,7 @@ const container = createContainer({
   urlVerifiers: { verifyFeedUrl: async () => undefined, verifyWebhookUrl: async () => undefined },
   feedFetcher: async () => ({ kind: 'ok', statusCode: 200, url: 'https://example.com/feed',
     body: `<rss><channel>${oldItems}${phase ? freshItem : ''}</channel></rss>`, etag: null, lastModified: null, contentType: 'application/xml', charset: 'utf-8' }),
-  translationProviders: { gemini: { generate: async () => { modelCalls++; return { text: '{"title":"공유 번역 제목","summary":""}' }; } } },
+  translationProvider: { generate: async () => { modelCalls++; return { text: '{"title":"공유 번역 제목","summary":""}' }; } },
   postWebhook: async () => { posts++; await new Promise((resolve) => setTimeout(resolve, 1)); return { statusCode: 200, messageId: String(1000 + posts) }; }
 });
 const delay = monitorEventLoopDelay({ resolution: 10 });

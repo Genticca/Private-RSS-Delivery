@@ -1,4 +1,4 @@
-# 결정 기록 (D1~D26)
+# 결정 기록 (D1~D28)
 
 > 정책이 바뀌면 기존 줄을 고치지 않고 새 결정을 추가하고, 대체된 결정에 표시한다. 결정 당시의 상세 논의는 보관본에 있다(D1~D24: [design-v1.md](../Archive/2026-10-17/Docs/history/design-v1.md), D25: [backend-spec.md](../Archive/2026-10-17/Docs/history/backend-spec.md)·[frontend-spec.md](../Archive/2026-10-17/Docs/history/frontend-spec.md) 머리말).
 
@@ -30,3 +30,5 @@
 | D24 | 그룹 = 재사용 전송 채널. 웹훅 URL은 그룹만 가진다. 소스는 그룹 1개 이상 필수, 목적지 0개면 수집 건너뜀 | 유효 |
 | D25 | 발송 단위를 항목 × 목적지 연결(세대)로 바꾼다. 새 연결의 첫 수집은 묵음 baseline, 결과 불명 POST·PATCH 404는 자동 재발송하지 않고 관리자 검토, 대량 신규 보류, 공유 번역 캐시, 수집·발송 워커 분리와 종료 drain (2026-10-16, 마이그레이션 0021~0023) | 유효 — 현재 동작은 [architecture.md](architecture.md) |
 | D26 | 번역 모델은 Gemini 하나만 쓴다. NVIDIA NIM 대체 모델과 `FALLBACK_MODEL_API_KEY`를 없앤다. 실패하면 원문으로 보낸다 (2026-10-17) | 유효 |
+| D27 | 런타임은 TypeScript(Node) 하나로 유지한다. 수집(Go)·발송(Node) 분리는 하지 않는다. 병목이 외부 I/O라 성능 이득이 없고, SQLite 동시 쓰기·정규화/해시 이중 구현·배포 2벌이 생긴다 (2026-10-18) | 유효 |
+| D28 | 스키마 정리: 로그 4개(`delivery_log`·`fetch_log`·`model_usage`·`translation_events`)를 `event_log` 하나로 합치고 축소, 모델 설정(`model_config`)은 환경 변수 `GEMINI_MODEL`로, 항목의 발송·번역 사본(`syncItemState`)·`legacy_unknown`·`sources.webhook_url` 제거, 메시지 수정(edit-in-place)은 유지. 운영 DB가 없어 `0001_init`을 직접 고쳤다 (2026-10-18) | 유효 — 현재 스키마는 [db-schema.md](db-schema.md) |

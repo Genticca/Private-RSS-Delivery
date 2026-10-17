@@ -9,17 +9,17 @@ export type GroupId = number;
 
 export type TemplateId = number;
 
-export type DeliveryStatus = 'success' | 'failed' | 'skipped';
+export type EventKind = 'fetch' | 'delivery' | 'translation';
 
-export type ItemDeliveryStatus = 'pending' | 'delivered' | 'failed' | 'historical';
+export type FetchEventStatus = 'ok' | 'not_modified' | 'error';
 
-export type FetchOutcome = '200' | '304' | 'error';
+export type DeliveryEventStatus = 'success' | 'failed';
 
-export type ModelProvider = 'gemini';
+export type TranslationEventStatus = 'success' | 'failed' | 'cache_hit' | 'skipped';
 
-export type ModelRole = 'primary';
+export type EventStatus = FetchEventStatus | DeliveryEventStatus | TranslationEventStatus;
 
-export type ModelStatus = 'ready' | 'disabled' | 'missing-key' | 'invalid-key';
+export type ModelStatus = 'ready' | 'missing-key' | 'invalid-key';
 
 export interface SourceDto {
   consecutiveFailures?: number;
@@ -45,7 +45,7 @@ export interface SourceDto {
   threadName: string | null;
   appliedTags: string[];
   editInPlace: boolean;
-  lastOutcome?: FetchOutcome | null;
+  lastOutcome?: FetchEventStatus | null;
 }
 
 export interface CreateSourceRequest {
@@ -156,68 +156,29 @@ export type PreviewResponse =
 
 export type SampleItemResponse = NormalizedItem;
 
-export interface ModelConfigEntryDto {
-  role: ModelRole;
-  provider: ModelProvider;
+/** 번역 모델은 환경 변수(GEMINI_MODEL, PRIMARY_MODEL_API_KEY)로 정한다. 키 원문은 응답에 넣지 않는다. */
+export interface ModelDiagnosticsResponse {
   model: string;
-  enabled: boolean;
-  targetLang: string;
-  promptLogMaxBytes: number;
+  status: ModelStatus;
+  lastRequestAt: string | null;
+  /** 'success', 실패 코드(timeout·invalid-key 등) 또는 호출 전 안내 문구다. */
+  lastRequestResult: string;
+  counts: Record<TranslationEventStatus, number>;
 }
 
-export interface ModelConfigResponse {
-  primary: ModelConfigEntryDto;
-  targetLang: string;
-  promptLogMaxBytes: number;
-}
-
-export interface ModelStatusResponse {
-  primary: ModelStatus;
-}
-
-export interface ModelUsageDto {
-  httpRequested?: boolean;
-  itemId?: number | null;
-  jobId?: number | null;
+export interface EventLogDto {
   id: number;
-  role: ModelRole;
-  provider: ModelProvider;
-  model: string;
-  inputTokens: number | null;
-  outputTokens: number | null;
-  latencyMs: number | null;
-  error: string | null;
   createdAt: string;
-}
-
-export interface DeliveryLogDto {
-  id: number;
-  itemId: number;
-  attemptNo: number;
-  status: DeliveryStatus;
-  httpStatus: number | null;
-  error: string | null;
-  renderedBytes: number | null;
-  destinationKey: string | null;
-  contentHash: string | null;
-  failureReason: string | null;
-  discordMessageId: string | null;
-  createdAt: string;
-}
-
-export interface FetchLogDto {
-  id: number;
-  sourceId: SourceId;
+  kind: EventKind;
+  status: EventStatus;
+  sourceId: SourceId | null;
   sourceName: string | null;
-  outcome: FetchOutcome;
+  itemId: number | null;
+  jobId: number | null;
   httpStatus: number | null;
-  itemsNew: number;
-  itemsHistorical: number;
-  itemsChanged: number;
-  itemsSkipped: number;
   durationMs: number | null;
-  error: string | null;
-  createdAt: string;
+  itemCount: number | null;
+  detail: string | null;
 }
 
 export interface PaginatedResponse<T> {
@@ -225,6 +186,4 @@ export interface PaginatedResponse<T> {
   nextBefore: number | null;
 }
 
-export type LogsResponse = PaginatedResponse<DeliveryLogDto> | PaginatedResponse<FetchLogDto>;
-
-export type ModelUsageResponse = PaginatedResponse<ModelUsageDto>;
+export type LogsResponse = PaginatedResponse<EventLogDto>;

@@ -1,5 +1,3 @@
-import type { ModelConfigRecord } from '../db/index.js';
-
 export interface TranslationInput {
   itemId?: number;
   jobId?: number;
@@ -16,7 +14,7 @@ export interface TranslationResult {
 
 export interface TranslationProviderRequest {
   apiKey: string;
-  config: ModelConfigRecord;
+  model: string;
   prompt: string;
   maxOutputTokens: number;
   signal?: AbortSignal;
@@ -29,7 +27,7 @@ export interface TranslationProviderResponse {
   finishReason?: string | null;
 }
 
-/** 공급자는 통신과 응답 매핑을 담당하고, 대체 모델 선택·사용량 기록은 ModelTranslator에 맡긴다. */
+/** 공급자는 통신과 응답 매핑을 담당하고, 실패 처리와 기록은 ModelTranslator에 맡긴다. */
 export interface TranslationProvider {
   generate(request: TranslationProviderRequest): Promise<TranslationProviderResponse>;
 }

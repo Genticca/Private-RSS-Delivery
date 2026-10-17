@@ -1,5 +1,4 @@
 import type Database from 'better-sqlite3';
-import { DeliveryJobRepository } from './delivery-job.repository.js';
 
 export interface DeliveryBindingRecord {
   id: number;
@@ -44,13 +43,6 @@ export class DeliveryBindingRepository {
       UPDATE delivery_jobs SET state = 'cancelled', error = 'Connection ended', completed_at = ?, claim_token = NULL
       WHERE binding_id = ? AND state IN ('pending','held','failed')
     `).run(now, id);
-    const items = this.db.prepare('SELECT DISTINCT item_id FROM delivery_jobs WHERE binding_id = ?').all(id) as Array<{
-      item_id: number
-    }>;
-    const jobs = new DeliveryJobRepository(this.db);
-    for (const item of items) {
-      jobs.syncItemState(item.item_id, now);
-    }
   }
 
   completeBaseline(id: number, itemId: number, now: string): void {

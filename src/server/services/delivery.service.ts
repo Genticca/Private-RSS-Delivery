@@ -4,7 +4,7 @@ import type {
   DeliveryBindingRepository,
   DeliveryJobRecord,
   DeliveryJobRepository,
-  DeliveryLogRepository,
+  EventLogRepository,
   GroupRepository,
   ItemDeliveryRepository,
   ItemRecord,
@@ -13,11 +13,10 @@ import type {
   SourceRecord,
   SourceRepository
 } from '../db/index.js';
-import type { DeliveryFailureReason } from '../db/delivery-log.repository.js';
 import { nowIso } from '../db/time.js';
 import { retryAt, type DeliveryJobState } from '../domain/delivery/policy.js';
 import { applySourceWebhookOptions } from '../dispatcher/payload-options.js';
-import { buildPresetRenderContext, PresetRenderError, renderDiscordPayload } from '../dispatcher/render.js';
+import { buildPresetRenderContext, PresetRenderError, renderDiscordPayload, type TranslatedItem } from '../dispatcher/render.js';
 import { resolveDestinationsForSource } from '../dispatcher/resolve-destinations.js';
 import { DiscordPayloadValidationError, validateDiscordPayload } from '../dispatcher/validate.js';
 import { SecurityError } from '../security/errors.js';
@@ -33,7 +32,7 @@ export interface DeliveryRepositories {
   deliveryBindings: DeliveryBindingRepository;
   deliveryJobs: DeliveryJobRepository;
   itemDeliveries: ItemDeliveryRepository;
-  deliveryLogs: DeliveryLogRepository;
+  eventLog: EventLogRepository;
 }
 export interface DeliveryServiceOptions {
   db: Database.Database;
@@ -71,7 +70,7 @@ export class DeliveryService {
       const readyAt = this.latestCooldownUntil(context.binding.bucketKey);
       if (readyAt && readyAt > now) return this.finish(job, 'pending', now, 'Destination cooldown', readyAt);
       if (context.item.contentRevision !== job.revision) return this.superseded(job, context.item, context.source, now);
-      const receipt = repositories.itemDeliveries.get(job.itemId, job.bindingId!);
+      const receipt = repositories.itemDeliveries.get(job.itemId, job.bindingId);
       if (job.operation !== 'initial_post' && !receipt) return this.finish(job, 'uneditable', now, 'No original delivery receipt');
       if (receipt && receipt.appliedRevision >= job.revision) return this.finish(job, 'succeeded', now);
       if (job.operation === 'edit' && !receipt?.messageId) return this.finish(job, 'uneditable', now, 'Message ID is unknown');
@@ -82,7 +81,7 @@ export class DeliveryService {
       else {
         const source = JSON.parse(job.sourceSnapshot) as SourceRecord;
         const original = JSON.parse(job.itemSnapshot) as ItemRecord;
-        const item = source.translate && this.options.translationService
+        const item: TranslatedItem = source.translate && this.options.translationService
           ? await this.options.translationService.translateItemForDispatch(original, source, now, { templateBody: job.templateBody, jobId: job.id })
           : original;
         const rendered = renderDiscordPayload(job.templateBody, buildPresetRenderContext(item, source, { useTranslationCache: source.translate }));
@@ -112,7 +111,7 @@ export class DeliveryService {
       const response = job.operation === 'edit'
         ? await (this.options.editWebhook ?? editDiscordWebhookMessage)({ ...request, messageId: receipt!.messageId! })
         : await (this.options.postWebhook ?? postDiscordWebhook)({ ...request, captureMessageId: true });
-      return this.commitResponse(job, payload, response, now);
+      return this.commitResponse(job, response, now);
     } catch (error) {
       if (error instanceof SecurityError) return this.finish(job, 'failed', now, 'guard_blocked');
       if (!requestStarted && error instanceof DiscordPayloadValidationError) return this.finish(job, 'failed', now, 'validate');
@@ -138,7 +137,7 @@ export class DeliveryService {
 
   private resolveActiveContext(job: DeliveryJobRecord) {
     const repositories = this.options.repositories;
-    const binding = job.bindingId === null ? null : repositories.deliveryBindings.getById(job.bindingId);
+    const binding = repositories.deliveryBindings.getById(job.bindingId);
     const item = repositories.items.getById(job.itemId);
     const source = item ? repositories.sources.getById(item.sourceId) : null;
     if (!binding || binding.endedAt !== null || !item || !source?.enabled) return null;
@@ -167,9 +166,9 @@ export class DeliveryService {
     return result;
   }
 
-  private commitResponse(job: DeliveryJobRecord, payload: DiscordWebhookPayload, response: WebhookPostResponse, now: string): DeliveryRunResult {
+  private commitResponse(job: DeliveryJobRecord, response: WebhookPostResponse, now: string): DeliveryRunResult {
     const repositories = this.options.repositories;
-    const binding = repositories.deliveryBindings.getById(job.bindingId!);
+    const binding = repositories.deliveryBindings.getById(job.bindingId);
     if (binding && response.cooldownMs) repositories.deliveryJobs.cooldown(binding.bucketKey, new Date(Date.parse(now) + response.cooldownMs).toISOString());
     if (response.statusCode === 429) {
       const until = new Date(Date.parse(now) + Math.max(1000, response.retryAfterMs ?? 1000)).toISOString();
@@ -183,35 +182,32 @@ export class DeliveryService {
     }
     if (response.statusCode === 404 && job.operation === 'edit') return this.finish(job, 'uneditable', now, 'Message no longer exists', null, job.attemptCount, 404);
     if (response.statusCode < 200 || response.statusCode >= 300) return this.finish(job, 'failed', now, 'webhook_rejected', null, job.attemptCount, response.statusCode);
-    const prior = repositories.itemDeliveries.get(job.itemId, job.bindingId!);
+    const prior = repositories.itemDeliveries.get(job.itemId, job.bindingId);
     const messageId = response.messageId ?? (job.operation === 'edit' ? prior?.messageId : null);
     if (!messageId) return this.finish(job, 'unknown', now, 'POST succeeded but message ID is unavailable');
     return this.options.db.transaction(() => {
       if (!repositories.deliveryJobs.finish(job, 'succeeded', now)) return this.result(job, 'skipped');
       repositories.itemDeliveries.save({
         itemId: job.itemId,
-        bindingId: job.bindingId!,
+        bindingId: job.bindingId,
         messageId,
         channelId: response.channelId ?? prior?.channelId ?? null,
         threadId: response.threadId ?? prior?.threadId ?? null,
         appliedRevision: job.revision,
         firstDeliveredAt: prior?.firstDeliveredAt ?? now
       });
-      repositories.deliveryLogs.append({
-        itemId: job.itemId,
-        attemptNo: job.attemptCount + 1,
+      repositories.eventLog.append({
+        kind: 'delivery',
         status: 'success',
+        itemId: job.itemId,
+        jobId: job.id,
         httpStatus: response.statusCode,
-        renderedBytes: Buffer.byteLength(JSON.stringify(payload)),
-        destinationKey: binding?.destinationKey ?? null,
-        contentHash: (JSON.parse(job.itemSnapshot) as ItemRecord).contentHash,
-        discordMessageId: messageId,
+        detail: deliveryLabel(job, binding?.label),
         createdAt: now
       });
       const latest = repositories.items.getById(job.itemId);
       const source = latest ? repositories.sources.getById(latest.sourceId) : null;
       if (latest && source && latest.contentRevision > job.revision) this.options.planner.planUpdate(latest, source, now);
-      repositories.deliveryJobs.syncItemState(job.itemId, now);
       return this.result(job, 'delivered');
     })();
   }
@@ -235,19 +231,20 @@ export class DeliveryService {
     return this.options.db.transaction(() => {
       const saved = repositories.deliveryJobs.finish(job, state, now, error, next, attempts);
       if (saved && (['failed', 'unknown', 'uneditable'].includes(state) || error === 'rate_limited')) {
-        const binding = job.bindingId ? repositories.deliveryBindings.getById(job.bindingId) : null;
-        repositories.deliveryLogs.append({
-          itemId: job.itemId,
-          attemptNo: attempts + 1,
+        // 오류 값이 곧 사유 코드다(render·validate·guard_blocked·rate_limited·max_retries·webhook_rejected 등).
+        // 관리자 검토가 필요한 상태는 앞에 붙여 구분한다.
+        const binding = repositories.deliveryBindings.getById(job.bindingId);
+        const prefix = state === 'unknown' || state === 'uneditable' ? `${state}: ` : '';
+        repositories.eventLog.append({
+          kind: 'delivery',
           status: 'failed',
-          destinationKey: binding?.destinationKey ?? null,
-          failureReason: logFailureReason(state, error),
+          itemId: job.itemId,
+          jobId: job.id,
           httpStatus,
-          error,
+          detail: `${prefix}${error ?? state} (${deliveryLabel(job, binding?.label)})`,
           createdAt: now
         });
       }
-      if (saved) repositories.deliveryJobs.syncItemState(job.itemId, now);
       const outcome = runOutcome(state, saved);
       return { ...this.result(job, outcome), failureReason: error ?? undefined, nextAttemptAt: next };
     })();
@@ -263,18 +260,14 @@ export class DeliveryService {
   }
 }
 
-function logFailureReason(state: DeliveryJobState, error: string | null): DeliveryFailureReason {
-  if (state === 'unknown') return 'unknown';
-  switch (error) {
-    case 'render':
-    case 'validate':
-    case 'guard_blocked':
-    case 'rate_limited':
-    case 'max_retries':
-      return error;
-    default:
-      return 'webhook_rejected';
-  }
+const OPERATION_LABELS: Record<DeliveryJobRecord['operation'], string> = {
+  initial_post: '발송',
+  edit: '수정',
+  update_post: '변경 발송'
+};
+
+function deliveryLabel(job: DeliveryJobRecord, destination: string | undefined): string {
+  return `${OPERATION_LABELS[job.operation]} → ${destination || '연결 없음'}`;
 }
 
 function runOutcome(state: DeliveryJobState, saved: boolean): DeliveryRunOutcome {

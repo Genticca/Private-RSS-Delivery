@@ -19,8 +19,14 @@ export interface BuildPresetRenderContextOptions {
   useTranslationCache?: boolean;
 }
 
+/** 발송 직전에 번역 결과를 얹은 항목이다. 번역 결과는 DB 항목에 저장하지 않는다. */
+export type TranslatedItem = ItemRecord & {
+  translatedTitle?: string | null;
+  translatedSummary?: string | null;
+};
+
 export function buildPresetRenderContext(
-  item: ItemRecord | NormalizedItem,
+  item: TranslatedItem | NormalizedItem,
   source: SourceRecord,
   options: BuildPresetRenderContextOptions = {}
 ): PresetRenderContext {
@@ -124,7 +130,7 @@ function stageColor(stage: string): number {
   return 9807270;
 }
 
-function itemRecordToPresetItem(item: ItemRecord, useTranslationCache: boolean): PresetRenderItem {
+function itemRecordToPresetItem(item: TranslatedItem, useTranslationCache: boolean): PresetRenderItem {
   const publishedAtFormatted = formatKstTimestamp(item.publishedAt ?? item.updatedAt);
   const title = useTranslationCache ? item.translatedTitle ?? item.title ?? '' : item.title ?? '';
   const summary = useTranslationCache ? item.translatedSummary ?? item.summary ?? '' : item.summary ?? '';
@@ -151,8 +157,8 @@ function normalizedItemToPresetItem(item: NormalizedItem): PresetRenderItem {
   };
 }
 
-function isItemRecord(item: ItemRecord | NormalizedItem): item is ItemRecord {
-  return 'sourceId' in item && 'deliveryStatus' in item;
+function isItemRecord(item: TranslatedItem | NormalizedItem): item is TranslatedItem {
+  return 'sourceId' in item && 'contentRevision' in item;
 }
 
 function fallbackSourceName(source: SourceRecord): string {

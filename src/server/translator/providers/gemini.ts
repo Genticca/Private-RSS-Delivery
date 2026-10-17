@@ -15,7 +15,7 @@ export class GeminiTranslationProvider implements TranslationProvider {
   async generate(request: TranslationProviderRequest): Promise<TranslationProviderResponse> {
     const ai = new GoogleGenAI({ apiKey: request.apiKey });
     const response = await ai.models.generateContent({
-      model: request.config.model,
+      model: request.model,
       contents: request.prompt,
       config: {
         abortSignal: request.signal,

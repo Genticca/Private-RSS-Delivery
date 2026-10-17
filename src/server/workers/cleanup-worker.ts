@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3';
 import { nowIso } from '../db/time.js';
-import { CleanupService, type CleanupRepositories } from '../services/cleanup.service.js';
+import { CleanupService, type CleanupRepositories, type CleanupRunResult } from '../services/cleanup.service.js';
 import { TaskTracker } from './task-tracker.js';
 
 export interface CleanupWorkerOptions {
@@ -14,11 +14,7 @@ export interface CleanupWorkerOptions {
   onError?: (error: unknown) => void;
 }
 
-export interface CleanupRunResult {
-  deliveryLogs: number;
-  fetchLogs: number;
-  modelUsage: number;
-}
+export type { CleanupRunResult };
 
 const DEFAULT_RETENTION_DAYS = 90;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -48,11 +44,11 @@ export class CleanupWorker {
   }
 
   async runOnce(baseIso = this.now()): Promise<CleanupRunResult> {
-    if (this.running || this.tracker.stopped) return { deliveryLogs: 0, fetchLogs: 0, modelUsage: 0 };
+    if (this.running || this.tracker.stopped) return { events: 0 };
     this.running = true;
     try {
       return await this.tracker.track(async () => {
-        if (this.tracker.stopped) return { deliveryLogs: 0, fetchLogs: 0, modelUsage: 0 };
+        if (this.tracker.stopped) return { events: 0 };
         const service = new CleanupService(this.options.db, this.options.repositories);
         return service.run(baseIso, this.retentionDays(), this.options.itemContentRetentionDays);
       });

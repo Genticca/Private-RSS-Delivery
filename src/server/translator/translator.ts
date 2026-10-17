@@ -1,43 +1,31 @@
-import type { ModelProvider } from '../contracts/api.js';
-import type {
-  ItemRecord,
-  ModelConfigRecord,
-  ModelConfigRepository,
-  ModelUsageRepository,
-  SourceRecord,
-  ItemRepository,
-  TranslationCacheRepository
-} from '../db/index.js';
+import type { EventLogRepository, ItemRecord, SourceRecord, TranslationCacheRepository } from '../db/index.js';
+import type { TranslatedItem } from '../dispatcher/render.js';
 import { TranslationCacheService } from './translation-cache.service.js';
 import { nowIso } from '../db/time.js';
-import { resolveModelApiKey } from './keys.js';
-import { buildPromptLog, buildTranslationPrompt, parseTranslationResponse } from './prompt.js';
+import { DEFAULT_MODEL, resolveModelApiKey } from './keys.js';
+import { buildTranslationPrompt, parseTranslationResponse, TARGET_LANG } from './prompt.js';
 import { GeminiTranslationProvider } from './providers/gemini.js';
 import type { TranslationInput, TranslationProvider, TranslationProviderResponse, TranslationResult } from './types.js';
 import { TranslationProviderError } from './types.js';
 
-export interface ModelTranslatorRepositories {
-  modelConfig: Pick<ModelConfigRepository, 'getByRole'>;
-  modelUsage: Pick<ModelUsageRepository, 'append'>;
-}
-
-export interface DispatchTranslationRepositories {
-  items: Pick<ItemRepository, 'saveTranslationIfCurrent'>;
-  translationCache: TranslationCacheRepository;
-  modelConfig: Pick<ModelConfigRepository, 'getByRole'>;
-}
-
 export interface ModelTranslatorOptions {
-  repositories: ModelTranslatorRepositories;
+  repositories: {
+    eventLog: Pick<EventLogRepository, 'append'>
+  };
   env?: NodeJS.ProcessEnv;
-  providers?: Partial<Record<ModelProvider, TranslationProvider>>;
+  /** GEMINI_MODEL 환경 변수에서 읽은 모델 이름(resolveModelName). */
+  model?: string;
+  provider?: TranslationProvider;
   now?: () => string;
   maxOutputTokens?: number;
   providerTimeoutMs?: number;
 }
 
 export interface DispatchTranslationServiceOptions {
-  repositories: DispatchTranslationRepositories;
+  repositories: {
+    translationCache: TranslationCacheRepository;
+    eventLog: Pick<EventLogRepository, 'append'>
+  };
   translator: Pick<ModelTranslator, 'translate'>;
   now?: () => string;
 }
@@ -46,127 +34,61 @@ const DEFAULT_MAX_OUTPUT_TOKENS = 1200;
 const DEFAULT_PROVIDER_TIMEOUT_MS = 15_000;
 
 export class ModelTranslator {
-  private readonly providers: Record<ModelProvider, TranslationProvider>;
+  private readonly provider: TranslationProvider;
 
   constructor(private readonly options: ModelTranslatorOptions) {
-    this.providers = {
-      gemini: new GeminiTranslationProvider(),
-      ...options.providers
-    };
+    this.provider = options.provider ?? new GeminiTranslationProvider();
   }
 
   async translate(input: TranslationInput): Promise<TranslationResult> {
-    // 번역 모델은 Gemini 하나다. 사용 불가 설정, 통신 실패, 잘림, 형식 오류는 모두 원문으로 끝낸다.
-    const config = this.options.repositories.modelConfig.getByRole('primary');
-    if (!config) return originalTextResult(input);
-    if (!config.enabled) {
-      this.recordUsageError(config, 'disabled', input, 'disabled');
-      return originalTextResult(input);
-    }
-
+    // 번역 모델은 Gemini 하나다. 키 없음, 통신 실패, 잘림, 형식 오류는 모두 원문으로 끝낸다.
     const apiKey = resolveModelApiKey(this.options.env);
     if (!apiKey) {
-      this.recordUsageError(config, 'missing-key', input, 'missing-key');
+      this.record(input, 'skipped', 'missing-key');
       return originalTextResult(input);
     }
 
-    const prompt = buildTranslationPrompt({ ...input, targetLang: config.targetLang });
+    const prompt = buildTranslationPrompt({ ...input, targetLang: TARGET_LANG });
     const startedMs = Date.now();
-    let response: TranslationProviderResponse | null = null;
+    let response: TranslationProviderResponse;
     try {
       response = await withTimeout(
-        (signal) => this.providers[config.provider].generate({
+        (signal) => this.provider.generate({
           apiKey,
-          config,
+          model: this.options.model ?? DEFAULT_MODEL,
           prompt,
           maxOutputTokens: this.options.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
           signal
         }),
         this.options.providerTimeoutMs ?? DEFAULT_PROVIDER_TIMEOUT_MS
       );
+    } catch (error) {
+      this.record(input, 'failed', classifyError(error), startedMs);
+      return originalTextResult(input);
+    }
 
-      if (isLengthFinish(response.finishReason)) {
-        this.recordUsage(config, {
-          input,
-          output: response.text,
-          response,
-          startedMs,
-          error: 'length'
-        });
-        return originalTextResult(input);
-      }
-
-      let parsed;
-      try {
-        parsed = parseTranslationResponse(response.text);
-      } catch (error) {
-        this.recordUsage(config, {
-          input,
-          output: response.text,
-          response,
-          startedMs,
-          error: classifyError(error)
-        });
-        return originalTextResult(input);
-      }
-      this.recordUsage(config, {
-        input,
-        output: response.text,
-        response,
-        startedMs
-      });
+    if (isLengthFinish(response.finishReason)) {
+      this.record(input, 'failed', 'length', startedMs);
+      return originalTextResult(input);
+    }
+    try {
+      const parsed = parseTranslationResponse(response.text);
+      this.record(input, 'success', null, startedMs);
       return { title: parsed.title, summary: parsed.summary, translated: true };
     } catch (error) {
-      const errorCode = classifyError(error);
-      this.recordUsage(config, {
-        input,
-        output: response?.text ?? errorCode,
-        response: response ?? undefined,
-        startedMs,
-        error: errorCode
-      });
+      this.record(input, 'failed', classifyError(error), startedMs);
       return originalTextResult(input);
     }
   }
 
-  private recordUsageError(config: ModelConfigRecord, error: string, input: TranslationInput, output: string): void {
-    const promptLog = buildPromptLog({ ...input, targetLang: config.targetLang }, output, config.promptLogMaxBytes);
-    this.options.repositories.modelUsage.append({
-      role: config.role,
-      provider: config.provider,
-      model: config.model,
-      error,
-      httpRequested: false,
+  private record(input: TranslationInput, status: 'success' | 'failed' | 'skipped', detail: string | null, startedMs?: number): void {
+    this.options.repositories.eventLog.append({
+      kind: 'translation',
+      status,
       itemId: input.itemId,
       jobId: input.jobId,
-      promptLog,
-      createdAt: this.now()
-    });
-  }
-
-  private recordUsage(
-    config: ModelConfigRecord,
-    params: {
-      input: TranslationInput;
-      output: string;
-      response?: TranslationProviderResponse;
-      startedMs: number;
-      error?: string;
-    }
-  ): void {
-    const promptLog = buildPromptLog({ ...params.input, targetLang: config.targetLang }, params.output, config.promptLogMaxBytes);
-    this.options.repositories.modelUsage.append({
-      role: config.role,
-      provider: config.provider,
-      model: config.model,
-      inputTokens: params.response?.inputTokens ?? null,
-      outputTokens: params.response?.outputTokens ?? null,
-      latencyMs: Math.max(0, Date.now() - params.startedMs),
-      error: params.error ?? null,
-      httpRequested: true,
-      itemId: params.input.itemId,
-      jobId: params.input.jobId,
-      promptLog,
+      durationMs: startedMs === undefined ? null : Math.max(0, Date.now() - startedMs),
+      detail,
       createdAt: this.now()
     });
   }
@@ -190,15 +112,13 @@ export class DispatchTranslationService {
       templateBody?: string;
       jobId?: number
     } = {}
-  ): Promise<ItemRecord> {
+  ): Promise<TranslatedItem> {
     if (!source.translate) return item;
     const result = await this.cache.translate(item, source, { ...context, now });
-    if (result.translated && result.fields.length > 0) this.options.repositories.items.saveTranslationIfCurrent(item, result.title, result.summary, now);
     return {
       ...item,
       translatedTitle: result.title,
-      translatedSummary: result.summary,
-      translatedAt: result.translated ? now : null
+      translatedSummary: result.summary
     };
   }
 

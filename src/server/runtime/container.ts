@@ -6,12 +6,9 @@ import {
   DeliveryBindingRepository,
   DeliveryJobRepository,
   ItemDeliveryRepository,
-  DeliveryLogRepository,
-  FetchLogRepository,
+  EventLogRepository,
   GroupRepository,
   ItemRepository,
-  ModelConfigRepository,
-  ModelUsageRepository,
   SourceGroupRepository,
   SourceRepository,
   TemplateRepository,
@@ -40,9 +37,8 @@ import { DeliveryService } from '../services/delivery.service.js';
 import { DeliveryManagementService } from '../services/delivery-management.service.js';
 import { TranslationCacheService } from '../translator/translation-cache.service.js';
 import { PollService } from '../services/poll.service.js';
-import { DispatchTranslationService, ModelTranslator } from '../translator/index.js';
+import { DispatchTranslationService, ModelTranslator, resolveModelName } from '../translator/index.js';
 import type { TranslationProvider } from '../translator/types.js';
-import type { ModelProvider } from '../contracts/api.js';
 import { runMigrations } from './migrator.js';
 import { loadEnvironment } from './environment.js';
 import { loadRuntimeOptions, type RuntimeOptions } from './options.js';
@@ -54,10 +50,7 @@ export interface RepositoryRegistry {
   groups: GroupRepository;
   templates: TemplateRepository;
   items: ItemRepository;
-  deliveryLogs: DeliveryLogRepository;
-  fetchLogs: FetchLogRepository;
-  modelConfig: ModelConfigRepository;
-  modelUsage: ModelUsageRepository;
+  eventLog: EventLogRepository;
   deliveryBindings: DeliveryBindingRepository;
   itemDeliveries: ItemDeliveryRepository;
   deliveryJobs: DeliveryJobRepository;
@@ -113,7 +106,7 @@ export interface CreateContainerOptions {
   feedFetcher?: (source: FeedFetchSource, options?: FetchFeedOptions) => Promise<FeedFetchResult>;
   postWebhook?: WebhookPostFunction;
   editWebhook?: WebhookEditFunction;
-  translationProviders?: Partial<Record<ModelProvider, TranslationProvider>>;
+  translationProvider?: TranslationProvider;
 }
 
 export function createContainer(options: CreateContainerOptions = {}): Container {
@@ -121,6 +114,7 @@ export function createContainer(options: CreateContainerOptions = {}): Container
   const env = loadEnvironment(options.env, { envFilePath: options.envFilePath });
   const config = options.config ?? loadConfig(env);
   const limits = { ...loadRuntimeOptions(env), ...options.runtimeOptions };
+  const model = resolveModelName(env);
   const db = options.db ?? openDatabase(config.databasePath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
@@ -132,10 +126,7 @@ export function createContainer(options: CreateContainerOptions = {}): Container
     groups: new GroupRepository(db),
     templates: new TemplateRepository(db),
     items: new ItemRepository(db),
-    deliveryLogs: new DeliveryLogRepository(db),
-    fetchLogs: new FetchLogRepository(db),
-    modelConfig: new ModelConfigRepository(db),
-    modelUsage: new ModelUsageRepository(db),
+    eventLog: new EventLogRepository(db),
     deliveryBindings: new DeliveryBindingRepository(db),
     itemDeliveries: new ItemDeliveryRepository(db),
     deliveryJobs: new DeliveryJobRepository(db),
@@ -145,11 +136,9 @@ export function createContainer(options: CreateContainerOptions = {}): Container
   const bindings = new DeliveryBindingService({ db, repositories });
   const planner = new DeliveryPlanService(repositories);
   bindings.reconcileAll(new Date().toISOString());
-  const interrupted = repositories.deliveryJobs.list({ state: 'running', limit: 100_000 });
-  // 이전 프로세스가 중단한 작업을 복구한 뒤 항목의 요약 상태를 맞춘다.
+  // 이전 프로세스가 중단한 작업을 복구한다.
   repositories.deliveryJobs.recoverInterrupted(new Date().toISOString());
-  for (const job of interrupted) repositories.deliveryJobs.syncItemState(job.itemId, new Date().toISOString());
-  const translator = new ModelTranslator({ repositories, env, providers: options.translationProviders });
+  const translator = new ModelTranslator({ repositories, env, model, provider: options.translationProvider });
   const translation = new DispatchTranslationService({ repositories, translator });
   const delivery = new DeliveryService({
     db,
@@ -214,7 +203,7 @@ export function createContainer(options: CreateContainerOptions = {}): Container
     }),
     templates: new TemplateService({ repositories }),
     preview,
-    model: new ModelService({ repositories, env, translation: new TranslationCacheService({ repositories, translator }) }),
+    model: new ModelService({ repositories, env, model, translation: new TranslationCacheService({ repositories, translator }) }),
     logs: new LogService({ repositories }),
     scheduler: new SchedulerService({ repositories, poller }),
     exportImport: new ExportImportService({

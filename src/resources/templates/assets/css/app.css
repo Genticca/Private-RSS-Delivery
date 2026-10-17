@@ -1062,6 +1062,12 @@ tr:hover td {
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
+.badge-translation {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
 .log-indicator {
   font-weight: bold;
   flex-shrink: 0;
@@ -1123,6 +1129,10 @@ tr:hover td {
   border-left-color: #3b82f6;
 }
 
+.log-entry.log-translation {
+  border-left-color: #10b981;
+}
+
 .log-entry.log-failed, 
 .log-entry.log-error {
   border-left-color: #ef4444;
@@ -1132,112 +1142,6 @@ tr:hover td {
 .log-entry.log-failed:hover, 
 .log-entry.log-error:hover {
   background-color: rgba(239, 68, 68, 0.08);
-}
-
-/* Translation Engine Modern Live Status Cards */
-.status-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.status-grid > div {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.status-grid > div:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--border-hover);
-}
-
-.status-grid > div::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-}
-
-.status-grid > .status-card-primary::before {
-  background: linear-gradient(90deg, #4f46e5, #6366f1);
-}
-
-.status-grid > .status-card-lang::before {
-  background: linear-gradient(90deg, #10b981, #34d399);
-}
-
-.status-grid dt {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.075em;
-  margin: 0;
-}
-
-.status-indicator-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.status-dot-pulse {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-  position: relative;
-}
-
-.status-dot-pulse.active,
-.status-dot-pulse.ready,
-.status-dot-pulse.configured,
-.status-dot-pulse.enabled {
-  background-color: var(--success);
-  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-  animation: pulse-green 1.8s infinite;
-}
-
-.status-dot-pulse.disabled {
-  background-color: var(--secondary);
-  box-shadow: none;
-}
-
-.status-dot-pulse.error,
-.status-dot-pulse.failed,
-.status-dot-pulse.invalid-key,
-.status-dot-pulse.missing-key {
-  background-color: var(--danger);
-  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-  animation: pulse-red 1.8s infinite;
-}
-
-@keyframes pulse-green {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-
-@keyframes pulse-red {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-
-.engine-info-label {
-  font-family: ui-monospace, monospace;
 }
 
 /* CodeMirror customization */

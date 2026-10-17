@@ -17,21 +17,20 @@ describe('CleanupWorker', () => {
     expect(delayUntilNextKstMidnight('2026-05-29T15:00:00.000Z')).toBe(24 * 60 * 60 * 1000);
   });
 
-  it('prunes delivery/fetch/model usage in one worker run', async () => {
+  it('prunes old fetch, delivery and translation events in one worker run', async () => {
     const container = openContainer();
     const old = '2026-01-01T00:00:00.000Z';
     const base = '2026-05-29T00:00:00.000Z';
     const source = container.repositories.sources.create({ feedUrl: 'https://example.com/feed.xml', createdAt: base });
     const item = container.repositories.items.insert({ sourceId: source.id, atomId: 'atom-1', contentHash: 'hash-1', createdAt: base });
-    container.repositories.deliveryLogs.append({ itemId: item.id, attemptNo: 1, status: 'failed', createdAt: old });
-    container.repositories.fetchLogs.append({ sourceId: source.id, outcome: 'error', createdAt: old });
-    container.repositories.modelUsage.append({ role: 'primary', provider: 'gemini', model: 'gemini-3.1-flash-lite', createdAt: old });
+    container.repositories.eventLog.append({ kind: 'delivery', status: 'failed', itemId: item.id, createdAt: old });
+    container.repositories.eventLog.append({ kind: 'fetch', status: 'error', sourceId: source.id, createdAt: old });
+    container.repositories.eventLog.append({ kind: 'translation', status: 'success', createdAt: old });
+    container.repositories.eventLog.append({ kind: 'fetch', status: 'ok', sourceId: source.id, createdAt: base });
 
     const worker = new CleanupWorker({ db: container.db, repositories: container.repositories });
-    await expect(worker.runOnce(base)).resolves.toEqual({ deliveryLogs: 1, fetchLogs: 1, modelUsage: 1 });
-    expect(container.repositories.deliveryLogs.list()).toEqual([]);
-    expect(container.repositories.fetchLogs.list()).toEqual([]);
-    expect(container.repositories.modelUsage.list()).toEqual([]);
+    await expect(worker.runOnce(base)).resolves.toEqual({ events: 3 });
+    expect(container.repositories.eventLog.list().map((event) => event.createdAt)).toEqual([base]);
   });
 
   it('clears scheduled timers on stop', () => {
@@ -42,9 +41,7 @@ describe('CleanupWorker', () => {
       const worker = new CleanupWorker({
         db,
         repositories: {
-          deliveryLogs: { pruneOlderThan: () => 0 },
-          fetchLogs: { pruneOlderThan: () => 0 },
-          modelUsage: { pruneOlderThan: () => 0 }
+          eventLog: { pruneOlderThan: () => 0 }
         } as never,
         setTimer: (() => fakeTimer) as never,
         clearTimer: (() => { cleared += 1; }) as never
@@ -67,13 +64,11 @@ describe('CleanupWorker', () => {
       const worker = new CleanupWorker({
         db,
         repositories: {
-          deliveryLogs: {
+          eventLog: {
             pruneOlderThan: () => {
               throw failure;
             }
-          },
-          fetchLogs: { pruneOlderThan: () => 0 },
-          modelUsage: { pruneOlderThan: () => 0 }
+          }
         } as never,
         now: () => '2026-05-29T00:00:00.000Z',
         setTimer: ((callback: () => void) => {

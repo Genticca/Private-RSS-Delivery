@@ -62,7 +62,7 @@ export class DeliveryWorker {
   private groupJobsByBucket(jobs: readonly DeliveryJobRecord[]): Map<string, DeliveryJobRecord[]> {
     const jobsByBucket = new Map<string, DeliveryJobRecord[]>();
     for (const job of jobs) {
-      const binding = job.bindingId === null ? null : this.options.bindings.getById(job.bindingId);
+      const binding = this.options.bindings.getById(job.bindingId);
       if (!binding) continue;
       const bucketJobs = jobsByBucket.get(binding.bucketKey) ?? [];
       bucketJobs.push(job);

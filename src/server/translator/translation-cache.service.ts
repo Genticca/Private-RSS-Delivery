@@ -1,7 +1,8 @@
-import type { ItemRecord, SourceRecord, TranslationCacheRepository, ModelConfigRepository } from '../db/index.js';
+import type { EventLogRepository, ItemRecord, SourceRecord, TranslationCacheRepository } from '../db/index.js';
 import { nowIso } from '../db/time.js';
 import { effectiveProfile } from '../domain/normalize/profile.js';
 import { localTranslation, requiredTranslationFields, translationCacheKey, type TranslationField } from '../domain/translation/policy.js';
+import { TARGET_LANG } from './prompt.js';
 import type { ModelTranslator } from './translator.js';
 
 interface FieldResult {
@@ -33,7 +34,7 @@ interface OwnedField {
 export interface TranslationCacheServiceOptions {
   repositories: {
     translationCache: TranslationCacheRepository;
-    modelConfig: Pick<ModelConfigRepository, 'getByRole'>
+    eventLog: Pick<EventLogRepository, 'append'>
   };
   translator: Pick<ModelTranslator, 'translate'>;
   failureCooldownMs?: number;
@@ -47,7 +48,11 @@ export class TranslationCacheService {
   async translate(item: TranslationItem, source: TranslationSource, options: CachedTranslationOptions = {}) {
     const now = options.now ?? nowIso();
     const cacheRepository = this.options.repositories.translationCache;
-    const targetLang = this.options.repositories.modelConfig.getByRole('primary')?.targetLang ?? 'ko';
+    // 실제 요청 없이 끝난 필드도 번역 로그에 남긴다. 같은 요청 합치기는 캐시 사용으로 본다.
+    const record = (status: 'cache_hit' | 'skipped', field: TranslationField, reason: string) =>
+      this.options.repositories.eventLog.append({
+        kind: 'translation', status, itemId: item.id, jobId: options.jobId, detail: `${field}: ${reason}`, createdAt: now
+      });
     const profile = effectiveProfile(source.profileSetting, source.detectedProfile);
     const fields = requiredTranslationFields(options.templateBody, source);
     // pendingFields는 기다릴 모든 필드, ownedFields는 이번 호출이 직접 번역해야 할 필드다.
@@ -56,22 +61,22 @@ export class TranslationCacheService {
     try {
       for (const field of fields) {
         const text = item[field] ?? '';
-        const local = localTranslation(text, targetLang);
+        const local = localTranslation(text, TARGET_LANG);
         if (local !== null) {
-          cacheRepository.event('local_skip', now, item.id, options.jobId);
+          record('skipped', field, 'local');
           pendingFields.set(field, Promise.resolve({ value: local, translated: true }));
           continue;
         }
-        const key = translationCacheKey(field, text, profile, targetLang);
+        const key = translationCacheKey(field, text, profile, TARGET_LANG);
         const cached = cacheRepository.get(key);
         if (!options.fresh && cached?.status === 'success' && cached.value !== null) {
-          cacheRepository.event('cache_hit', now, item.id, options.jobId);
+          record('cache_hit', field, 'cache');
           pendingFields.set(field, Promise.resolve({ value: cached.value, translated: true }));
         } else if (!options.ignoreCooldown && cached?.retryAfter && cached.retryAfter > now) {
-          cacheRepository.event('failure_cooldown', now, item.id, options.jobId);
+          record('skipped', field, 'failure_cooldown');
           pendingFields.set(field, Promise.resolve({ value: text, translated: false }));
         } else if (this.inFlightTranslations.has(key)) {
-          cacheRepository.event('single_flight', now, item.id, options.jobId);
+          record('cache_hit', field, 'single_flight');
           pendingFields.set(field, this.inFlightTranslations.get(key)!);
         } else {
           let resolve!: Deferred['resolve'];

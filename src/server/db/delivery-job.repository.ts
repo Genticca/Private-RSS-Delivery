@@ -8,7 +8,7 @@ import type { SourceRecord } from './source.repository.js';
 export interface DeliveryJobRecord {
   id: number;
   itemId: number;
-  bindingId: number | null;
+  bindingId: number;
   operation: DeliveryOperation;
   revision: number;
   state: DeliveryJobState;
@@ -158,55 +158,19 @@ export class DeliveryJobRepository {
   }
 
   retryFailed(sourceId: string, now: string): number {
-    return this.db.transaction(() => {
-      const items = this.db.prepare(`SELECT DISTINCT item_id FROM delivery_jobs WHERE state = 'failed'
-        AND binding_id IN (SELECT id FROM delivery_bindings WHERE source_id = ? AND ended_at IS NULL)`).all(sourceId) as Array<{
-        item_id: number
-      }>;
-      const count = this.db.prepare(`UPDATE delivery_jobs SET state = 'pending', attempt_count = 0, next_attempt_at = ?, error = NULL, completed_at = NULL
-        WHERE state = 'failed' AND binding_id IN (SELECT id FROM delivery_bindings WHERE source_id = ? AND ended_at IS NULL)`).run(now, sourceId).changes;
-      for (const item of items) this.syncItemState(item.item_id, now);
-      return count;
-    })();
-  }
-
-  syncItemState(itemId: number, now: string): void {
-    const jobs = this.list({ itemId, limit: 100_000 });
-    if (jobs.length === 0) return;
-    const pendingJobs = jobs.filter((job) => job.state === 'pending' || job.state === 'running');
-    const hasHeldJob = jobs.some((job) => job.state === 'held');
-    const failedJob = jobs.find((job) => ['failed', 'unknown', 'legacy_unknown', 'uneditable'].includes(job.state));
-    const hasSucceededJob = jobs.some((job) => job.state === 'succeeded');
-
-    // 항목은 여러 목적지의 작업을 묶어 표시한다. 미완료 → 실패 → 성공 순으로 우선한다.
-    let state: ItemRecord['deliveryStatus'] = 'historical';
-    if (pendingJobs.length > 0 || hasHeldJob) state = 'pending';
-    else if (failedJob) state = 'failed';
-    else if (hasSucceededJob) state = 'delivered';
-
-    const nextAttemptAt = pendingJobs.map((job) => job.nextAttemptAt).filter(Boolean).sort()[0] ?? null;
-    const attemptCount = Math.max(0, ...jobs.map((job) => job.attemptCount));
-    this.db.prepare(`UPDATE items SET delivery_status = ?, next_attempt_at = ?, failure_reason = ?,
-      failed_at = ?, delivered_at = CASE WHEN ? = 'delivered' THEN COALESCE(delivered_at, ?) ELSE delivered_at END,
-      attempt_count = ? WHERE id = ?`).run(
-      state, nextAttemptAt, failedJob?.error ?? null, state === 'failed' ? now : null,
-      state, now, attemptCount, itemId
-    );
+    return this.db.prepare(`UPDATE delivery_jobs SET state = 'pending', attempt_count = 0, next_attempt_at = ?, error = NULL, completed_at = NULL
+      WHERE state = 'failed' AND binding_id IN (SELECT id FROM delivery_bindings WHERE source_id = ? AND ended_at IS NULL)`).run(now, sourceId).changes;
   }
 
   reviewHeld(id: number, decision: 'send' | 'historical', now: string): boolean {
-    const job = this.getById(id);
-    if (!job || job.state !== 'held') return false;
     const shouldSend = decision === 'send';
-    const result = this.db.prepare(`UPDATE delivery_jobs SET state = ?, next_attempt_at = ?, completed_at = ?, error = ?
+    return this.db.prepare(`UPDATE delivery_jobs SET state = ?, next_attempt_at = ?, completed_at = ?, error = ?
       WHERE id = ? AND state = 'held' AND binding_id IN (SELECT id FROM delivery_bindings WHERE ended_at IS NULL)`)
       .run(shouldSend ? 'pending' : 'cancelled', shouldSend ? now : null, shouldSend ? null : now,
-        shouldSend ? null : 'Marked historical by administrator', id);
-    this.syncItemState(job.itemId, now);
-    return result.changes > 0;
+        shouldSend ? null : 'Marked historical by administrator', id).changes > 0;
   }
 }
 
 function sourceSnapshot(source: SourceRecord): string {
-  return JSON.stringify({ ...source, webhookUrl: null, fetchOptions: {} });
+  return JSON.stringify({ ...source, fetchOptions: {} });
 }
