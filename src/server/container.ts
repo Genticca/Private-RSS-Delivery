@@ -4,45 +4,44 @@ import { GroupRepository } from './groups/repository.js';
 import { TemplateRepository } from './templates/repository.js';
 import { ItemRepository } from './feed/repository.js';
 import { EventLogRepository } from './logs/repository.js';
-import { DeliveryBindingRepository } from './db/delivery-binding.repository.js';
-import { ItemDeliveryRepository } from './db/item-delivery.repository.js';
-import { DeliveryJobRepository } from './db/delivery-job.repository.js';
-import { TranslationCacheRepository } from './db/translation-cache.repository.js';
+import { DeliveryBindingRepository } from './delivery/repository.js';
+import { ItemDeliveryRepository } from './delivery/repository.js';
+import { DeliveryJobRepository } from './delivery/repository.js';
+import { TranslationCacheRepository } from './translation/cache.js';
 import { CleanupWorker } from './workers/cleanup-worker.js';
-import { DeliveryWorker } from './workers/delivery-worker.js';
-import { PollWorker } from './workers/poll-worker.js';
+import { DeliveryWorker } from './delivery/worker.js';
+import { PollWorker } from './collect/worker.js';
 import { SourceService } from './sources/service.js';
 import { GroupService } from './groups/service.js';
 import { TemplateService } from './templates/service.js';
-import { PreviewService } from './services/preview.service.js';
-import { ModelService } from './services/model.service.js';
+import { PreviewService } from './delivery/preview.js';
+import { ModelService } from './translation/service.js';
 import { LogService } from './logs/service.js';
-import { SchedulerService } from './services/scheduler.service.js';
 import { ExportImportService } from './services/export-import.service.js';
-import { TestSendService } from './services/test-send.service.js';
-import { DeliveryBindingService } from './services/delivery-binding.service.js';
-import { DeliveryPlanService } from './services/delivery-plan.service.js';
-import { DeliveryService } from './services/delivery.service.js';
-import { PollService } from './services/poll.service.js';
-import { DeliveryManagementService } from './services/delivery-management.service.js';
+import { TestSendService } from './delivery/preview.js';
+import { DeliveryBindingService } from './delivery/bindings.js';
+import { DeliveryPlanService } from './delivery/plan.js';
+import { DeliveryService } from './delivery/service.js';
+import { PollService } from './collect/service.js';
+import { DeliveryManagementService } from './delivery/review.js';
 import type { AppConfig } from './core/config.js';
 import Database from 'better-sqlite3';
 import type { RuntimeOptions } from './core/config.js';
 import type { FeedFetchSource } from './net/fetch.js';
 import type { FetchFeedOptions } from './net/fetch.js';
 import type { FeedFetchResult } from './net/fetch.js';
-import type { WebhookPostFunction } from './dispatcher/discord-client.js';
-import type { WebhookEditFunction } from './dispatcher/discord-client.js';
-import type { TranslationProvider } from './translator/types.js';
+import type { WebhookPostFunction } from './delivery/discord.js';
+import type { WebhookEditFunction } from './delivery/discord.js';
+import type { TranslationProvider } from './translation/translator.js';
 import { loadEnvironment } from './core/config.js';
 import { loadConfig } from './core/config.js';
 import { loadRuntimeOptions } from './core/config.js';
-import { resolveModelName } from './translator/keys.js';
+import { resolveModelName } from './translation/gemini.js';
 import { runMigrations } from './core/db.js';
 import { seedBuiltinPresets } from './templates/repository.js';
-import { ModelTranslator } from './translator/translator.js';
-import { DispatchTranslationService } from './translator/translator.js';
-import { TranslationCacheService } from './translator/translation-cache.service.js';
+import { ModelTranslator } from './translation/translator.js';
+import { DispatchTranslationService } from './translation/translator.js';
+import { TranslationCacheService } from './translation/cache.js';
 import { stopAndDrain } from './core/worker.js';
 import { closeSsrSafeAgents } from './net/fetch.js';
 import { mkdirSync } from 'node:fs';
@@ -74,7 +73,6 @@ export interface ServiceRegistry {
   preview: PreviewService;
   model: ModelService;
   logs: LogService;
-  scheduler: SchedulerService;
   exportImport: ExportImportService;
   testSend: TestSendService;
   deliveryBindings: DeliveryBindingService;
@@ -216,7 +214,6 @@ export function createContainer(options: CreateContainerOptions = {}): Container
     preview,
     model: new ModelService({ repositories, env, model, translator, translation: new TranslationCacheService({ repositories, translator }) }),
     logs: new LogService({ repositories }),
-    scheduler: new SchedulerService({ repositories, poller }),
     exportImport: new ExportImportService({
       db,
       repositories,

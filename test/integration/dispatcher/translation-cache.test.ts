@@ -1,15 +1,15 @@
 import { vi } from 'vitest';
-import type { TranslationInput } from '../../../src/server/translator/types.js';
-import type { TranslationResult } from '../../../src/server/translator/types.js';
+import type { TranslationInput } from '../../../src/server/translation/translator.js';
+import type { TranslationResult } from '../../../src/server/translation/translator.js';
 import { describe } from 'vitest';
 import { it } from 'vitest';
-import { TranslationProviderError } from '../../../src/server/translator/types.js';
+import { TranslationProviderError } from '../../../src/server/translation/translator.js';
 import { harness } from '../../mocks/runtime.js';
 import { addSecondsIso } from '../../../src/server/core/db.js';
 import { BASE } from '../../mocks/runtime.js';
 import { expect } from 'vitest';
-import { DispatchTranslationService } from '../../../src/server/translator/translator.js';
-import { requiredTranslationFields } from '../../../src/server/domain/translation/policy.js';
+import { DispatchTranslationService } from '../../../src/server/translation/translator.js';
+import { requiredTranslationFields } from '../../../src/server/translation/cache.js';
 import { WEBHOOK_B } from '../../mocks/runtime.js';
 
 function fakeTranslator() {

@@ -131,7 +131,7 @@ describe('destination-bound delivery jobs', () => {
   it('quarantines POST timeout and excludes unknown from manual failed retry', async () => {
     const h = await harness(); await h.baseline(); await h.poll([{ id: 'one' }]);
     h.post.mockRejectedValue(new Error('timeout')); await h.run();
-    expect(h.container.services.sources.retryFailed(h.source().id)).toBe(0);
+    expect(h.container.services.deliveryManagement.retryFailed(h.source().id)).toBe(0);
     await h.run(addSecondsIso(BASE, 1000)); expect(h.post).toHaveBeenCalledTimes(1);
   });
 
@@ -157,7 +157,7 @@ describe('destination-bound delivery jobs', () => {
     h.post.mockImplementation(async (request) => request.destination.webhookUrl === WEBHOOK_A ? { statusCode: 200, messageId: '123' } : { statusCode: 400 });
     await h.poll([{ id: 'one' }]); await h.run();
     expect(h.jobs().map((j) => j.state).sort()).toEqual(['failed', 'succeeded']);
-    expect(h.container.services.sources.retryFailed(h.source().id)).toBe(1);
+    expect(h.container.services.deliveryManagement.retryFailed(h.source().id)).toBe(1);
     await h.run(new Date().toISOString());
     expect(h.post.mock.calls.filter(([request]) => request.destination.webhookUrl === WEBHOOK_A)).toHaveLength(1);
   });

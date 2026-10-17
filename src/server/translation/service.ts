@@ -1,16 +1,28 @@
+import type { TranslationEventStatus } from '../logs/repository.js';
+import type { ModelKeyDiagnostics } from './translator.js';
 import type { EventLogRepository } from '../logs/repository.js';
-import type { TranslationCacheService } from '../translator/translation-cache.service.js';
-import type { ModelTranslator } from '../translator/translator.js';
-import type { ModelDiagnosticsResponse } from '../contracts/api.js';
-import { resolveModelCredentials } from '../translator/keys.js';
-import type { ModelKeyDiagnostics } from '../contracts/api.js';
-import { DEFAULT_MODEL } from '../translator/keys.js';
+import type { TranslationCacheService } from './cache.js';
+import type { ModelTranslator } from './translator.js';
+import { resolveModelCredentials } from './gemini.js';
+import { DEFAULT_MODEL } from './gemini.js';
 import { requireObject } from '../core/input.js';
 import { optionalString } from '../core/input.js';
 import { validationError } from '../core/errors.js';
 import { optionalBoolean } from '../core/input.js';
-import type { ModelStatus } from '../contracts/api.js';
 import { nowIso } from '../core/db.js';
+
+export type ModelStatus = 'ready' | 'missing-key' | 'invalid-key' | 'cooldown';
+
+/** 번역 모델은 환경 변수(GEMINI_MODEL, PRIMARY_MODEL_API_KEY)로 정한다. 키 원문은 응답에 넣지 않는다. */
+export interface ModelDiagnosticsResponse {
+  model: string;
+  status: ModelStatus;
+  lastRequestAt: string | null;
+  /** 'success', 실패 코드(timeout·invalid-key 등) 또는 호출 전 안내 문구다. */
+  lastRequestResult: string;
+  counts: Record<TranslationEventStatus, number>;
+  keys: ModelKeyDiagnostics;
+}
 
 export interface ModelServiceOptions {
   repositories: {

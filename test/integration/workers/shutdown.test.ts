@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { harness, BASE } from '../../mocks/runtime.js';
-import type { WebhookPostResponse } from '../../../src/server/dispatcher/discord-client.js';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { harness } from '../../mocks/runtime.js';
+import type { WebhookPostResponse } from '../../../src/server/delivery/discord.js';
+import { expect } from 'vitest';
+import { BASE } from '../../mocks/runtime.js';
 
 describe('worker drain and SQLite lifetime', () => {
   it('waits for an in-flight Discord response and commits before closing SQLite', async () => {

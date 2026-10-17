@@ -7,7 +7,7 @@ import { addSecondsIso } from '../../../src/server/core/db.js';
 import { BASE } from '../../mocks/runtime.js';
 import { rss } from '../../mocks/runtime.js';
 import { WEBHOOK_B } from '../../mocks/runtime.js';
-import { PollWorker } from '../../../src/server/workers/poll-worker.js';
+import { PollWorker } from '../../../src/server/collect/worker.js';
 import { vi } from 'vitest';
 
 describe('polling and delivery planning', () => {

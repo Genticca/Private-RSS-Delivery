@@ -1,11 +1,11 @@
-import type { DeliveryJobState } from '../domain/delivery/policy.js';
+import type { DeliveryJobState } from './repository.js';
 import type Database from 'better-sqlite3';
-import type { DeliveryJobRepository } from '../db/delivery-job.repository.js';
-import type { DeliveryBindingRepository } from '../db/delivery-binding.repository.js';
+import type { DeliveryJobRepository } from './repository.js';
+import type { DeliveryBindingRepository } from './repository.js';
 import type { ItemRepository } from '../feed/repository.js';
 import type { SourceRepository } from '../sources/repository.js';
-import type { ItemDeliveryRepository } from '../db/item-delivery.repository.js';
-import type { DeliveryPlanService } from './delivery-plan.service.js';
+import type { ItemDeliveryRepository } from './repository.js';
+import type { DeliveryPlanService } from './plan.js';
 import { requireObject } from '../core/input.js';
 import { optionalString } from '../core/input.js';
 import { validationError } from '../core/errors.js';
@@ -36,6 +36,11 @@ export class DeliveryManagementService {
     },
     private readonly planner: DeliveryPlanService
   ) { }
+
+  retryFailed(sourceId: string): number {
+    if (!this.repositories.sources.getById(sourceId)) throw notFound('소스를 찾을 수 없습니다.');
+    return this.repositories.deliveryJobs.retryFailed(sourceId, nowIso());
+  }
 
   list(value: unknown = {}) {
     const query = requireObject(value);

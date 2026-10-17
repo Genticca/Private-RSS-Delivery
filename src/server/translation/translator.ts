@@ -1,23 +1,65 @@
 import type { EventLogRepository } from '../logs/repository.js';
-import type { TranslationProvider } from './types.js';
-import type { TranslationCacheRepository } from '../db/translation-cache.repository.js';
-import type { ModelCredential } from './keys.js';
-import { GeminiTranslationProvider } from './providers/gemini.js';
-import type { TranslationInput } from './types.js';
-import type { TranslationResult } from './types.js';
-import { resolveModelCredentials } from './keys.js';
-import { buildTranslationPrompt } from './prompt.js';
-import { TARGET_LANG } from './prompt.js';
-import type { TranslationProviderResponse } from './types.js';
-import { DEFAULT_MODEL } from './keys.js';
-import { parseTranslationResponse } from './prompt.js';
-import type { ModelKeyDiagnostics } from '../contracts/api.js';
+import type { TranslationCacheRepository } from './cache.js';
+import type { ModelCredential } from './gemini.js';
+import { GeminiTranslationProvider } from './gemini.js';
+import { resolveModelCredentials } from './gemini.js';
+import { DEFAULT_MODEL } from './gemini.js';
 import { nowIso } from '../core/db.js';
-import { TranslationCacheService } from './translation-cache.service.js';
+import { TranslationCacheService } from './cache.js';
 import type { ItemRecord } from '../feed/repository.js';
 import type { SourceRecord } from '../sources/repository.js';
 import type { TranslatedItem } from '../templates/render.js';
-import { TranslationProviderError } from './types.js';
+
+export interface ModelKeyDiagnostics {
+  /** 대기 중이 아닌 키 중 다음 요청에 사용할 우선순위가 가장 높은 슬롯. */
+  activeKey: 'primary' | 'fallback' | null;
+  primary: { state: 'missing' | 'ready' | 'cooldown'; retryAt: string | null };
+  fallback: { state: 'missing' | 'ready' | 'cooldown'; retryAt: string | null };
+}
+
+/** 번역 대상 언어는 한국어로 고정한다. */
+export const TARGET_LANG = 'ko';
+
+export interface TranslationPromptInput {
+  title: string;
+  summary: string;
+  targetLang: string;
+}
+
+export interface ParsedTranslation {
+  title: string;
+  summary: string;
+}
+
+export function buildTranslationPrompt(input: TranslationPromptInput): string {
+  return JSON.stringify({
+    instruction: `Translate title and summary to ${input.targetLang}. Translate each field independently without using the other field as context. Preserve URLs, CVE IDs, product names, versions, and incident stage labels.`,
+    title: input.title,
+    summary: input.summary
+  });
+}
+
+export function parseTranslationResponse(value: string): ParsedTranslation {
+  const parsed = JSON.parse(extractJsonObject(value)) as unknown;
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Translation response must be a JSON object.');
+  }
+  const record = parsed as Record<string, unknown>;
+  if (typeof record.title !== 'string' || typeof record.summary !== 'string') {
+    throw new Error('Translation response must include string title and summary.');
+  }
+  return { title: record.title, summary: record.summary };
+}
+
+function extractJsonObject(value: string): string {
+  // 모델이 코드 블록이나 설명을 덧붙여도 JSON 객체 부분을 추출해 검증한다.
+  const trimmed = value.trim();
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) return trimmed;
+  const start = trimmed.indexOf('{');
+  const end = trimmed.lastIndexOf('}');
+  if (start >= 0 && end > start) return trimmed.slice(start, end + 1);
+  throw new Error('Translation response did not contain a JSON object.');
+}
 
 export interface ModelTranslatorOptions {
   repositories: {
@@ -234,4 +276,45 @@ function statusFromError(error: unknown): number | null {
     if (typeof status === 'number' && Number.isInteger(status)) return status;
   }
   return null;
+}
+
+export interface TranslationInput {
+  itemId?: number;
+  jobId?: number;
+  title: string;
+  summary: string;
+}
+
+/** translated가 false이면 title·summary는 번역 실패 시 사용할 원문이다. */
+export interface TranslationResult {
+  title: string;
+  summary: string;
+  translated: boolean;
+}
+
+export interface TranslationProviderRequest {
+  apiKey: string;
+  model: string;
+  prompt: string;
+  maxOutputTokens: number;
+  signal?: AbortSignal;
+}
+
+export interface TranslationProviderResponse {
+  text: string;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  finishReason?: string | null;
+}
+
+/** 공급자는 통신과 응답 매핑을 담당하고, 실패 처리와 기록은 ModelTranslator에 맡긴다. */
+export interface TranslationProvider {
+  generate(request: TranslationProviderRequest): Promise<TranslationProviderResponse>;
+}
+
+export class TranslationProviderError extends Error {
+  constructor(message: string, readonly statusCode?: number) {
+    super(message);
+    this.name = 'TranslationProviderError';
+  }
 }

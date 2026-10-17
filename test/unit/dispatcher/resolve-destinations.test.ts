@@ -1,8 +1,8 @@
 import { describe } from 'vitest';
 import { it } from 'vitest';
 import { expect } from 'vitest';
-import { mapGroupDestination } from '../../../src/server/dispatcher/resolve-destinations.js';
-import { resolveDestinationsForSource } from '../../../src/server/dispatcher/resolve-destinations.js';
+import { mapGroupDestination } from '../../../src/server/delivery/bindings.js';
+import { resolveDestinationsForSource } from '../../../src/server/delivery/bindings.js';
 import type { GroupRecord } from '../../../src/server/groups/repository.js';
 import { canonicalWebhookUrl } from '../../../src/server/net/webhook-url.js';
 import { createHash } from 'node:crypto';

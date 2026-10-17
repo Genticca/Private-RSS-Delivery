@@ -2,15 +2,15 @@ import type { Container } from '../../../src/server/container.js';
 import { afterEach } from 'vitest';
 import { describe } from 'vitest';
 import { it } from 'vitest';
-import { ModelTranslator } from '../../../src/server/translator/translator.js';
+import { ModelTranslator } from '../../../src/server/translation/translator.js';
 import { expect } from 'vitest';
-import { TranslationProviderError } from '../../../src/server/translator/types.js';
-import { resolveModelName } from '../../../src/server/translator/keys.js';
+import { TranslationProviderError } from '../../../src/server/translation/translator.js';
+import { resolveModelName } from '../../../src/server/translation/gemini.js';
 import { createContainer } from '../../../src/server/container.js';
-import type { TranslationProviderRequest } from '../../../src/server/translator/types.js';
-import type { TranslationProvider } from '../../../src/server/translator/types.js';
-import { resolveModelCredentials } from '../../../src/server/translator/keys.js';
-import type { TranslationProviderResponse } from '../../../src/server/translator/types.js';
+import type { TranslationProviderRequest } from '../../../src/server/translation/translator.js';
+import type { TranslationProvider } from '../../../src/server/translation/translator.js';
+import { resolveModelCredentials } from '../../../src/server/translation/gemini.js';
+import type { TranslationProviderResponse } from '../../../src/server/translation/translator.js';
 
 const containers: Container[] = [];
 

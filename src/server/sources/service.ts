@@ -11,7 +11,6 @@ import type { SourceGroupRepository } from './repository.js';
 import type { GroupRepository } from '../groups/repository.js';
 import type { EventLogRepository } from '../logs/repository.js';
 import type { ItemRepository } from '../feed/repository.js';
-import type { DeliveryJobRepository } from '../db/delivery-job.repository.js';
 import type { TemplateRepository } from '../templates/repository.js';
 import { normalizeSourceCreate } from './input.js';
 import { conflict } from '../core/errors.js';
@@ -113,7 +112,6 @@ export interface SourceServiceOptions {
     groups: Pick<GroupRepository, 'listNamesByIds' | 'getById'>;
     eventLog: Pick<EventLogRepository, 'latestFetchStatusBySourceIds'>;
     items: Pick<ItemRepository, 'deleteBySourceId'>;
-    deliveryJobs: Pick<DeliveryJobRepository, 'retryFailed'>;
     templates: Pick<TemplateRepository, 'getById'>;
   };
   now?: () => string;
@@ -260,11 +258,6 @@ export class SourceService {
       this.options.reconcileDestinations?.(id, timestamp);
     });
     return this.toDto(id);
-  }
-
-  retryFailed(id: string): number {
-    this.requireSource(id);
-    return this.options.repositories.deliveryJobs.retryFailed(id, this.now());
   }
 
   private toDto(id: string): SourceDto {

@@ -2,8 +2,8 @@ import type { Container } from '../../../src/server/container.js';
 import { afterEach } from 'vitest';
 import { describe } from 'vitest';
 import { it } from 'vitest';
-import type { WebhookPostRequest } from '../../../src/server/dispatcher/discord-client.js';
-import { TestSendService } from '../../../src/server/services/test-send.service.js';
+import type { WebhookPostRequest } from '../../../src/server/delivery/discord.js';
+import { TestSendService } from '../../../src/server/delivery/preview.js';
 import { expect } from 'vitest';
 import { createContainer } from '../../../src/server/container.js';
 

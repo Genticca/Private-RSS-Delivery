@@ -7,8 +7,8 @@ import type { PresetRenderContext } from '../../../src/server/templates/render.j
 import type { SourceDto } from '../../../src/server/sources/service.js';
 import type { GroupDto } from '../../../src/server/groups/service.js';
 import type { LogsResponse } from '../../../src/server/logs/service.js';
-import type { ModelDiagnosticsResponse } from '../../../src/server/contracts/api.js';
-import type { PreviewError } from '../../../src/server/contracts/api.js';
+import type { ModelDiagnosticsResponse } from '../../../src/server/translation/service.js';
+import type { PreviewError } from '../../../src/server/delivery/preview.js';
 import type { DashboardViewModel } from '../../../src/server/contracts/view-models.js';
 import { SOURCE_PROFILE_OPTIONS } from '../../../src/server/feed/parse.js';
 import type { SourceFormViewModel } from '../../../src/server/contracts/view-models.js';

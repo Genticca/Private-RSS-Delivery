@@ -1,10 +1,15 @@
-import { describe, expect, it, vi } from 'vitest';
+import { vi } from 'vitest';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { GeminiTranslationProvider } from '../../../src/server/translation/gemini.js';
+import { expect } from 'vitest';
+
 const mocks = vi.hoisted(() => ({ generate: vi.fn(), create: vi.fn() }));
+
 vi.mock('@google/genai', () => ({ GoogleGenAI: class {
   constructor(options: unknown) { mocks.create(options); }
   models = { generateContent: mocks.generate };
 } }));
-import { GeminiTranslationProvider } from '../../../src/server/translator/providers/gemini.js';
 
 describe('Gemini SDK adapter contract', () => {
   it('forwards the model, cancellation and required JSON fields to the SDK', async () => {

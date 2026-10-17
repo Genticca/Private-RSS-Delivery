@@ -1,9 +1,9 @@
 import type { SourceRepository } from '../sources/repository.js';
-import type { PollService } from '../services/poll.service.js';
+import type { PollService } from './service.js';
 import { TaskTracker } from '../core/worker.js';
-import type { PollSourceResult } from '../services/poll.service.js';
+import type { PollSourceResult } from './service.js';
 import { mapConcurrent } from '../core/worker.js';
-import { emptyResult } from '../services/poll.service.js';
+import { emptyResult } from './service.js';
 import type { SourceRecord } from '../sources/repository.js';
 import { nowIso } from '../core/db.js';
 

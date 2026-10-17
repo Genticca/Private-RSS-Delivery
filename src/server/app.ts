@@ -1,3 +1,4 @@
+import { registerCollectRoutes } from './collect/routes.js';
 import type { FastifyInstance } from 'fastify';
 import type { Container } from './container.js';
 import Fastify from 'fastify';
@@ -50,6 +51,7 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     await registerMultipart(instance);
     await registerViewAndStatic(instance);
     await registerApiRoutes(instance, container.services);
+    await registerCollectRoutes(instance, { sources: container.repositories.sources, poller: container.workers.poller });
     await registerWebRoutes(instance, container.services);
   });
 

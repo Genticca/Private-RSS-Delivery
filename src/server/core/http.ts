@@ -16,14 +16,6 @@ export function queryInt(value: unknown): number | undefined {
   return Number.isInteger(parsed) ? parsed : undefined;
 }
 
-export function translationDiagnostic(value: unknown): string {
-  return renderPartial('translation-diagnostic', value);
-}
-
-export function modelDiagnostics(value: object): string {
-  return renderPartial('model-diagnostics', { ...value, oob: true });
-}
-
 export function flash(message: string): string {
   return renderPartial('flash', { message });
 }

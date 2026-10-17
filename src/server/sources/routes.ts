@@ -1,5 +1,5 @@
+import type { SourceService } from './service.js';
 import type { FastifyInstance } from 'fastify';
-import type { ServiceRegistry } from '../container.js';
 import type { IdParam } from '../core/http.js';
 import { isHtmxRequest } from '../core/http.js';
 import { redirectMutation } from '../core/http.js';
@@ -9,7 +9,7 @@ import { flash } from '../core/http.js';
 import { renderPartial } from '../core/http.js';
 
 /** 피드 소스 관리와 수동 수집·테스트 발송 요청을 해당 서비스에 연결한다. */
-export async function registerSourceRoutes(app: FastifyInstance, services: ServiceRegistry): Promise<void> {
+export async function registerSourceRoutes(app: FastifyInstance, services: { sources: SourceService }): Promise<void> {
   app.get('/api/sources', async () => services.sources.list());
 
   app.get<{
@@ -48,31 +48,6 @@ export async function registerSourceRoutes(app: FastifyInstance, services: Servi
   }>('/api/sources/:id/enabled', async (request, reply) =>
     mutationReply(reply, () => services.sources.setEnabled(request.params.id, requestBody(request)), sourceRow)
   );
-
-  // 수동 수집도 예약 수집과 같은 워커를 사용해 동일 소스의 중복 실행을 방지한다.
-  app.post<{
-    Params: IdParam
-  }>('/api/sources/:id/poll', async (request, reply) =>
-    mutationReply(reply, () => services.scheduler.triggerPoll(request.params.id), () => flash('폴링을 요청했습니다.'))
-  );
-
-  // 미리보기와 달리 실제 Discord 메시지를 전송한다. 전송이 끝난 뒤 성공 안내를 반환한다.
-  app.post<{
-    Params: IdParam
-  }>('/api/sources/:id/test', async (request, reply) =>
-    mutationReply(reply, () => services.testSend.testSource(request.params.id), () => flash('테스트 메시지를 전송했습니다.'))
-  );
-
-  // 실패 작업을 대기열에 되돌리는 요청이다. 응답의 건수는 즉시 발송한 메시지 수가 아니다.
-  app.post<{
-    Params: IdParam
-  }>('/api/sources/:id/retry-failed', async (request, reply) =>
-    mutationReply(reply, () => services.sources.retryFailed(request.params.id), (count) => flash(`재시도 대기열에 추가했습니다: ${String(count)}건`))
-  );
-
-  app.get<{
-    Params: IdParam
-  }>('/api/sources/:id/sample-item', async (request) => services.preview.sampleItem(request.params.id));
 }
 
 export function sourceRow(value: unknown): string {

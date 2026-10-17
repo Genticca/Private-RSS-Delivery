@@ -1,10 +1,59 @@
-import type { DeliveryOperation } from '../domain/delivery/policy.js';
-import type { DeliveryJobState } from '../domain/delivery/policy.js';
 import type Database from 'better-sqlite3';
 import type { ItemRecord } from '../feed/repository.js';
 import type { SourceRecord } from '../sources/repository.js';
 import { randomUUID } from 'node:crypto';
 import type { DiscordWebhookPayload } from '../templates/render.js';
+
+export interface DeliveryBindingRecord {
+  id: number;
+  sourceId: string;
+  destinationKey: string;
+  bucketKey: string;
+  label: string;
+  createdAt: string;
+  endedAt: string | null;
+  baselineItemId: number | null;
+  baselineAt: string | null;
+}
+
+const COLUMNS = `id, source_id AS sourceId, destination_key AS destinationKey, bucket_key AS bucketKey,
+  label, created_at AS createdAt, ended_at AS endedAt,
+  baseline_item_id AS baselineItemId, baseline_at AS baselineAt`;
+
+export class DeliveryBindingRepository {
+  constructor(private readonly db: Database.Database) { }
+
+  getById(id: number): DeliveryBindingRecord | null {
+    return this.db.prepare(`SELECT ${COLUMNS} FROM delivery_bindings WHERE id = ?`).get(id) as DeliveryBindingRecord ?? null;
+  }
+
+  listActive(sourceId: string): DeliveryBindingRecord[] {
+    return this.db.prepare(`SELECT ${COLUMNS} FROM delivery_bindings
+      WHERE source_id = ? AND ended_at IS NULL ORDER BY id`).all(sourceId) as DeliveryBindingRecord[];
+  }
+
+  create(sourceId: string, destinationKey: string, bucketKey: string, now: string, label = ''): DeliveryBindingRecord {
+    const result = this.db.prepare(`
+      INSERT INTO delivery_bindings(source_id, destination_key, bucket_key, created_at, label)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(sourceId, destinationKey, bucketKey, now, label);
+    return this.getById(Number(result.lastInsertRowid))!;
+  }
+
+  end(id: number, now: string): void {
+    // 연결 이력은 삭제하지 않는다. 종료 시점과 대기 작업 취소를 기록해 이전 발송의 계보를 보존한다.
+    this.db.prepare('UPDATE delivery_bindings SET ended_at = ? WHERE id = ? AND ended_at IS NULL').run(now, id);
+    this.db.prepare(`
+      UPDATE delivery_jobs SET state = 'cancelled', error = 'Connection ended', completed_at = ?, claim_token = NULL
+      WHERE binding_id = ? AND state IN ('pending','held','failed')
+    `).run(now, id);
+  }
+
+  completeBaseline(id: number, itemId: number, now: string): void {
+    this.db.prepare(`UPDATE delivery_bindings SET baseline_item_id = ?, baseline_at = ?
+      WHERE id = ? AND baseline_at IS NULL AND ended_at IS NULL`).run(itemId, now, id);
+  }
+}
 
 export interface DeliveryJobRecord {
   id: number;
@@ -26,7 +75,7 @@ export interface DeliveryJobRecord {
   completedAt: string | null;
 }
 
-const COLUMNS = `j.id, j.item_id AS itemId, j.binding_id AS bindingId, j.operation, j.revision, j.state,
+const deliveryJobRepositoryCOLUMNS = `j.id, j.item_id AS itemId, j.binding_id AS bindingId, j.operation, j.revision, j.state,
   j.item_snapshot AS itemSnapshot, j.source_snapshot AS sourceSnapshot, j.template_body AS templateBody,
   j.payload, j.attempt_count AS attemptCount, j.next_attempt_at AS nextAttemptAt,
   j.claim_token AS claimToken, j.request_started_at AS requestStartedAt, j.error,
@@ -36,7 +85,7 @@ export class DeliveryJobRepository {
   constructor(private readonly db: Database.Database) { }
 
   getById(id: number): DeliveryJobRecord | null {
-    return this.db.prepare(`SELECT ${COLUMNS} FROM delivery_jobs j WHERE j.id = ?`).get(id) as DeliveryJobRecord ?? null;
+    return this.db.prepare(`SELECT ${deliveryJobRepositoryCOLUMNS} FROM delivery_jobs j WHERE j.id = ?`).get(id) as DeliveryJobRecord ?? null;
   }
 
   list(options: {
@@ -46,7 +95,7 @@ export class DeliveryJobRepository {
     before?: number;
     limit?: number
   } = {}): DeliveryJobRecord[] {
-    return this.db.prepare(`SELECT ${COLUMNS} FROM delivery_jobs j JOIN items i ON i.id = j.item_id
+    return this.db.prepare(`SELECT ${deliveryJobRepositoryCOLUMNS} FROM delivery_jobs j JOIN items i ON i.id = j.item_id
       WHERE (@sourceId IS NULL OR i.source_id = @sourceId) AND (@itemId IS NULL OR j.item_id = @itemId)
         AND (@state IS NULL OR j.state = @state) AND (@before IS NULL OR j.id < @before) ORDER BY j.id DESC LIMIT @limit`).all({
       sourceId: options.sourceId ?? null,
@@ -86,7 +135,7 @@ export class DeliveryJobRepository {
   }
 
   findDue(now: string, limit = 50): DeliveryJobRecord[] {
-    return this.db.prepare(`SELECT ${COLUMNS} FROM delivery_jobs j
+    return this.db.prepare(`SELECT ${deliveryJobRepositoryCOLUMNS} FROM delivery_jobs j
       JOIN items i ON i.id = j.item_id JOIN sources s ON s.id = i.source_id
       JOIN delivery_bindings b ON b.id = j.binding_id
       LEFT JOIN destination_cooldowns c ON c.bucket_key = b.bucket_key
@@ -175,3 +224,45 @@ export class DeliveryJobRepository {
 function sourceSnapshot(source: SourceRecord): string {
   return JSON.stringify({ ...source, fetchOptions: {} });
 }
+
+export interface ItemDeliveryRecord {
+  itemId: number;
+  bindingId: number;
+  messageId: string | null;
+  channelId: string | null;
+  threadId: string | null;
+  appliedRevision: number;
+  firstDeliveredAt: string;
+}
+
+const itemDeliveryRepositoryCOLUMNS = `item_id AS itemId, binding_id AS bindingId, message_id AS messageId,
+  channel_id AS channelId, thread_id AS threadId, applied_revision AS appliedRevision,
+  first_delivered_at AS firstDeliveredAt`;
+
+/** 항목과 연결 세대별 원본 Discord 메시지 정보를 보관해 이후 수정 대상을 찾는다. */
+export class ItemDeliveryRepository {
+  constructor(private readonly db: Database.Database) { }
+
+  get(itemId: number, bindingId: number): ItemDeliveryRecord | null {
+    return this.db.prepare(`SELECT ${itemDeliveryRepositoryCOLUMNS} FROM item_deliveries WHERE item_id = ? AND binding_id = ?`).get(itemId, bindingId) as ItemDeliveryRecord ?? null;
+  }
+
+  listForItem(itemId: number): ItemDeliveryRecord[] {
+    return this.db.prepare(`SELECT ${itemDeliveryRepositoryCOLUMNS} FROM item_deliveries WHERE item_id = ?`).all(itemId) as ItemDeliveryRecord[];
+  }
+
+  save(record: ItemDeliveryRecord): void {
+    // 늦게 도착한 이전 버전의 응답이 최신 버전을 덮어쓰지 않게 한다.
+    // 응답에서 빠진 채널·스레드 ID와 최초 발송 시각은 기존 값을 유지한다.
+    this.db.prepare(`INSERT INTO item_deliveries(item_id, binding_id, message_id, channel_id, thread_id, applied_revision, first_delivered_at)
+      VALUES (@itemId, @bindingId, @messageId, @channelId, @threadId, @appliedRevision, @firstDeliveredAt)
+      ON CONFLICT(item_id, binding_id) DO UPDATE SET message_id = excluded.message_id,
+        channel_id = COALESCE(excluded.channel_id, item_deliveries.channel_id),
+        thread_id = COALESCE(excluded.thread_id, item_deliveries.thread_id), applied_revision = excluded.applied_revision
+      WHERE excluded.applied_revision >= item_deliveries.applied_revision`).run(record);
+  }
+}
+
+export type DeliveryOperation = 'initial_post' | 'edit' | 'update_post';
+
+export type DeliveryJobState = 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'held' | 'unknown' | 'uneditable';

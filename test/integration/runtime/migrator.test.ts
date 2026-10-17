@@ -154,7 +154,6 @@ describe('createContainer', () => {
         'model',
         'poll',
         'preview',
-        'scheduler',
         'sources',
         'templates',
         'testSend'

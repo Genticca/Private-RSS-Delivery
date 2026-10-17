@@ -1,4 +1,4 @@
-import type { DeliveryBindingService } from './delivery-binding.service.js';
+import type { DeliveryBindingService } from '../delivery/bindings.js';
 import type Database from 'better-sqlite3';
 import type { GroupRepository } from '../groups/repository.js';
 import type { SourceRepository } from '../sources/repository.js';
