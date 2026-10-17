@@ -26,7 +26,7 @@ try {
   await expectJson('/ready', { status: 'ready' });
   await expectAsset('/assets/js/htmx.min.js');
   await expectAsset('/assets/js/codemirror.js');
-  await expectModelPatch();
+  await expectModelDiagnostics();
   await expectSourceValidationFragment();
   await expectImportDryRunAndCommit();
   await expectSseHeadersAndPing();
@@ -52,20 +52,14 @@ async function expectAsset(path) {
   assert((response.headers.get('content-type') || '').includes('application/javascript'), `${path} MIME was ${response.headers.get('content-type')}`);
 }
 
-async function expectModelPatch() {
-  const response = await fetch(`${baseUrl}/api/model/config`, {
-    method: 'PATCH',
-    headers: { 'content-type': 'application/x-www-form-urlencoded', 'hx-request': 'true' },
-    body: new URLSearchParams({
-      'primary.provider': 'gemini',
-      'primary.model': 'gemini-smoke',
-      'primary.enabled': 'false',
-      promptLogMaxBytes: '2048'
-    })
-  });
+async function expectModelDiagnostics() {
+  // 모델 설정은 환경 변수로만 바꾼다(D28). 관리 API는 상태 조회만 제공한다.
+  const response = await fetch(`${baseUrl}/api/model/diagnostics`);
   const text = await response.text();
-  assert(response.status === 200, `model PATCH returned ${response.status}: ${text}`);
-  assert(text.includes('hx-swap-oob="true"'), 'model PATCH did not return OOB flash');
+  assert(response.status === 200, `model diagnostics returned ${response.status}: ${text}`);
+  const body = JSON.parse(text);
+  assert(typeof body.model === 'string' && body.model.startsWith('gemini-'), `unexpected model: ${text}`);
+  assert(['ready', 'missing-key', 'invalid-key'].includes(body.status), `unexpected model status: ${text}`);
 }
 
 async function expectSourceValidationFragment() {
