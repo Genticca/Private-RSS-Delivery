@@ -4,7 +4,7 @@
 
 > 작성: 2026-05-28 · 대상: rss-discord-bridge **재작성(rewrite)** · 상태: 설계 D1~D24 + 열린항목 A1~A4 ✅ 확정, **구현 진행 중**(마이그 0001~0020 적용)
 > 이 문서는 rss-discord-bridge **재작성 설계**(구 5개 문서 통합, §1~§17) + **원본(삭제) 코드베이스 분석(부록 A)** 을 합친 마스터 README다.
-> 동반 문서: 백엔드(Codex) → [backend-spec.md](./Docs/Architecture/backend-spec.md) · 프런트(Gemini) → [frontend-spec.md](./Docs/Architecture/frontend-spec.md). (Stage 2 정규화 명세는 §7에 통합)
+> 동반 문서: 백엔드(Codex) → [backend-spec.md](backend-spec.md) · 프런트(Gemini) → [frontend-spec.md](frontend-spec.md). (Stage 2 정규화 명세는 §7에 통합)
 > 픽스처: `rss-discord-bridge/test/mocks/feeds/` (CISA·OpenAI·Claude·CVEFeed·GeekNews·TheHackersNews) — 2026-06-03 `Docs/Mock/`에서 이관
 > **열린 항목 A1~A4 전부 ✅ 확정**(2026-05-28). 남은 건 B(검증)·C(소소)·구현.
 

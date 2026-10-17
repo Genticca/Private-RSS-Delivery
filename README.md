@@ -28,24 +28,11 @@ flowchart LR
   N -->|프리셋 렌더| D[Discord payload]
 ```
 
-- **Stage 1 — Envelope**: RSS 2.0와 Atom의 형식 차이를 흡수해 동일 DTO로 만든다. HTML 본문은 해석하지 않고 운반만 한다.
-- **Stage 2 — Normalize**: 본문을 정제하고 `contentHash`를 계산한다. I/O 없는 순수·결정적 함수.
+- **식별 ≠ 변경** — 식별은 `atom_id`, 변경 감지는 `contentHash`. 정규화는 순수·결정적이라 해시가 흔들리지 않는다.
+- **과거 글은 보내지 않는다** — 소스의 첫 수집, 새 웹훅·스레드 연결의 첫 수집은 저장만 하고 보내지 않는다.
+- **불확실하면 멈춘다** — 결과가 불명확한 POST·PATCH 404는 자동 재발송하지 않고 `/delivery-jobs`에서 검토한다.
 
-**3대 불변식**
-
-1. **2단계 분리** — 형식(Stage 1) / 내용(Stage 2).
-2. **identity ≠ change** — 식별은 `atom_id`(불변), 변경 감지는 `contentHash`(별도).
-3. **순수·결정적 정규화** — 같은 입력 → 같은 출력 → 해시 안정 → 재전송 버그 차단.
-
-소스 등록 시 `delivery_cutoff_at = now`로 두고, 첫 폴은 기존 항목을 **historical로 저장만**(전송하지 않음) 한 뒤 이후 신규 항목만 전송한다.
-
-새 웹훅·스레드 연결도 첫 성공 수집을 묵음 baseline으로 삼는다. 연결 직후 첫 수집 전까지의 새 글도 제외될 수 있다. 웹훅 교체로 기존 작업을 새 목적지에 옮기지 않는다. POST 결과 불명·PATCH 404는 자동 새 POST 대신 발송 작업(`/delivery-jobs`) 화면에서 검토한다.
-
-실행 진입점은 `src/server/main.ts`(`npm run dev`)와 `dist/server/main.js`(`npm start`)다. `app.ts`는 HTTP 앱 구성, `runtime`은 조립·종료, `workers`는 실행 제어, `services`는 업무 처리, `domain`은 I/O 없는 규칙을 담당한다. 수집과 발송은 별도 워커로 실행하며 종료 시 진행 중 작업을 기다린다.
-
-0021~0023 마이그레이션은 연결·발송 작업·영속 message ID·번역 캐시·설정 버전 추적을 추가한다. 기존 pending/failed는 `legacy_unknown`으로 이관하며 자동 발송하지 않는다. 구형 성공 로그의 message ID는 종료된 이전 연결에 보존한다. 운영 적용은 정지된 DB 사본으로 이관을 확인하고 백업 후 진행한다. 실행 제한과 대량 신규 보류 임계값은 [default.env.example](default.env.example)에 있다.
-
-`npm run benchmark`는 빌드 후 외부 API 없이 25개 피드의 수집·발송과 공유 번역 캐시를 측정한다. 이전 구현과 재현 자료는 [Archive](Archive/README.md)에 보관한다.
+자세한 구조·흐름은 [Docs/architecture.md](Docs/architecture.md)에 있다. 이전 구현과 재현 자료는 [Archive](Archive/README.md)에 보관한다.
 
 ## 기술 스택
 
@@ -81,13 +68,14 @@ npm run typecheck        # 서버 + 테스트 tsconfig 양쪽 검사
 npm test                 # 전체 (vitest)
 npm run test:unit
 npm run test:integration
+npm run benchmark        # 빌드 후 외부 API 없이 25개 피드 수집·발송 측정
 ```
 
 > better-sqlite3는 **플랫폼별 네이티브 모듈**이다. 배포 서버에서는 그 서버에서 직접 `npm ci`로 빌드한다 — 다른 OS의 `node_modules`를 그대로 복사하면 동작하지 않는다.
 
 ## 설정 (.env)
 
-env는 프로젝트 루트의 `.env`(gitignore)에서 읽는다. 템플릿은 `default.env.example`. 코드가 읽는 변수는 6개다:
+env는 프로젝트 루트의 `.env`(gitignore)에서 읽는다. 템플릿은 `default.env.example`. 주요 변수는 아래와 같고, 동시성·종료 대기·대량 신규 보류 등 전체 목록은 [architecture.md §11](Docs/architecture.md#11-설정값)에 있다.
 
 | 변수 | 기본값 | 설명 |
 |---|---|---|
@@ -120,10 +108,9 @@ env는 프로젝트 루트의 `.env`(gitignore)에서 읽는다. 템플릿은 `d
 
 ## 설계 문서
 
-세부 계약·알고리즘은 별도 문서에 있다. 입구는 [`Docs/README.md`](./Docs/README.md)(문서 지도)다.
+입구는 [`Docs/README.md`](./Docs/README.md)(문서 지도)다.
 
-- 구조 개요 — [`Docs/Architecture/overview.md`](./Docs/Architecture/overview.md)
-- DB 스키마 계약 — [`Docs/Contracts/db-schema.md`](./Docs/Contracts/db-schema.md)
-- 백엔드 스펙 — [`Docs/Architecture/backend-spec.md`](./Docs/Architecture/backend-spec.md)
-- 프런트엔드 스펙 — [`Docs/Architecture/frontend-spec.md`](./Docs/Architecture/frontend-spec.md)
-- 배포 가이드 — [`Docs/Deploy/DEPLOY.md`](./Docs/Deploy/DEPLOY.md)
+- 아키텍처 — [`Docs/architecture.md`](./Docs/architecture.md)
+- DB 스키마 — [`Docs/db-schema.md`](./Docs/db-schema.md)
+- 결정 기록 — [`Docs/decisions.md`](./Docs/decisions.md)
+- 배포 가이드 — [`Docs/deploy.md`](./Docs/deploy.md)

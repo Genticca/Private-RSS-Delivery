@@ -78,7 +78,7 @@ kill %1
 ## 5. systemd 서비스 등록
 
 ```bash
-sudo cp /opt/rss-discord-bridge/deploy/rss-discord-bridge.service /etc/systemd/system/
+sudo cp /opt/rss-discord-bridge/Docs/rss-discord-bridge.service /etc/systemd/system/
 # ExecStart 의 node 경로 확인: which node  (다르면 유닛 파일 수정)
 sudo systemctl daemon-reload
 sudo systemctl enable --now rss-discord-bridge
@@ -102,6 +102,8 @@ sudo -u rssbridge npm ci              # 의존성 변경 시
 sudo -u rssbridge npm run build
 sudo systemctl restart rss-discord-bridge
 ```
+
+새 마이그레이션이 들어간 업데이트는 먼저 정지된 운영 DB 사본으로 이관을 확인하고 백업한 뒤 적용한다. 0021~0023은 기존 pending/failed를 `legacy_unknown`으로 옮기며 자동 발송하지 않는다(관리 화면 `/delivery-jobs`에서 처리).
 
 ## 8. 운영 메모
 

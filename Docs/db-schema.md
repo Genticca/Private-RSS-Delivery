@@ -1,8 +1,8 @@
 # DB 스키마 계약
 
-> 🔒 **보호 문서**(`Docs/Contracts/`): 수정 전 파일·항목 단위 사용자 승인이 필요하다.
+> 🔒 **보호 문서**: 수정 전 파일·항목 단위 사용자 승인이 필요하다.
 > 기준: 마이그레이션 `0001`~`0023` · 검증 커밋 `6e53b7f` · 작성 2026-10-16
-> **진실원은 `src/resources/migrations/*.sql`이다.** 이 문서는 그 결과 스키마와 의미를 설명한다. 테이블·컬럼·인덱스·트리거 이름이 실제 스키마와 다르면 [db-schema-doc.test.ts](../../test/integration/docs/db-schema-doc.test.ts)가 실패한다.
+> **진실원은 `src/resources/migrations/*.sql`이다.** 이 문서는 그 결과 스키마와 의미를 설명한다. 테이블·컬럼·인덱스·트리거 이름이 실제 스키마와 다르면 [db-schema-doc.test.ts](../test/integration/docs/db-schema-doc.test.ts)가 실패한다.
 
 ## 1. 공통 규칙
 

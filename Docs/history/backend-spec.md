@@ -1,5 +1,7 @@
 # Backend 모듈 & 라우터 명세 (Codex 트랙)
 
+> **⚠️ 역사 기록 — 현재 기준이 아니다.** 구현 전 작업 명세(D1~D25)다. 현재 동작은 [architecture.md](../architecture.md), 결정 요약은 [decisions.md](../decisions.md)를 본다. 본문 안의 상대 링크는 옛 위치(`Docs/Architecture/`) 기준이다.
+
 ## D25 — 2026-10-16 승인된 발송·번역·실행 계약
 
 사용자가 2026-10-16에 §4.2·4.4·4.6·4.7·4.9·4.11 및 Fetch/runtime 변경을 명시 승인했다. 아래 계약은 해당 절의 기존 item 전체 재큐·로그 기반 중복 판단·PATCH 404 POST·실패 원문 캐시 계약보다 우선한다. 그룹이 webhook URL을 소유하는 D24는 계속 적용한다.

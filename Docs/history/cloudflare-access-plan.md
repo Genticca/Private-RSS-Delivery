@@ -4,7 +4,7 @@
 
 상태: **검토안, 미도입**. Cloudflare 계정·도메인·OCI 방화벽·앱 코드를 변경하지 않았다. 명령을 그대로 실행하는 설치 런북이 아니라 도입에 필요한 구성과 검증 항목을 기록한다.
 
-전체 개편 현황: [프로젝트 개편 요약](../Report/Archive/2026-10-16/2026-10-16-reorganization-summary.md) (현재 기준: [통합 개편 보고서](../Report/2026-10-16-consolidated-reorganization-report.md)).
+전체 개편 현황: [프로젝트 개편 요약](reports/2026-10-16/2026-10-16-reorganization-summary.md) (현재 기준: [통합 개편 보고서](reports/2026-10-16/2026-10-16-consolidated-reorganization-report.md)).
 
 ## 1. 현재 접근 방식과 목표
 
@@ -138,6 +138,6 @@ Access와 Tunnel은 별도 역할이다. Tunnel 연결만 설정했다고 허용
 - Cloudflare에 의존하지 않고 인증 프록시를 운영하려면 Nginx/Caddy + [OAuth2 Proxy](https://oauth2-proxy.github.io/oauth2-proxy/) 같은 구성을 검토할 수 있다. 인증 제공자·TLS·프록시 운영 범위가 늘어난다.
 - 공개 도메인이 필요 없고 허용한 기기에서만 접속하면 된다면 [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve)도 대안이다. Serve는 tailnet 내부 접근용이며 공개 인터넷 서비스와 구분한다.
 
-현재 보호 스펙은 내부 단일 관리자·SSH/loopback 접근을 전제로 한다. 후속 구현 시 backend-spec의 config/접근 제어·middleware·프록시 계약과 frontend-spec의 로그인 리다이렉트/세션 동작 관련 항목을 검토해야 한다. 기존 [SSH 배포 가이드](DEPLOY.md)도 실제 도입 후 운영 방식에 맞게 갱신한다.
+현재 보호 스펙은 내부 단일 관리자·SSH/loopback 접근을 전제로 한다. 후속 구현 시 backend-spec의 config/접근 제어·middleware·프록시 계약과 frontend-spec의 로그인 리다이렉트/세션 동작 관련 항목을 검토해야 한다. 기존 [SSH 배포 가이드](../deploy.md)도 실제 도입 후 운영 방식에 맞게 갱신한다.
 
 이 문서는 보호 스펙을 수정하거나 외부 공개를 실행하는 승인이 아니다. 이번 요청에 따라 검토 내용을 Markdown으로 기록했으며, 보호 설계 문서와 기존 배포 가이드는 변경하지 않았다.
