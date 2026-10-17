@@ -124,6 +124,7 @@ describe('Turn 0 frontend/backend contracts', () => {
       status: 'ready',
       lastRequestAt: null,
       lastRequestResult: '아직 호출하지 않음',
+      keys: { activeKey: null, primary: { state: 'missing', retryAt: null }, fallback: { state: 'missing', retryAt: null } },
       counts: { success: 0, failed: 0, cache_hit: 0, skipped: 0 }
     } satisfies ModelDiagnosticsResponse;
 
@@ -138,8 +139,9 @@ describe('Turn 0 frontend/backend contracts', () => {
 
   it('keeps page view-model shapes aligned with backend-spec', () => {
     const dashboard = {
-      sources: [{ id: 'source-1', name: 'Example RSS', enabled: true, lastOutcome: 'ok', profile: 'generic' }],
-      counts: { sources: 1, enabled: 1, errors: 0 }
+      sources: [{ id: 'source-1', name: 'Example RSS', enabled: true, lastOutcome: 'ok', profile: 'generic', feedUrl: 'https://example.com/feed.xml', hasError: false, outcomeLabel: '수집 완료' }],
+      counts: { sources: 1, enabled: 1, errors: 0, connectedGroups: 0 },
+      recentEvents: []
     } satisfies DashboardViewModel;
 
     const sourceForm = {

@@ -274,7 +274,7 @@ Discord rate limit 대기. `bucket_key = '__discord_global__'`은 전역 제한.
 | `detail` | TEXT | | 오류 내용(번역은 분류 코드만, 예외 원문 저장 안 함) 또는 짧은 요약. 최대 1000자 |
 
 인덱스: `idx_event_log_kind`(`kind, id DESC`) — 로그 화면 탭과 페이지 넘김, `idx_event_log_source`(`source_id, kind, id DESC`) — 소스별 마지막 수집 결과.
-보존: 90일 후 삭제.
+보존: 30일 후 삭제.
 
 ### `schema_migrations`
 
@@ -342,7 +342,7 @@ Discord rate limit 대기. `bucket_key = '__discord_global__'`은 전역 제한.
 
 | 대상 | 규칙 |
 | --- | --- |
-| `event_log` | 90일 지나면 삭제 |
+| `event_log` | 30일 지나면 삭제 |
 | `translation_cache` | `failed`만 90일 후 삭제 |
 | `delivery_jobs` | `succeeded`·`cancelled`이고 90일 지난 행의 snapshot·payload만 비움(행 유지) |
 | `items` 본문 | `last_seen_at`이 `ITEM_CONTENT_RETENTION_DAYS`(기본 180일) 지났고 미완료 작업이 없으면 `summary`·`image`를 비우고 `content_pruned=1` |

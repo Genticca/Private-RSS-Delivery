@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { ServiceRegistry } from '../runtime/container.js';
 import { PRESET_VARIABLES } from '../contracts/render-context.js';
 import { parseIdParam } from '../services/validation.js';
+import type { DashboardViewModel } from '../contracts/view-models.js';
 
 export async function registerWebRoutes(app: FastifyInstance, services: ServiceRegistry): Promise<void> {
   app.get('/', async (_request, reply) => render(reply, 'pages/dashboard.hbs', dashboardModel(services)));
@@ -107,20 +108,40 @@ function withGroupSelection<T extends {
   return groups.map((group) => ({ ...group, selected: selected.has(group.id) }));
 }
 
-function dashboardModel(services: ServiceRegistry) {
+function dashboardModel(services: ServiceRegistry): DashboardViewModel {
   const sources = services.sources.list();
+  const outcomes: Record<string, string> = { ok: '수집 완료', not_modified: '변경 없음', error: '수집 오류' };
+  const eventLabels: Record<string, string> = {
+    'fetch:ok': '피드 수집 완료', 'fetch:not_modified': '피드 변경 없음', 'fetch:error': '피드 수집 실패',
+    'delivery:success': 'Discord 전송 완료', 'delivery:failed': 'Discord 전송 확인 필요',
+    'translation:success': '한국어 번역 완료', 'translation:failed': '번역 실패 · 원문 사용',
+    'translation:cache_hit': '번역 캐시 사용', 'translation:skipped': '번역 건너뜀'
+  };
   return {
     sources: sources.map((source) => ({
       id: source.id,
       name: source.name ?? source.feedUrl,
       enabled: source.enabled,
       lastOutcome: source.lastOutcome ?? null,
-      profile: source.profile
+      profile: source.profile,
+      feedUrl: source.feedUrl,
+      hasError: source.lastOutcome === 'error',
+      outcomeLabel: outcomes[source.lastOutcome ?? ''] ?? '첫 수집 대기'
+    })),
+    recentEvents: services.logs.backfill(6).reverse().map(({ data }) => ({
+      ...data,
+      icon: data.kind === 'fetch' ? 'rss' : data.kind === 'translation' ? 'sparkles' : 'send',
+      label: eventLabels[`${data.kind}:${data.status}`] ?? data.status,
+      failed: data.status === 'failed' || data.status === 'error',
+      timeLabel: new Date(data.createdAt).toLocaleString('ko-KR', {
+        timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false
+      })
     })),
     counts: {
       sources: sources.length,
       enabled: sources.filter((source) => source.enabled).length,
-      errors: sources.filter((source) => source.lastOutcome === 'error').length
+      errors: sources.filter((source) => source.lastOutcome === 'error').length,
+      connectedGroups: services.groups.list().filter((group) => group.hasWebhook).length
     }
   };
 }
@@ -146,8 +167,9 @@ function presetVars(): Array<{
 }
 
 function modelStatusGuidance(status: string): string | null {
-  if (status === 'missing-key') return 'PRIMARY_MODEL_API_KEY 환경 변수를 설정해야 Gemini 번역을 사용할 수 있습니다.';
-  if (status === 'invalid-key') return 'PRIMARY_MODEL_API_KEY 값을 교체하거나 GEMINI_MODEL 설정을 확인하세요.';
+  if (status === 'missing-key') return 'PRIMARY_MODEL_API_KEY 환경 변수를 설정해야 Gemini 번역을 사용할 수 있습니다. FALLBACK_MODEL_API_KEY만 설정한 경우에는 대체 키로 동작합니다.';
+  if (status === 'invalid-key') return '설정한 Gemini API 키의 값과 접근 권한을 확인하세요. 대체 키는 FALLBACK_MODEL_API_KEY로 등록합니다.';
+  if (status === 'cooldown') return '설정한 번역 키가 모두 일시 대기 중입니다. 대기 종료 후 자동으로 다시 시도하며, 그동안은 원문으로 발송합니다.';
   return null;
 }
 

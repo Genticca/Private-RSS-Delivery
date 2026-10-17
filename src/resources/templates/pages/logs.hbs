@@ -1,29 +1,37 @@
 <header class="page-header">
-  <h1>시스템 로그</h1>
-  <p class="muted" style="margin-bottom:1.5rem;">수집(피드 가져오기), 전송(디스코드 발행), 번역 결과를 실시간으로 보여줍니다. 아래 버튼으로 종류를 전환하거나 오류만 필터링할 수 있습니다.</p>
+<div>
+<p class="eyebrow">MONITORING / ACTIVITY</p>
+<h1>시스템 로그</h1>
+<p class="page-description">수집부터 발송까지, 모든 활동을 실시간으로 살펴보세요.</p>
+</div>
+<span class="live-label" data-stream-status>
+<span class="tiny-dot gray">
+</span>연결 중</span>
 </header>
-
 <section data-page="logs">
-  <div class="toolbar" style="margin-bottom: 1rem;">
-    <button type="button" data-log-type="delivery" class="secondary active">✉️ 전송 이력</button>
-    <button type="button" data-log-type="fetch" class="secondary">🔄 수집 이력</button>
-    <button type="button" data-log-type="translation" class="secondary">🌐 번역 이력</button>
-    <button type="button" data-log-filter="error" class="danger">⚠️ 오류만 보기</button>
-    <button type="button" data-log-pause class="secondary">⏸️ 실시간 스트림 일시정지</button>
-  </div>
-  
-  <div class="terminal-window" style="margin-bottom: 1.5rem;">
-    <div class="terminal-header">
-      <div class="terminal-buttons">
-        <span class="btn-close"></span>
-        <span class="btn-minimize"></span>
-        <span class="btn-maximize"></span>
-      </div>
-      <div class="terminal-title">system_log@monite-server:~</div>
-      <div class="terminal-status">실시간 수신 중</div>
-    </div>
-    <div id="log-stream" data-sse="/api/logs/stream" class="log-list"></div>
-  </div>
-  
-  <button type="button" id="load-more-logs" class="secondary" style="margin-bottom: 2rem; width: 100%;">이전 로그 더 불러오기</button>
+<div class="panel log-panel">
+<div class="log-toolbar">
+<div class="tab-buttons" role="group" aria-label="로그 종류">
+<button data-log-type="delivery" class="active" aria-pressed="true">전송</button>
+<button data-log-type="fetch" aria-pressed="false">수집</button>
+<button data-log-type="translation" aria-pressed="false">번역</button>
+</div>
+<div class="actions">
+<button data-log-filter="error" class="secondary small" aria-pressed="false">{{> icon name="alert"}}오류만 보기</button>
+<button data-log-pause class="secondary small" aria-pressed="false">일시정지</button>
+</div>
+</div>
+<div class="log-column-header">
+<span>시각 (KST)</span>
+<span>종류</span>
+<span>활동 내역</span>
+</div>
+<div id="log-stream" data-sse="/api/logs/stream" class="log-list" role="log" aria-live="off">
+<div class="empty-inline">로그를 불러오는 중…</div>
+</div>
+<div class="log-footer">
+<button id="load-more-logs" class="secondary">이전 로그 더 보기</button>
+<span class="muted">운영 로그는 30일간 보관됩니다.</span>
+</div>
+</div>
 </section>

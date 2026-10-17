@@ -1,19 +1,35 @@
-<tr id="source-{{id}}" data-id="{{id}}">
-  <td><a href="/sources/{{id}}" hx-get="/sources/{{id}}" hx-target="#source-modal-mount" hx-swap="innerHTML" hx-select="[data-page='source-form']">{{#if name}}{{name}}{{else}}{{feedUrl}}{{/if}}</a></td>
-  <td class="truncate" title="{{feedUrl}}">{{feedUrl}}</td>
-  <td><code>{{profile}}</code></td>
-  <td>{{#if groupNames}}{{groupNames}}{{else}}<span class="muted">없음</span>{{/if}}</td>
-  <td><span class="badge {{#if enabled}}ok{{else}}muted{{/if}}">{{#if enabled}}수집 중{{else}}중지됨{{/if}}</span>{{#if consecutiveFailures}}<br><span class="badge">연속 실패 {{consecutiveFailures}}회</span>{{/if}}</td>
-  <td>{{#if translate}}<span class="badge ok">번역</span>{{else}}<span class="muted">—</span>{{/if}}</td>
-  <td class="row-actions">
+<tr id="source-{{id}}" data-id="{{id}}" data-enabled="{{enabled}}" data-error="{{#if consecutiveFailures}}true{{else}}false{{/if}}" data-search="{{name}} {{feedUrl}} {{groupNames}}">
+  <td>
+<a class="source-identity" href="/sources/{{id}}" hx-get="/sources/{{id}}" hx-target="#source-modal-mount" hx-select="[data-page='source-form']">
+<span class="source-avatar">{{> icon name="rss"}}</span>
+<span>
+<strong>{{#if name}}{{name}}{{else}}{{feedUrl}}{{/if}}</strong>
+<small class="feed-url" title="{{feedUrl}}">{{feedUrl}}</small>
+</span>
+</a>
+</td>
+  <td>
+<code>{{profile}}</code>
+</td>
+<td>{{#if groupNames}}<span class="group-label">{{groupNames}}</span>{{else}}<span class="muted">미지정</span>{{/if}}</td>
+  <td>
+<span class="badge {{#if enabled}}ok{{else}}muted{{/if}}">{{#if enabled}}수집 중{{else}}중지됨{{/if}}</span>{{#if consecutiveFailures}}<small class="error-text">연속 실패 {{consecutiveFailures}}회</small>{{/if}}</td>
+  <td>{{#if translate}}<span class="translation-label">{{> icon name="sparkles"}}한국어</span>{{else}}<span class="muted">—</span>{{/if}}</td>
+  <td class="align-right">
+<details class="row-menu">
+<summary class="icon-button" aria-label="소스 작업">{{> icon name="more"}}</summary>
+<div class="row-menu-content">
+    <a href="/sources/{{id}}" hx-get="/sources/{{id}}" hx-target="#source-modal-mount" hx-select="[data-page='source-form']">소스 설정</a>
     <form hx-patch="/api/sources/{{id}}/enabled" hx-target="#source-{{id}}" hx-swap="outerHTML">
-      <input type="hidden" name="enabled" value="{{#if enabled}}false{{else}}true{{/if}}">
-      <button type="submit">{{#if enabled}}수집 중지{{else}}수집 재개{{/if}}</button>
-    </form>
-    <button hx-post="/api/sources/{{id}}/poll" hx-swap="none">즉시 수집</button>
-    <button hx-post="/api/sources/{{id}}/test" hx-swap="none">테스트 전송</button>
-    <button hx-post="/api/sources/{{id}}/retry-failed" hx-swap="none">실패 작업 재시도</button>
-    <a href="/delivery-jobs">발송 작업 검토</a>
-    <button class="danger" hx-delete="/api/sources/{{id}}" hx-confirm="이 소스를 삭제하시겠습니까?" hx-target="closest tr" hx-swap="delete">삭제</button>
-  </td>
+<input type="hidden" name="enabled" value="{{#if enabled}}false{{else}}true{{/if}}">
+<button type="submit">{{#if enabled}}수집 중지{{else}}수집 재개{{/if}}</button>
+</form>
+    <button hx-post="/api/sources/{{id}}/poll" hx-swap="none">지금 수집</button>
+<button hx-post="/api/sources/{{id}}/test" hx-confirm="Discord에 실제 테스트 메시지를 보냅니다. 전송할까요?" hx-swap="none">테스트 전송</button>
+<button hx-post="/api/sources/{{id}}/retry-failed" hx-swap="none">실패 작업 재시도</button>
+<a href="/delivery-jobs?sourceId={{id}}">발송 검토</a>
+<button class="danger-text" hx-delete="/api/sources/{{id}}" hx-confirm="이 소스와 관련 이력을 삭제할까요?" hx-target="closest tr" hx-swap="delete">소스 삭제</button>
+  </div>
+</details>
+</td>
 </tr>

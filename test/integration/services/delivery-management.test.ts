@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createApp } from '../../../src/server/app.js';
 import { harness, BASE, WEBHOOK_A } from '../../mocks/runtime.js';
-import { addSecondsIso } from '../../../src/server/db/time.js';
+import { addSecondsIso, subtractDaysIso } from '../../../src/server/db/time.js';
 
 describe('administrator delivery review', () => {
   it('lists safe job DTOs and renders held work with review controls', async () => {
@@ -57,6 +57,26 @@ describe('administrator delivery review', () => {
       expect(after.json().lastRequestResult).toBe('success');
       const model = await app.inject('/model'); expect(model.body).toContain('최근 요청'); expect(model.body).not.toContain('test-only-key');
     } finally { await app.close(); }
+  });
+
+  it('retains failed cache and completed snapshots for 90 days when logs expire after 30 days', async () => {
+    const h = await harness(); await h.baseline(); await h.poll([{ id: 'one', title: 'Title', summary: 'Body' }]); await h.run();
+    const job = h.jobs()[0];
+    const createdAt = subtractDaysIso(BASE, 45);
+    h.container.db.prepare('UPDATE delivery_jobs SET completed_at = ? WHERE id = ?').run(createdAt, job.id);
+    h.r.eventLog.append({ kind: 'translation', status: 'failed', jobId: job.id, createdAt });
+    h.r.translationCache.save({ cacheKey: 'failure', field: 'title', status: 'failed', value: null, lastError: 'failed', retryAfter: null }, createdAt);
+
+    await h.container.workers.cleanup.runOnce(BASE);
+    expect(h.r.eventLog.countByStatus('translation').failed).toBeUndefined();
+    expect(h.r.translationCache.get('failure')).not.toBeNull();
+    expect(h.r.deliveryJobs.getById(job.id)).toMatchObject({
+      itemSnapshot: job.itemSnapshot, sourceSnapshot: job.sourceSnapshot, templateBody: job.templateBody, payload: job.payload
+    });
+
+    await h.container.workers.cleanup.runOnce(addSecondsIso(BASE, 46 * 24 * 60 * 60));
+    expect(h.r.translationCache.get('failure')).toBeNull();
+    expect(h.r.deliveryJobs.getById(job.id)).toMatchObject({ itemSnapshot: '{}', sourceSnapshot: '{}', templateBody: '', payload: null });
   });
 
   it('tombstones old completed content without losing identity or re-posting it when it reappears', async () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { harness, BASE, WEBHOOK_B } from '../../mocks/runtime.js';
 import { DispatchTranslationService } from '../../../src/server/translator/translator.js';
-import type { TranslationInput, TranslationResult } from '../../../src/server/translator/types.js';
+import { TranslationProviderError, type TranslationInput, type TranslationResult } from '../../../src/server/translator/types.js';
 import { addSecondsIso } from '../../../src/server/db/time.js';
 import { requiredTranslationFields } from '../../../src/server/domain/translation/policy.js';
 
@@ -12,6 +12,25 @@ function fakeTranslator() {
 }
 
 describe('shared translation cache and frozen delivery payload', () => {
+  it('delivers fallback-key translations and reuses the frozen payload on a Discord retry', async () => {
+    const provider = { generate: vi.fn()
+      .mockRejectedValueOnce(new TranslationProviderError('primary quota', 429))
+      .mockResolvedValueOnce({ text: '{"title":"대체 키 번역 제목","summary":"대체 키 번역 본문"}' }) };
+    const h = await harness({ translate: true }, {
+      env: { DATABASE_PATH: ':memory:', PRIMARY_MODEL_API_KEY: 'dispatch-primary', FALLBACK_MODEL_API_KEY: 'dispatch-fallback' },
+      translationProvider: provider
+    });
+    await h.baseline(); await h.poll([{ id: 'one', title: 'Article', summary: 'Body' }]);
+    h.post.mockResolvedValueOnce({ statusCode: 429, retryAfterMs: 1000 });
+    await h.run(); await h.run(addSecondsIso(BASE, 2));
+    expect(provider.generate).toHaveBeenCalledTimes(2);
+    expect(provider.generate.mock.calls.map(([request]) => request.apiKey)).toEqual(['dispatch-primary', 'dispatch-fallback']);
+    expect(h.post).toHaveBeenCalledTimes(2);
+    expect(h.post.mock.calls.every(([request]) => request.payload.embeds?.[0]?.title === '대체 키 번역 제목')).toBe(true);
+    expect(h.jobs()[0].state).toBe('succeeded');
+    expect(h.r.eventLog.list({ kind: 'translation' }).map(({ status, detail }) => ({ status, detail }))).toContainEqual({ status: 'success', detail: 'fallback:success' });
+  });
+
   it('reuses a successful translation for the same item and another item with identical input', async () => {
     const h = await harness({ translate: true }); await h.baseline();
     await h.poll([{ id: 'one', title: 'Title', summary: 'Body' }, { id: 'two', title: 'Title', summary: 'Body' }]);

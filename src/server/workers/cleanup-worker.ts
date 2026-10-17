@@ -7,7 +7,7 @@ export interface CleanupWorkerOptions {
   db: Database.Database;
   repositories: CleanupRepositories;
   itemContentRetentionDays?: number;
-  retentionDays?: number;
+  logRetentionDays?: number;
   now?: () => string;
   setTimer?: typeof setTimeout;
   clearTimer?: typeof clearTimeout;
@@ -16,7 +16,7 @@ export interface CleanupWorkerOptions {
 
 export type { CleanupRunResult };
 
-const DEFAULT_RETENTION_DAYS = 90;
+const DEFAULT_LOG_RETENTION_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export class CleanupWorker {
@@ -50,7 +50,7 @@ export class CleanupWorker {
       return await this.tracker.track(async () => {
         if (this.tracker.stopped) return { events: 0 };
         const service = new CleanupService(this.options.db, this.options.repositories);
-        return service.run(baseIso, this.retentionDays(), this.options.itemContentRetentionDays);
+        return service.run(baseIso, this.logRetentionDays(), this.options.itemContentRetentionDays);
       });
     } finally {
       this.running = false;
@@ -69,8 +69,8 @@ export class CleanupWorker {
     this.timer.unref?.();
   }
 
-  private retentionDays(): number {
-    return this.options.retentionDays ?? DEFAULT_RETENTION_DAYS;
+  private logRetentionDays(): number {
+    return this.options.logRetentionDays ?? DEFAULT_LOG_RETENTION_DAYS;
   }
 
   private now(): string {

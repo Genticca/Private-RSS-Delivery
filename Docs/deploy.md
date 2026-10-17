@@ -56,7 +56,8 @@ NODE_ENV=production
 HOST=127.0.0.1          # production 에서는 loopback 외 값이면 기동 거부됨
 PORT=8080
 DATABASE_PATH=./data/rss-discord-bridge.sqlite
-PRIMARY_MODEL_API_KEY=   # (선택) Gemini API 키. 비우면 번역 OFF
+PRIMARY_MODEL_API_KEY=   # 기본 Gemini API 키. 두 키가 모두 비면 번역 OFF
+FALLBACK_MODEL_API_KEY=  # (선택) 같은 모델의 대체 Gemini API 키
 GEMINI_MODEL=            # (선택) 비우면 gemini-3.1-flash-lite
 ```
 ```bash
@@ -110,8 +111,8 @@ sudo systemctl restart rss-discord-bridge
 ## 8. 운영 메모
 
 - **백업**: 런타임 DB 는 `data/rss-discord-bridge.sqlite`(+ `-wal`/`-shm`). 정지 또는 일관 스냅샷 후 백업.
-- **번역 켜기**: `.env` 에 키 입력 후 `systemctl restart`. (Gemini 하나: `PRIMARY_MODEL_API_KEY`, 모델 변경은 `GEMINI_MODEL`)
-- **로그 보기**: 수집·전송·번역 결과는 관리 화면 `/logs`(90일 보존), 앱 내부 오류는 `journalctl -u rss-discord-bridge`.
+- **번역 켜기**: `.env`에 기본 키 `PRIMARY_MODEL_API_KEY`와 선택 대체 키 `FALLBACK_MODEL_API_KEY` 입력 후 `systemctl restart`. 두 키는 같은 `GEMINI_MODEL`을 쓴다. 한도·인증·통신 오류가 난 키는 5분 대기하고 다음 키로 전환한다. 두 키가 모두 실패하면 원문 발송. 같은 프로젝트의 키는 Gemini 한도를 공유한다.
+- **로그 보기**: 수집·전송·번역 결과는 관리 화면 `/logs`(30일 보존), 앱 내부 오류는 `journalctl -u rss-discord-bridge`.
 - **HOST 변경 금지**: production 에서 `127.0.0.1`/`localhost`/`::1` 외 값이면 기동이 실패한다(의도된 안전장치).
   외부 노출이 꼭 필요하면 앱이 아니라 **앞단에 리버스 프록시**(nginx 등)를 두고 TLS·인증을 별도로 구성한다.
 - **포트 충돌**: 8080 사용 중이면 `.env` PORT 변경 후 재시작(터널 포트도 함께 조정).

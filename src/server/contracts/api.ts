@@ -19,7 +19,7 @@ export type TranslationEventStatus = 'success' | 'failed' | 'cache_hit' | 'skipp
 
 export type EventStatus = FetchEventStatus | DeliveryEventStatus | TranslationEventStatus;
 
-export type ModelStatus = 'ready' | 'missing-key' | 'invalid-key';
+export type ModelStatus = 'ready' | 'missing-key' | 'invalid-key' | 'cooldown';
 
 export interface SourceDto {
   consecutiveFailures?: number;
@@ -164,6 +164,14 @@ export interface ModelDiagnosticsResponse {
   /** 'success', 실패 코드(timeout·invalid-key 등) 또는 호출 전 안내 문구다. */
   lastRequestResult: string;
   counts: Record<TranslationEventStatus, number>;
+  keys: ModelKeyDiagnostics;
+}
+
+export interface ModelKeyDiagnostics {
+  /** 대기 중이 아닌 키 중 다음 요청에 사용할 우선순위가 가장 높은 슬롯. */
+  activeKey: 'primary' | 'fallback' | null;
+  primary: { state: 'missing' | 'ready' | 'cooldown'; retryAt: string | null };
+  fallback: { state: 'missing' | 'ready' | 'cooldown'; retryAt: string | null };
 }
 
 export interface EventLogDto {

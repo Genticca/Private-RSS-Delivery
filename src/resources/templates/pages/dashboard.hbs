@@ -1,94 +1,122 @@
 <header class="page-header">
-  <h1>개요 대시보드 <span style="display:none;">Dashboard</span></h1>
+  <div>
+<p class="eyebrow">WORKSPACE / Dashboard</p>
+<h1>운영 개요<span class="heading-dot">
+</span>
+</h1>
+<p class="page-description">피드에서 Discord까지, 알림의 흐름을 한눈에 확인하세요.</p>
+</div>
   <div class="actions">
-    <a class="button primary" href="/sources/new" hx-get="/sources/new" hx-target="#source-modal-mount" hx-swap="innerHTML" hx-select="[data-page='source-form']">+ 소스 추가</a>
-    <button type="button" class="button secondary" onclick="document.getElementById('new-group-modal').style.display='flex'">+ 그룹 추가</button>
-    <a class="button secondary" href="/logs">시스템 로그</a>
-  </div>
+<button class="secondary" hx-get="/" hx-target="[data-page='dashboard']" hx-select="[data-page='dashboard']" hx-swap="outerHTML">{{> icon name="refresh"}}새로고침</button>
+</div>
 </header>
-
-<!-- 소스 관리 내부 서브 탭 -->
-<nav class="sub-tabs">
-  <a href="/" class="tab-link active">📊 개요 대시보드</a>
-  <a href="/sources" class="tab-link">📡 수집 소스 관리</a>
-  <a href="/groups" class="tab-link">👥 알림 그룹 관리</a>
-</nav>
-
-<section data-page="dashboard" data-refresh="sources">
+<section data-page="dashboard" hx-get="/" hx-trigger="every 30s" hx-select="[data-page='dashboard']" hx-swap="outerHTML">
   <dl class="metric-grid" id="dashboard-counts">
-    <div>
-      <dt>등록된 수집 소스</dt>
-      <dd>{{counts.sources}}</dd>
-    </div>
-    <div>
-      <dt>수집 중인 소스</dt>
-      <dd>{{counts.enabled}}</dd>
-    </div>
-    <div>
-      <dt>오류 발생 소스</dt>
-      <dd>{{counts.errors}}</dd>
-    </div>
+    <div class="metric">
+<dt>등록된 소스<span class="metric-icon">{{> icon name="rss"}}</span>
+</dt>
+<dd>{{counts.sources}}<span>개</span>
+</dd>
+<p>등록된 RSS·Atom 피드</p>
+</div>
+    <div class="metric">
+<dt>수집 중<span class="metric-icon green">{{> icon name="activity"}}</span>
+</dt>
+<dd>{{counts.enabled}}<span>개</span>
+</dd>
+<p>
+<span class="tiny-dot green">
+</span>활성화된 수집 소스</p>
+</div>
+    <div class="metric">
+<dt>수집 오류<span class="metric-icon amber">{{> icon name="alert"}}</span>
+</dt>
+<dd>{{counts.errors}}<span>개</span>
+</dd>
+<p>{{#if counts.errors}}최근 수집 결과를 확인하세요{{else}}최근 수집 오류가 없습니다{{/if}}</p>
+</div>
+    <div class="metric">
+<dt>연결된 그룹<span class="metric-icon blue">{{> icon name="layers"}}</span>
+</dt>
+<dd>{{counts.connectedGroups}}<span>개</span>
+</dd>
+<p>Discord 웹훅이 설정된 그룹</p>
+</div>
   </dl>
-  <p class="muted" style="margin:-0.5rem 0 1.5rem;">전체 수집 소스 현황을 한눈에 보여줍니다. 오류 발생 소스가 있으면 아래 표의 ‘마지막 수집 결과’에서 원인을 확인하세요.</p>
-
-  <div class="panel">
-    <div class="sub-header-container">
-      <h2>📡 수집 소스 현황</h2>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>소스 이름</th>
-          <th>수집 상태</th>
-          <th>파싱 프로필</th>
-          <th>마지막 수집 결과</th>
-        </tr>
-      </thead>
-      <tbody id="dashboard-sources">
-        {{#each sources}}
-        <tr data-source-id="{{id}}">
-          <td>{{name}}</td>
-          <td><span class="badge {{#if enabled}}ok{{else}}muted{{/if}}">{{#if enabled}}수집 중{{else}}중지됨{{/if}}</span></td>
-          <td>{{profile}}</td>
-          <td>{{lastOutcome}}</td>
-        </tr>
-        {{else}}
-        <tr><td colspan="4" class="muted" style="text-align:center; padding:2.5rem 1rem;">등록된 수집 소스가 없습니다. <strong>+ 소스 추가</strong>로 첫 피드를 연결하세요.</td></tr>
-        {{/each}}
-      </tbody>
-    </table>
-  </div>
-
-  <!-- 새 그룹 추가 모달 팝업 (초기 숨김) -->
-  <div class="modal-overlay" id="new-group-modal" style="display: none;">
-    <div class="modal-container" style="display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;">
-      <div class="modal-header">
-        <h2>👥 새 알림 그룹 등록</h2>
-        <a href="javascript:void(0)" class="modal-close" onclick="document.getElementById('new-group-modal').style.display='none'" title="닫기">&times;</a>
+    <div class="dashboard-primary">
+      <section class="panel table-panel">
+<div class="panel-header">
+<div>
+<h2>수집 소스 현황 <span class="count-pill">{{counts.sources}}</span>
+</h2>
+<p>각 피드의 활성 상태와 마지막 수집 결과입니다.</p>
+</div>
+<a class="text-link" href="/sources">전체 보기 {{> icon name="arrow"}}</a>
+</div>
+        <div class="table-scroll">
+<table>
+<thead>
+<tr>
+<th>소스</th>
+<th>프로필</th>
+<th>상태</th>
+<th>마지막 수집</th>
+</tr>
+</thead>
+<tbody id="dashboard-sources">
+        {{#each sources}}<tr>
+<td>
+<a class="source-identity" href="/sources/{{id}}">
+<span class="source-avatar">{{> icon name="rss"}}</span>
+<span>
+<strong>{{name}}</strong>
+<small class="feed-url">{{feedUrl}}</small>
+</span>
+</a>
+</td>
+<td>
+<code>{{profile}}</code>
+</td>
+<td>
+<span class="badge {{#if enabled}}ok{{else}}muted{{/if}}">{{#if enabled}}수집 중{{else}}중지됨{{/if}}</span>
+</td>
+<td>
+<span class="outcome {{#if hasError}}error{{/if}}">{{outcomeLabel}}</span>
+</td>
+</tr>
+        {{else}}<tr>
+<td colspan="4">
+<div class="empty-state">
+<span class="empty-icon">{{> icon name="rss"}}</span>
+<h3>첫 번째 피드를 연결해 보세요</h3>
+<p>수집 소스에서 RSS 또는 Atom 피드를 등록하면<br>이곳에서 수집 상태를 확인할 수 있습니다.</p>
+</div>
+</td>
+</tr>{{/each}}
+        </tbody>
+</table>
+</div>
+      </section>
+      <section class="panel activity-panel">
+<div class="panel-header">
+<div>
+<h2>최근 활동</h2>
+<p>수집·발송·번역의 최신 기록입니다.</p>
+</div>
+<a class="text-link" href="/logs">로그 보기 {{> icon name="arrow"}}</a>
+</div>
+<div class="activity-list">
+        {{#each recentEvents}}<div class="activity-row">
+<span class="activity-symbol {{#if failed}}amber{{/if}}">{{> icon name=icon}}</span>
+<div class="activity-copy">
+<strong>{{label}}</strong>
+<p>{{#if sourceName}}{{sourceName}}{{else}}{{detail}}{{/if}}</p>
+</div>
+<time datetime="{{createdAt}}">{{timeLabel}}</time>
+</div>
+        {{else}}<div class="empty-inline">{{> icon name="clock"}}아직 활동이 없습니다. 수집이 시작되면 이곳에 표시됩니다.</div>{{/each}}
       </div>
-      <form style="display: flex; flex-direction: column; overflow: hidden; flex: 1; margin: 0;" id="new-group-form" hx-post="/api/groups" hx-target="this" hx-swap="none" hx-on::after-request="if(event.detail.successful) { document.getElementById('new-group-modal').style.display='none'; window.location.href = '/groups'; }">
-        <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 1.5rem;">
-          <div class="form-grid">
-            <label>그룹 이름
-              <input name="name" placeholder="예: 개발팀 알림, 인프라 장애 채널 등" required>
-            </label>
-            <label>디스코드 웹훅 URL (선택)
-              <input name="webhookUrl" placeholder="https://discord.com/api/webhooks/...">
-            </label>
-            <label>발신 이름 (선택)
-              <input name="webhookName" placeholder="기본 웹훅 이름을 바꿀 때만 입력하세요">
-            </label>
-            <label>발신 프로필 이미지 (선택)
-              <input name="webhookAvatarUrl" placeholder="기본 프로필 이미지를 바꿀 때만 입력하세요">
-            </label>
-            <p class="muted" style="margin-top: 0.5rem; font-size: 0.8rem; line-height: 1.4;">ℹ️ 웹훅 정보는 선택 입력입니다. 비워 두고 그룹을 먼저 만든 뒤 나중에 입력해도 됩니다.</p>
-          </div>
-        </div>
-        <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-surface); display: flex; justify-content: flex-end; gap: 0.5rem; z-index: 10;">
-          <button type="button" class="secondary" onclick="document.getElementById('new-group-modal').style.display='none'">취소</button>
-          <button type="submit" class="primary">그룹 추가</button>
-        </div>
-      </form>
+</section>
     </div>
-  </div>
+    <div class="dashboard-footnote">{{> icon name="refresh"}}30초마다 자동으로 갱신됩니다.</div>
 </section>

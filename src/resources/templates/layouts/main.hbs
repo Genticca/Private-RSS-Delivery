@@ -3,77 +3,84 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{#if title}}{{title}}{{else}}RSS Monite - RSS 디스코드 브릿지{{/if}}</title>
-
+  <meta name="theme-color" content="#f7f9f9">
+  <meta name="htmx-config" content='{"ignoreTitle":true}'>
+  <title>{{#if title}}{{title}} · {{/if}}RSS Bridge</title>
   <link rel="stylesheet" href="/assets/css/app.css">
   {{#if needsCodeMirror}}<link rel="stylesheet" href="/assets/css/codemirror.css">{{/if}}
-  <script src="/assets/js/htmx.min.js" defer></script>
-  {{#if needsCodeMirror}}<script src="/assets/js/codemirror.js" defer></script>{{/if}}
-  <script src="/assets/js/app.js" defer></script>
+  <script src="/assets/js/htmx.min.js" defer>
+</script>
+  {{#if needsCodeMirror}}<script src="/assets/js/codemirror.js" defer>
+</script>{{/if}}
+  <script src="/assets/js/app.js" defer>
+</script>
 </head>
 <body hx-indicator="#global-indicator">
+  {{> icons}}
+  <a class="skip-link" href="#main-content">본문으로 이동</a>
   <div class="app-layout">
-    <!-- Left Sidebar Navigator (4 Main Categories) -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">
-          <span class="logo-icon">📡</span>
-          <span class="logo-text">RSS Monite</span>
-        </div>
-      </div>
-      
+    <button class="sidebar-backdrop" data-close-nav aria-label="메뉴 닫기" hidden>
+</button>
+    <aside class="sidebar" id="main-sidebar">
+      <a class="brand" href="/" aria-label="RSS Bridge 홈">
+<span class="brand-mark">{{> icon name="bridge"}}</span>
+<span>RSS Bridge<span class="brand-caption">YOUR FEEDS, CONNECTED.</span>
+</span>
+</a>
       <nav class="sidebar-nav" aria-label="주 메뉴">
-        <a href="/" class="nav-item" id="nav-sources">
-          <span class="nav-icon">📡</span>
-          <span class="nav-label">소스 관리</span>
-        </a>
-        <a href="/templates" class="nav-item" id="nav-templates">
-          <span class="nav-icon">📝</span>
-          <span class="nav-label">메시지 템플릿</span>
-        </a>
-        <a href="/delivery-jobs" class="nav-item" id="nav-delivery-jobs"><span class="nav-icon">📨</span><span class="nav-label">발송 작업</span></a>
-        <a href="/logs" class="nav-item" id="nav-logs">
-          <span class="nav-icon">📋</span>
-          <span class="nav-label">시스템 로그</span>
-        </a>
-        <a href="/model" class="nav-item" id="nav-model">
-          <span class="nav-icon">🤖</span>
-          <span class="nav-label">AI 번역</span>
-        </a>
+        <p class="nav-section-label">운영</p>
+        <a href="/" class="nav-item" id="nav-dashboard">{{> icon name="dashboard"}}<span>운영 개요</span>
+</a>
+        <a href="/sources" class="nav-item" id="nav-sources">{{> icon name="rss"}}<span>수집 소스</span>
+</a>
+        <a href="/groups" class="nav-item" id="nav-groups">{{> icon name="layers"}}<span>발신 그룹</span>
+</a>
+        <a href="/delivery-jobs" class="nav-item" id="nav-delivery-jobs">{{> icon name="send"}}<span>발송 검토</span>
+</a>
+        <p class="nav-section-label">도구 및 모니터링</p>
+        <a href="/templates" class="nav-item" id="nav-templates">{{> icon name="template"}}<span>메시지 템플릿</span>
+</a>
+        <a href="/model" class="nav-item" id="nav-model">{{> icon name="sparkles"}}<span>AI 번역</span>
+</a>
+        <a href="/logs" class="nav-item" id="nav-logs">{{> icon name="activity"}}<span>시스템 로그</span>
+</a>
       </nav>
-      
-      <div class="sidebar-footer">
-        <div class="system-status">
-          <div class="status-indicator online" id="system-status-indicator"></div>
-          <span class="status-text" id="system-status-text">정상 작동 중</span>
-        </div>
+      <div class="sidebar-bottom">
+        <div class="system-status" role="status">
+<span class="status-indicator" id="system-status-indicator">
+</span>
+<span id="system-status-text">서버 확인 중</span>
+<span class="local-tag">LOCAL</span>
+</div>
       </div>
     </aside>
-
-    <!-- Main Workspace -->
     <div class="main-workspace">
       <header class="app-header">
-        <div class="header-search">
-          <!-- Subtle header accent -->
-        </div>
+        <div class="header-location">
+<button class="icon-button mobile-menu" data-toggle-nav aria-label="메뉴 열기" aria-controls="main-sidebar" aria-expanded="false">{{> icon name="menu"}}</button>
+<span class="header-workspace">RSS Bridge</span>
+<span class="breadcrumb-separator">/</span>
+<span id="page-breadcrumb">운영 개요</span>
+</div>
         <div class="header-actions">
-          <div id="global-indicator" class="htmx-indicator" aria-live="polite">
-            <span class="spinner"></span>
-            <span class="indicator-text">처리 중...</span>
-          </div>
-        </div>
+<div id="global-indicator" class="htmx-indicator" role="status">
+<span class="spinner">
+</span>
+<span>처리 중</span>
+</div>
+</div>
       </header>
-
-      <div id="flash" class="flash" aria-live="polite"></div>
-
-      <main class="page-content">
-        {{{body}}}
-      </main>
+      <div id="flash" class="flash" role="status" aria-live="polite"></div>
+      <main class="page-content" id="main-content" tabindex="-1">{{{body}}}</main>
+      <footer class="workspace-footer">
+<span>RSS Bridge <span class="footer-dot">·</span> RSS & Atom → Discord</span>
+<span>내 알림을 위한 작은 연결</span>
+</footer>
     </div>
   </div>
-
-  <!-- 소스 추가/수정 폼이 htmx로 주입되는 전역 모달 마운트 (비어 있으면 표시 없음) -->
-  <div id="source-modal-mount"></div>
+  <div id="source-modal-mount">
+</div>
+  {{> group-dialog}}
 </body>
 </html>
 

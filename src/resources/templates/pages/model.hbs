@@ -1,16 +1,48 @@
 <header class="page-header">
-  <h1>AI 번역</h1>
+<div>
+<p class="eyebrow">TOOLS / TRANSLATION</p>
+<h1>AI 번역</h1>
+<p class="page-description">세계의 소식을 한국어로, 필요한 내용만 자연스럽게 전달하세요.</p>
+</div>
+<a class="button secondary" href="/logs">번역 로그 보기 {{> icon name="arrow"}}</a>
 </header>
-
-<section data-page="model">
-  <p class="muted" style="margin-bottom:1.5rem;">번역이 켜진 소스를 전송할 때 Gemini로 제목과 본문을 한국어로 번역합니다. 번역에 실패하면 원문으로 전송합니다. 미리보기에는 번역을 적용하지 않습니다. 개별 번역 기록은 <a href="/logs">시스템 로그</a>의 번역 탭에서 봅니다.</p>
-  {{#if statusGuidance}}<p class="callout warn"><strong>⚠️ 설정 안내</strong>: {{statusGuidance}}</p>{{/if}}
-  {{> model-diagnostics diagnostics}}
-  <form class="panel form-grid translation-diagnostic-form" hx-post="/api/model/diagnose" hx-target="#translation-diagnostic" hx-swap="innerHTML">
-    <h2>번역 진단</h2><p>Discord 전송 없이 번역 결과를 확인합니다. API 요청이 발생할 수 있습니다.</p>
-    <label>제목<input name="title" maxlength="1000"></label>
-    <label>본문<textarea name="summary" maxlength="3500"></textarea></label>
-    <label class="check"><input type="checkbox" name="fresh" value="true">성공 캐시 대신 모델에 새로 요청</label>
-    <button type="submit">번역 결과 확인</button><div id="translation-diagnostic"></div>
-  </form>
+<section data-page="model">{{#if statusGuidance}}<div class="callout warn">{{> icon name="alert"}}<p>{{statusGuidance}}</p>
+</div>{{/if}}
+{{> model-diagnostics diagnostics}}
+<div class="translation-layout">
+<form class="panel translation-diagnostic-form" hx-post="/api/model/diagnose" hx-target="#translation-diagnostic">
+<div class="panel-header">
+<div>
+<h2>번역 테스트</h2>
+<p>Discord 전송 없이 제목과 본문의 번역 결과를 확인합니다.</p>
+</div>
+</div>
+<div class="panel-body form-grid">
+<label>제목<input name="title" maxlength="1000" placeholder="번역할 제목을 입력하세요">
+</label>
+<label>본문<textarea name="summary" maxlength="3500" rows="6" placeholder="번역할 내용을 입력하세요">
+</textarea>
+</label>
+<label class="check">
+<input type="checkbox" name="fresh" value="true">캐시를 사용하지 않고 새로 번역</label>
+<div class="actions">
+<button type="submit" class="primary">{{> icon name="sparkles"}}번역 확인하기</button>
+<span class="muted">Gemini API 요청이 발생할 수 있습니다.</span>
+</div>
+<div id="translation-diagnostic" aria-live="polite">
+</div>
+</div>
+</form>
+<aside class="panel translation-help">
+<span class="metric-icon">{{> icon name="sparkles"}}</span>
+<h2>번역은 이렇게 동작합니다</h2>
+<p>소스에서 번역을 켜면 실제 발송에 필요한 제목과 본문만 번역합니다.</p>
+<ul class="feature-list">
+<li>같은 문장은 캐시를 공유합니다.</li>
+<li>한국어와 빈 값은 요청을 생략합니다.</li>
+<li>번역 실패 시 원문을 전달합니다.</li>
+</ul>
+<a class="text-link" href="/sources">소스별 번역 설정 {{> icon name="arrow"}}</a>
+</aside>
+</div>
 </section>

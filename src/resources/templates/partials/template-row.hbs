@@ -1,15 +1,20 @@
 <tr id="template-{{id}}" data-id="{{id}}">
-  <td><a href="/templates/{{id}}">{{label}}</a></td>
-  <td><code>{{name}}</code></td>
-  <td>{{#if isBuiltin}}<span class="badge muted">시스템 내장</span>{{else}}<span class="badge ok">사용자 정의</span>{{/if}}</td>
   <td>
-    <form class="inline-form" hx-post="/api/templates" hx-target="#template-table" hx-swap="beforeend">
-      <input type="hidden" name="cloneFrom" value="{{id}}">
-      <input name="label" placeholder="새 표시 이름" style="width: 160px;" required>
-      <button type="submit">빠른 복제 <span style="display:none;">Duplicate</span></button>
-    </form>
-    {{#unless isBuiltin}}
-    <button class="danger" hx-delete="/api/templates/{{id}}" hx-confirm="이 메시지 템플릿을 삭제하시겠습니까?" hx-target="closest tr" hx-swap="delete">삭제</button>
-    {{/unless}}
-  </td>
+<a class="template-identity" href="/templates/{{id}}">
+<span class="source-avatar template-avatar">{{> icon name="template"}}</span>
+<strong>{{label}}</strong>
+</a>
+</td>
+<td>
+<code>{{name}}</code>
+</td>
+<td>{{#if isBuiltin}}<span class="badge neutral">기본 제공</span>{{else}}<span class="badge ok">사용자 정의</span>{{/if}}</td>
+  <td>
+<div class="row-actions">
+<form class="inline-form clone-form" hx-post="/api/templates" hx-target="#template-table" hx-swap="beforeend">
+<input type="hidden" name="cloneFrom" value="{{id}}">
+<input name="label" placeholder="복사본 이름" aria-label="{{label}} 복사본 이름" required>
+<button type="submit" class="secondary" title="Duplicate">복제</button>
+</form>{{#unless isBuiltin}}<button class="danger" hx-delete="/api/templates/{{id}}" hx-confirm="이 템플릿을 삭제할까요?" hx-target="closest tr" hx-swap="delete">삭제</button>{{/unless}}</div>
+</td>
 </tr>

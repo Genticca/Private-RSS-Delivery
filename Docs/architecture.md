@@ -1,12 +1,14 @@
 # 아키텍처
 
-> 검증 커밋 `6e53b7f` · 작성 2026-10-16 · 현재 동작만 적는다. 테이블과 상태 값의 정의는 [db-schema.md](db-schema.md), 결정 배경은 [decisions.md](decisions.md)에 있다.
+> 코드 기준: `5e4b68c` · 갱신 2026-10-18 · 현재 구성과 실행 흐름을 설명한다. 기능·API·점검 결과는 [server-features.md](server-features.md)에 있다. 테이블과 상태 값의 정의는 [db-schema.md](db-schema.md), 결정 배경은 [decisions.md](decisions.md)에 있다.
 
 ## 1. 무엇을 하는가
 
 RSS 2.0·Atom 피드를 주기적으로 수집해 Discord 웹훅으로 보내는 셀프호스트 브리지다. 특히 status page(장애 공지) 피드를 안정적으로 중계하는 것이 목적이며, **소스를 등록하거나 웹훅을 바꾼 뒤 과거 항목이 다시 전송되는 문제를 구조적으로 막는다.**
 
-관리자는 한 명이고, 관리 화면은 loopback(`127.0.0.1`)에만 열린다. 외부에서는 SSH 터널로 접속한다.
+관리자는 한 명이고, 기본 수신 주소는 loopback(`127.0.0.1`)이다. `NODE_ENV=production`에서는 loopback 외 주소로 시작할 수 없다. 외부에서는 SSH 터널로 접속한다. 앱 자체의 로그인·사용자 계정·권한 관리 기능은 없다.
+
+현재 제공하는 기능과 관리 API·점검 결과는 [서버 기능 문서](server-features.md)에 정리되어 있다.
 
 ```mermaid
 flowchart LR
@@ -21,7 +23,7 @@ flowchart LR
   APP -->|"번역 요청"| AI["Gemini"]
 ```
 
-- 들어오는 요청: 관리 화면(Handlebars + htmx)과 JSON API, 로그 SSE. Host·Origin 검증과 rate limit(분당 120회)을 적용한다.
+- 들어오는 요청: 관리 화면(Handlebars + htmx), JSON 조회·진단, HTML 변경 응답, 로그 SSE. Host·Origin 검증과 rate limit(분당 120회)을 적용한다. 응답 종류와 보안 예외 경로는 [서버 기능 문서 §4~§5](server-features.md#4-http-요청과-응답-목록)에 있다.
 - 나가는 요청: 피드·웹훅 URL 모두 SSRF 검사를 거친다. 웹훅은 Discord 도메인만 허용한다.
 - 비밀값: 번역 API 키와 모델 이름은 환경 변수에만 있다. 웹훅 URL은 DB의 `groups.webhook_url`에만 있다.
 
@@ -56,7 +58,7 @@ flowchart TB
   DSP --> SEC
 ```
 
-의존 방향은 위에서 아래로만 흐른다. `domain/`은 I/O가 없는 순수 함수만 두고, 다른 계층을 import하지 않는다. 서비스는 런타임 컨테이너 전체가 아니라 필요한 repository만 받는다.
+`domain/`은 DB·네트워크 I/O 없이 파싱·정규화·정책 계산을 수행한다. DB 레코드의 타입을 참조하는 `import type`은 있지만 저장소 실행 코드는 호출하지 않는다. 서비스는 런타임 컨테이너 전체가 아니라 필요한 repository와 실행 의존성을 받는다.
 
 | 경로 | 책임 | 의존해도 되는 것 |
 | --- | --- | --- |
@@ -122,7 +124,7 @@ flowchart LR
 flowchart TD
   A["startServer()"] --> B["createApp() → createContainer()"]
   B --> C["loadEnvironment()<br/>process.env 우선 + .env 병합(process.env는 변경하지 않음)"]
-  C --> D["loadConfig() · loadRuntimeOptions()<br/>잘못된 값이면 부팅 중단"]
+  C --> D["loadConfig() · loadRuntimeOptions() · resolveModelName()<br/>잘못된 값이면 부팅 중단"]
   D --> E["SQLite 열기<br/>WAL · foreign_keys · busy_timeout 5000"]
   E --> F["runMigrations()<br/>미적용 버전만, 버전마다 트랜잭션"]
   F --> G["repositories 생성 · 빌트인 프리셋 시드"]
@@ -139,6 +141,7 @@ flowchart TD
 - 같은 환경 병합 결과를 설정·번역기·모델 상태 서비스가 함께 쓴다. 그래서 `.env`에만 있는 API 키도 번역에 쓰인다.
 - production(`NODE_ENV=production`)에서 HOST가 loopback이 아니면 부팅을 중단한다.
 - **중단된 작업 복구**: `running` 상태로 남은 발송 작업 중 POST 요청을 이미 시작한 것(`request_started_at` 있음, `edit` 제외)은 `unknown`, 나머지는 `pending`으로 되돌린다. 중복 발송을 막기 위해서다.
+- **DB 호환 범위**: 현재는 2026-10-18에 정리한 `0001_init`으로 생성한 새 DB를 기준으로 한다. 파일에 없는 옛 버전은 거부하지만, 이전 내용의 같은 `0001_init`은 이름만으로 차이를 감지하지 못한다. 기존 DB 처리 절차는 [deploy.md §7](deploy.md#7-업데이트-절차), 스키마 정의는 [db-schema.md §7](db-schema.md#7-마이그레이션-이력)을 따른다.
 
 ### 백그라운드 워커
 
@@ -204,8 +207,8 @@ flowchart TD
   P2 --> LOOP[항목별 처리]
   LOOP --> Q{"atom_id가<br/>DB에 있나?"}
   Q -->|"없음 = 신규"| R{"소스 초기화됨 ·<br/>baseline 끝난 연결 있음 ·<br/>cutoff 이후?"}
-  R -->|아니오| HIST["historical 저장"]
-  R -->|예| NEW["pending 저장<br/>baseline 이후 연결마다 initial_post<br/>대량이면 held"]
+  R -->|아니오| HIST["items.historical = 1로 저장"]
+  R -->|예| NEW["items.historical = 0으로 저장<br/>baseline 이후 연결마다 initial_post<br/>작업은 pending, 대량이면 held"]
   Q -->|"있음 = 기존"| S{"contentHash 변경?"}
   S -->|예| UPD["content_revision +1<br/>최초 발송한 연결에만<br/>edit 또는 update_post"]
   S -->|아니오| DISP["표시 필드만 갱신"]
@@ -225,6 +228,10 @@ flowchart TD
 | 304 | 본문 없이 종료, 재감지 없음 | `event_log`(fetch not_modified) |
 | poll 도중 설정 변경 | 결과를 버림(설정 버전 비교) | 없음 |
 | 목적지 없는 소스 | 수집하지 않고 다음 주기로 | 없음 |
+
+- 발행 시각이 없는 신규 항목은 초기화 이후라면 cutoff로 제외하지 않는다. 날짜가 있어도 cutoff 이전이면 `historical`이다.
+- 이미 `historical`인 항목은 나중에 내용이 바뀌어도 발송 작업을 만들지 않는다.
+- 일반 피드의 변경 해시는 제목·링크, 장애 공지는 단계·최신 본문으로 계산한다. 일반 피드의 요약만 바뀐 경우는 화면 표시용 갱신이며 재발송 조건이 아니다.
 
 ## 6. 발송: 작업 한 건 처리
 
@@ -246,7 +253,7 @@ flowchart TD
   G -->|"수정 작업인데 기록 없음 ·<br/>edit인데 message ID 없음"| UNED[uneditable]
   G -->|"이미 이 revision 반영"| OK0[succeeded]
   G -->|진행| H{"저장된 payload?"}
-  H -->|"있음(재시도)"| SEND
+  H -->|"있음(재시도)"| RC
   H -->|없음| T["번역(translate ON) → 렌더 → 검증"]
   T -->|"렌더·검증 실패"| FAIL[failed]
   T --> SAVE["payload 저장"]
@@ -291,15 +298,23 @@ flowchart LR
   B -->|성공 캐시| C[캐시 사용]
   B -->|"실패 cooldown 중(5분)"| O[원문]
   B -->|같은 입력 요청 진행 중| SF[결과 공유]
-  B -->|miss| M["Gemini 요청<br/>15초"]
-  M -->|"키 없음 · 오류 · 타임아웃 ·<br/>출력 잘림 · JSON 파싱 실패"| O2["원문 + 실패 캐시"]
+  B -->|miss| M["사용 가능한 Gemini 키 요청<br/>기본 → 대체 · 키별 15초"]
+  M -->|"한도·인증·통신 장애"| F{"대체 키 사용 가능?"}
+  F -->|예| M
+  F -->|아니오| O2["원문 + 실패 캐시"]
+  M -->|"키 없음 · 모두 대기 중 ·<br/>출력 잘림 · JSON 파싱 실패"| O2
   M -->|성공| S[성공 캐시]
 ```
 
 - 캐시 미스인 필드는 한 번의 요청으로 묶는다.
+- `PRIMARY_MODEL_API_KEY` → `FALLBACK_MODEL_API_KEY` 순서로 같은 Gemini 모델을 호출한다. 빈 키·중복 키는 제외하며 대체 키만 있어도 동작한다.
+- 401·403·429·408·5xx·통신 오류·타임아웃(키별 15초)은 다음 키로 전환한다. Gemini의 `API_KEY_INVALID` 400도 포함한다. 일반 400·404, 출력 잘림·JSON 파싱 실패는 다른 키로 재요청하지 않는다.
+- 실패한 키는 프로세스 메모리에서 5분간 대기하고 다른 입력에도 사용하지 않는다. 만료 후 기본 키부터 재시도한다. 두 키가 모두 대기 중이면 API 호출 없이 원문으로 끝낸다. 재시작하면 키 대기는 초기화된다.
+- SDK 내부 자동 재시도는 끄며 키별 한 번씩, 한 번의 번역에 최대 두 번 호출한다. Gemini 한도는 [프로젝트 단위](https://ai.google.dev/gemini-api/docs/rate-limits)이므로 같은 프로젝트에서 발급한 키는 한도를 공유한다.
 - 번역에 실패해도 원문으로 렌더한 payload가 저장되므로, Discord 재시도 때 번역을 다시 호출하지 않는다.
 - 미리보기는 번역하지 않는다.
 - 모델 요청 결과(성공·실패 코드·소요 시간), 캐시 사용, 건너뜀은 `event_log`(kind `translation`)에 남는다. 번역문은 항목에 저장하지 않는다.
+- 대체 키 요청은 detail의 `fallback:` 접두사로 구분한다. 모든 키가 대기 중인 건은 `keys-cooldown`이다. 키 원문과 공급자 예외 원문은 기록하지 않는다.
 
 ## 8. 작업 상태와 관리자 조치
 
@@ -341,21 +356,7 @@ flowchart LR
 
 ## 10. 기능별 연결
 
-| 기능 | 화면 | API | 서비스 | 워커 | 테이블 | 테스트 |
-| --- | --- | --- | --- | --- | --- | --- |
-| 소스 관리 | `/sources`, `/sources/new`, `/sources/:id` (`sources.hbs`, `source-form.hbs`) | `GET·POST /api/sources`, `GET·PATCH·DELETE /api/sources/:id`, `PATCH …/enabled`, `POST …/poll`, `POST …/test`, `POST …/retry-failed`, `GET …/sample-item` | SourceService(`source-input`), SchedulerService, TestSendService, PreviewService | PollWorker(수동 수집) | `sources`, `source_groups` | api.routes, web.routes, configuration-bindings |
-| 그룹·연결 세대 | `/groups` (`groups.hbs`) | `GET·POST /api/groups`, `PATCH·DELETE /api/groups/:id` | GroupService, DeliveryBindingService | — | `groups`, `source_groups`, `delivery_bindings` | configuration-bindings, resolve-destinations |
-| 수집 | 대시보드 상태, 소스 행 연속 실패 | — | PollService, DeliveryPlanService | PollWorker | `sources`, `items`, `event_log` | poll-service, feed-limits, parser, normalize, security |
-| 발송 | — | — | DeliveryService, DeliveryPlanService | DeliveryWorker | `delivery_jobs`, `item_deliveries`, `delivery_bindings`, `destination_cooldowns`, `event_log` | delivery-jobs, discord-client, render, validate |
-| 발송 작업 검토 | `/delivery-jobs` (`delivery-jobs.hbs`) | `GET /api/delivery-jobs`, `POST /api/delivery-jobs/:id/review` | DeliveryManagementService | — | `delivery_jobs`, `item_deliveries` | delivery-management |
-| 번역 | `/model` (`model.hbs`, `model-diagnostics`, `translation-diagnostic`) — 상태·진단만, 설정은 env | `GET /api/model/diagnostics`, `POST /api/model/diagnose` | ModelService, TranslationCacheService, DispatchTranslationService, ModelTranslator | DeliveryWorker(발송 시) | `translation_cache`, `event_log` | translation-cache, translator, gemini-adapter |
-| 템플릿·미리보기 | `/templates`, `/templates/:id` (`template-editor.hbs`) | `GET·POST /api/templates`, `GET·PATCH·DELETE /api/templates/:id`, `POST /api/preview` | TemplateService, PreviewService | — | `templates` | presets, render, frontend-contracts |
-| 로그 | `/logs` (`logs.hbs`) — 전송·수집·번역 탭 | `GET /api/logs?type=`(`delivery`·`fetch`·`translation`), `GET /api/logs/stream`(SSE, 단일 cursor) | LogService | — | `event_log` | log-stream |
-| Export·Import | 소스 화면 | `GET /api/export`, `POST /api/import/dry-run`, `POST /api/import` | ExportImportService(`export-import.document`), DeliveryBindingService | — | `sources`, `groups`, `source_groups`, `templates` | api.routes |
-| 정리 | — | — | CleanupService | CleanupWorker | `event_log`·캐시·`items` 본문·`delivery_jobs` snapshot | cleanup-worker |
-| 런타임 | — | `/healthz`, `/ready` | — | 전체 | `schema_migrations` | environment, shutdown, migrator, config, db-schema-doc |
-
-테스트 이름은 `test/{unit,integration}/**/<이름>.test.ts`를 줄여 적었다.
+기능별 화면·API·서비스·테이블·테스트 연결은 [서버 기능 문서 §2](server-features.md#2-기능별-연결), 관리 동작은 [§3](server-features.md#3-관리-기능의-실제-동작), HTTP 응답은 [§4](server-features.md#4-http-요청과-응답-목록)를 참고한다.
 
 ### 주요 호출 경로
 
@@ -393,12 +394,13 @@ DeliveryWorker.runDueDeliveries → DeliveryService.processJob
 | `HOST` | `127.0.0.1` | production은 loopback만 | |
 | `PORT` | `8080` | 1–65535 | |
 | `DATABASE_PATH` | `./data/rss-discord-bridge.sqlite` | | 실행 위치 기준 상대 경로 |
-| `PRIMARY_MODEL_API_KEY` | — | | Gemini API 키. 비우면 번역 비활성(`missing-key`) |
+| `PRIMARY_MODEL_API_KEY` | — | | 기본 Gemini API 키. 두 키가 모두 없으면 번역 비활성(`missing-key`) |
+| `FALLBACK_MODEL_API_KEY` | — | | 선택 대체 Gemini API 키. 기본 키 실패·대기 시 사용하며 같은 키는 중복 호출하지 않음 |
 | `GEMINI_MODEL` | `gemini-3.1-flash-lite` | `gemini-*` 형식만 | 번역 모델 이름. 형식이 틀리면 부팅 중단 |
 | `POLL_CONCURRENCY` | 2 | 1–16 | 동시에 수집할 소스 수 |
 | `DELIVERY_CONCURRENCY` | 2 | 1–16 | 동시에 처리할 웹훅 bucket 수 |
 | `SHUTDOWN_TIMEOUT_MS` | 30000 | 100–300000 | 종료 시 작업을 기다리는 시간 |
-| `FEED_MAX_BYTES` | 5242880 | 1024–52428800 | 피드 응답 최대 크기 |
+| `FEED_MAX_BYTES` | 5242880 | 1024–52428800 | 예약·수동 수집의 피드 응답 최대 크기. 실시간 미리보기는 현재 기본 5MiB 사용([제약](server-features.md#6-현재-동작-범위와-알려진-한계)) |
 | `NEW_ITEMS_HOLD_COUNT` | 50 | 1–100000 | 한 poll의 신규가 이 수 이상이면 보류 |
 | `NEW_ITEMS_HOLD_MIN` | 10 | 1–100000 | 비율 조건을 적용할 최소 신규 수 |
 | `NEW_ITEMS_HOLD_RATIO` | 0.8 | 0 초과 1 이하 | 신규가 스냅샷에서 차지하는 비율 |
@@ -406,7 +408,7 @@ DeliveryWorker.runDueDeliveries → DeliveryService.processJob
 
 번역 대상 언어는 한국어(`ko`)로 고정이다. 모델·키를 바꾸면 서비스를 다시 시작한다. 관리 화면 `/model`은 상태 확인과 번역 진단만 한다.
 
-코드 내부 고정값: 피드 요청 타임아웃 15초(소스별 `fetch_options.timeoutMs`로 변경), 리다이렉트 최대 3회, Discord 요청 타임아웃 10초, 번역 provider 타임아웃 15초, 번역 실패 cooldown 5분, 발송 재시도 최대 5회(1·2·4·8분), 로그 보존 90일.
+코드 내부 고정값: 피드 요청 타임아웃 15초(소스별 `fetch_options.timeoutMs`로 변경), 리다이렉트 최대 3회, Discord 요청 타임아웃 10초, 번역 provider 키별 타임아웃 15초(두 키 사용 시 최대 약 30초), 번역 실패 캐시 cooldown 5분·키별 실패 대기 5분, 발송 재시도 최대 5회(1·2·4·8분), 로그 보존 30일. 실패한 번역 캐시와 완료 작업의 snapshot·payload는 90일 보존한다.
 
 ## 12. 계약 위치
 
@@ -415,17 +417,11 @@ DeliveryWorker.runDueDeliveries → DeliveryService.processJob
 | 계약 | 코드 | 문서 |
 | --- | --- | --- |
 | DB 스키마 | `src/resources/migrations/*.sql` | [db-schema.md](db-schema.md) (`test/integration/docs/db-schema-doc.test.ts`로 검증) |
-| JSON API | `src/server/contracts/api.ts` | 코드 주석 |
+| API 입력·JSON 결과 | `src/server/contracts/api.ts` | [서버 기능 문서 §4](server-features.md#4-http-요청과-응답-목록)와 코드 주석 |
 | 페이지 view-model | `src/server/contracts/view-models.ts` | 코드 주석 |
 | 프리셋 render context | `src/server/contracts/render-context.ts` | 코드 주석 |
 | 환경 변수 | `config.ts`, `runtime/options.ts`, `translator/keys.ts` | §11 |
 
-## 13. 알려진 한계 (2026-10-16 검토, 후속 수정 대상)
+## 13. 현재 동작 범위와 알려진 한계
 
-| 위치 | 내용 |
-| --- | --- |
-| §6 예외 → POST → `unknown` | DNS 실패·연결 거부처럼 요청이 나가지 않은 경우도 `unknown`이 된다. `unknown`에는 재발송 조치가 없다 |
-| §8 `held`·`unknown` | 건수 알림이 없어 `/delivery-jobs`에 들어가야 보인다 |
-| §6 정렬 | 같은 poll의 날짜 없는 신규 항목은 피드 순서(보통 최신 글 먼저)대로 발송된다 |
-| §5 항목별 처리 | poll마다 모든 항목의 `last_seen_at`을 개별 UPDATE한다 |
-| 정리 | 성공 번역 캐시는 정리하지 않는다 |
+현재 제약과 제공하지 않는 기능은 [서버 기능 문서 §6](server-features.md#6-현재-동작-범위와-알려진-한계), 코드 점검·테스트 범위는 [§7](server-features.md#7-검증-방법과-범위)에 정리되어 있다.

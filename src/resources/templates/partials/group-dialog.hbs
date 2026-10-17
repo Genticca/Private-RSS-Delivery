@@ -1,0 +1,37 @@
+<dialog id="new-group-modal" class="app-dialog" aria-labelledby="group-dialog-title">
+  <div class="modal-header">
+    <div>
+      <p class="eyebrow" data-group-eyebrow>NEW CONNECTION</p>
+      <h2 id="group-dialog-title">새 발신 그룹</h2>
+    </div>
+    <button type="button" class="icon-button" data-close-dialog aria-label="닫기">{{> icon name="close"}}</button>
+  </div>
+  <form id="group-form" hx-post="/api/groups" hx-target="#group-table" hx-swap="beforeend" data-group-form>
+    <div class="modal-body form-grid">
+      <p class="muted">Discord 웹훅과 이 그룹을 사용하는 소스의 기본 발신 프로필을 설정하세요.</p>
+      <label>그룹 이름 <span class="required">*</span>
+        <input name="name" placeholder="예: 인프라 장애 알림" maxlength="200" required autofocus>
+      </label>
+      <div class="current-webhook" data-group-current-webhook hidden>
+        <span class="muted">현재 연결된 웹훅</span>
+        <code data-group-webhook-label></code>
+      </div>
+      <label>Discord 웹훅 URL
+        <input name="webhookUrl" type="url" placeholder="https://discord.com/api/webhooks/…" autocomplete="off">
+        <small data-group-webhook-help>나중에 연결할 수도 있습니다.</small>
+      </label>
+      <label class="check" data-group-clear-webhook hidden>
+        <input type="checkbox" name="clearWebhook" value="true">기존 웹훅 연결 해제
+      </label>
+      <div class="form-columns">
+        <label>발신 이름<input name="webhookName" maxlength="80" placeholder="웹훅 기본값 사용"></label>
+        <label>프로필 이미지 URL<input name="webhookAvatarUrl" type="url" placeholder="https://…"></label>
+      </div>
+      <p class="muted" data-group-edit-note hidden>웹훅을 변경하면 새 연결의 첫 수집은 기준선으로 저장하고 발송하지 않습니다.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="secondary" data-close-dialog>취소</button>
+      <button type="submit" class="primary" data-group-submit>그룹 만들기</button>
+    </div>
+  </form>
+</dialog>

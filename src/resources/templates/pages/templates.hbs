@@ -1,67 +1,65 @@
 <header class="page-header">
-  <h1>메시지 템플릿</h1>
-  <div class="actions">
-    <!-- 새 템플릿 등록 모달 트리거 -->
-    <button type="button" class="primary" onclick="document.getElementById('new-template-modal').style.display='flex'">+ 메시지 템플릿 등록</button>
-  </div>
+<div>
+<p class="eyebrow">TOOLS / Templates</p>
+<h1>메시지 템플릿</h1>
+<p class="page-description">Discord에 도착할 메시지를 나만의 형식으로 만들어 보세요.</p>
+</div>
+<button class="primary" data-open-dialog="new-template-modal">{{> icon name="plus"}}템플릿 만들기</button>
 </header>
-
 <section data-page="templates">
-  <!-- 1-Column 등록 목록 수직 레이아웃 -->
-  <div class="panel">
-    <div class="sub-header-container">
-      <h2>📝 등록된 메시지 템플릿</h2>
-    </div>
-    <p class="muted" style="margin-bottom:1rem;">메시지 템플릿은 수집한 항목을 디스코드로 전송할 때의 JSON 형식(임베드·제목·링크 등)을 정의합니다. 소스 설정에서 소스마다 템플릿을 지정합니다.</p>
-    <table>
-      <thead>
-        <tr>
-          <th>표시 이름</th>
-          <th>식별자 (name)</th>
-          <th>종류</th>
-          <th>작업</th>
-        </tr>
-      </thead>
-      <tbody id="template-table">
-        {{#each templates}}
-        {{> template-row}}
-        {{else}}
-        <tr><td colspan="4" class="muted" style="text-align:center; padding:2.5rem 1rem;">아직 등록된 메시지 템플릿이 없습니다. 기본 제공 템플릿을 복제하거나 <strong>+ 메시지 템플릿 등록</strong>으로 새로 만드세요.</td></tr>
-        {{/each}}
-      </tbody>
-    </table>
-  </div>
-
-  <!-- 새 템플릿 등록 모달 팝업 (초기 숨김) -->
-  <div class="modal-overlay" id="new-template-modal" style="display: none;">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h2>📝 새 메시지 템플릿 등록</h2>
-        <a href="javascript:void(0)" class="modal-close" onclick="document.getElementById('new-template-modal').style.display='none'" title="닫기">&times;</a>
-      </div>
-      <div class="modal-body">
-        <form class="form-grid" id="new-template-form" hx-post="/api/templates" hx-target="#template-table" hx-swap="beforeend" hx-on::after-request="if(event.detail.successful) { document.getElementById('new-template-modal').style.display='none'; document.getElementById('new-template-form').reset(); }">
-          <label>표시 이름
-            <input name="label" placeholder="소스 설정 화면에 표시될 이름" required>
-          </label>
-          <p class="muted" style="font-size:0.8rem; line-height:1.4; margin-top:-0.25rem;">식별자(ID)는 시스템이 자동으로 부여합니다. 표시 이름만 입력하세요.</p>
-          <label>복제할 기존 템플릿 (선택)
-            <select name="cloneFrom">
-              <option value="">빈 템플릿으로 생성 (직접 작성)</option>
-              {{#each templates}}
-              <option value="{{id}}">{{label}}</option>
-              {{/each}}
-            </select>
-          </label>
-          <label>디스코드 전송용 JSON 템플릿
-            <textarea name="body" rows="8">{"embeds":[{"title":&#123;&#123;json item.title&#125;&#125;,"url":&#123;&#123;json item.link&#125;&#125;}]}</textarea>
-          </label>
-          <div class="actions" style="margin-top: 1.5rem; justify-content: flex-end;">
-            <button type="button" class="secondary" onclick="document.getElementById('new-template-modal').style.display='none'">취소</button>
-            <button type="submit" class="primary">등록</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+<div class="preset-intro">
+<div class="preset-intro-icon">{{> icon name="template"}}</div>
+<div>
+<h2>좋은 알림은 읽기 쉬운 메시지부터</h2>
+<p>장애 공지, 뉴스, 토론, 간결한 링크까지. 내장 프리셋을 복제해 시작하세요.</p>
+</div>
+</div>
+<section class="panel table-panel">
+<div class="panel-header">
+<div>
+<h2>템플릿 라이브러리</h2>
+<p>템플릿을 선택하면 편집기와 Discord 미리보기가 열립니다.</p>
+</div>
+</div>
+<div class="table-scroll">
+<table>
+<thead>
+<tr>
+<th>템플릿 이름</th>
+<th>식별자</th>
+<th>종류</th>
+<th>복제 / 관리</th>
+</tr>
+</thead>
+<tbody id="template-table">{{#each templates}}{{> template-row}}{{else}}<tr data-empty-row>
+<td colspan="4" class="empty-inline">아직 템플릿이 없습니다.</td>
+</tr>{{/each}}</tbody>
+</table>
+</div>
+</section>
+<dialog id="new-template-modal" class="app-dialog" aria-labelledby="new-template-title">
+<div class="modal-header">
+<div>
+<p class="eyebrow">NEW TEMPLATE</p>
+<h2 id="new-template-title">메시지 템플릿 만들기</h2>
+</div>
+<button class="icon-button" data-close-dialog aria-label="닫기">{{> icon name="close"}}</button>
+</div>
+<form id="new-template-form" hx-post="/api/templates" hx-target="#template-table" hx-swap="beforeend" data-close-on-success>
+<div class="modal-body form-grid">
+<label>표시 이름<input name="label" required autofocus placeholder="예: 우리 팀 장애 알림">
+</label>
+<label>기존 템플릿 복제<select name="cloneFrom">
+<option value="">직접 작성</option>{{#each templates}}<option value="{{id}}">{{label}}</option>{{/each}}</select>
+</label>
+<label>메시지 JSON<textarea name="body" rows="7" spellcheck="false">{"embeds":[{"title":&#123;&#123;json item.title&#125;&#125;,"url":&#123;&#123;json item.link&#125;&#125;}]}</textarea>
+<small>기존 템플릿을 선택하면 해당 본문을 복제합니다.</small>
+</label>
+</div>
+<div class="modal-footer">
+<button type="button" class="secondary" data-close-dialog>취소</button>
+<button type="submit" class="primary">템플릿 만들기</button>
+</div>
+</form>
+</dialog>
 </section>

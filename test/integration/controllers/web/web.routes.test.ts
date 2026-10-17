@@ -54,7 +54,7 @@ describe('web routes and inbound middleware', () => {
       ['/', ['data-page="dashboard"', 'id="dashboard-counts"', 'id="dashboard-sources"']],
       ['/sources', ['data-page="sources"', 'id="import-preview"', 'id="source-table"', 'href="/api/export"']],
       [`/sources/${source.id}`, ['data-page="source-form"', 'data-selected-groups']],
-      ['/groups', ['data-page="groups"', 'id="group-table"', 'hx-patch="/api/groups/', 'name="clearWebhook"']],
+      ['/groups', ['data-page="groups"', 'id="group-table"', 'data-edit-group=', 'data-group-form', 'name="clearWebhook"']],
       ['/templates', ['data-page="templates"', 'id="template-table"', 'name="cloneFrom"', 'Duplicate']],
       [`/templates/${template?.id}`, ['data-page="template-editor"', 'id="template-form"', 'hx-patch="/api/templates/', '기본 제공 템플릿은 읽기 전용', 'id="template-body"', 'id="preview"', 'data-insert-var="item.title"']],
       ['/logs', ['data-page="logs"', 'id="log-stream" data-sse="/api/logs/stream"', 'data-log-type="translation"']],
@@ -123,8 +123,8 @@ describe('web routes and inbound middleware', () => {
       headers: { host: 'localhost:8080' }
     });
     expect(group.statusCode).toBe(200);
-    expect(group.body).toContain('hx-patch="/api/groups/');
-    expect(group.body).toContain('name="clearWebhook"');
+    expect(group.body).toContain('data-edit-group=');
+    expect(group.body).not.toContain('<input');
     expect(group.body).toContain('avatar-preview');
 
     const createdTemplate = await app.inject({

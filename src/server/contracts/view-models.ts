@@ -1,6 +1,7 @@
 /** 서버가 Handlebars 화면에 전달하는 표시용 데이터의 형태를 정의한다. */
 import type {
   GroupDto,
+  EventLogDto,
   ModelDiagnosticsResponse,
   SourceDto,
   TemplateDto
@@ -14,6 +15,9 @@ export interface DashboardSourceSummary {
   enabled: boolean;
   lastOutcome: SourceDto['lastOutcome'];
   profile: SourceProfile;
+  feedUrl: string;
+  hasError: boolean;
+  outcomeLabel: string;
 }
 
 export interface DashboardViewModel {
@@ -22,7 +26,14 @@ export interface DashboardViewModel {
     sources: number;
     enabled: number;
     errors: number;
+    connectedGroups: number;
   };
+  recentEvents: Array<EventLogDto & {
+    icon: string;
+    label: string;
+    failed: boolean;
+    timeLabel: string;
+  }>;
 }
 
 export interface SourcesViewModel {

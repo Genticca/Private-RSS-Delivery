@@ -203,7 +203,7 @@ export function createContainer(options: CreateContainerOptions = {}): Container
     }),
     templates: new TemplateService({ repositories }),
     preview,
-    model: new ModelService({ repositories, env, model, translation: new TranslationCacheService({ repositories, translator }) }),
+    model: new ModelService({ repositories, env, model, translator, translation: new TranslationCacheService({ repositories, translator }) }),
     logs: new LogService({ repositories }),
     scheduler: new SchedulerService({ repositories, poller }),
     exportImport: new ExportImportService({

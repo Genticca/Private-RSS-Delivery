@@ -1,7 +1,8 @@
-import type { ModelDiagnosticsResponse, ModelStatus } from '../contracts/api.js';
+import type { ModelDiagnosticsResponse, ModelKeyDiagnostics, ModelStatus } from '../contracts/api.js';
 import { nowIso } from '../db/time.js';
 import type { EventLogRepository } from '../db/index.js';
-import { DEFAULT_MODEL, resolveModelApiKey } from '../translator/keys.js';
+import { DEFAULT_MODEL, resolveModelCredentials } from '../translator/keys.js';
+import type { ModelTranslator } from '../translator/translator.js';
 import type { TranslationCacheService } from '../translator/translation-cache.service.js';
 import { validationError } from './errors.js';
 import { optionalBoolean, optionalString, requireObject } from './validation.js';
@@ -15,6 +16,7 @@ export interface ModelServiceOptions {
   model?: string;
   now?: () => string;
   translation?: TranslationCacheService;
+  translator?: Pick<ModelTranslator, 'getKeyStatus'>;
 }
 
 /** 번역 모델 상태와 진단을 제공한다. 모델·키는 환경 변수로만 바꾸며 API 키 자체는 응답에 담지 않는다. */
@@ -25,11 +27,18 @@ export class ModelService {
     const eventLog = this.options.repositories.eventLog;
     const request = eventLog.latestTranslationRequest();
     const counts = eventLog.countByStatus('translation');
+    const credentials = resolveModelCredentials(this.options.env);
+    const keys: ModelKeyDiagnostics = this.options.translator?.getKeyStatus() ?? {
+      activeKey: credentials[0]?.slot ?? null,
+      primary: { state: credentials.some((key) => key.slot === 'primary') ? 'ready' : 'missing', retryAt: null },
+      fallback: { state: credentials.some((key) => key.slot === 'fallback') ? 'ready' : 'missing', retryAt: null }
+    };
     return {
       model: this.options.model ?? DEFAULT_MODEL,
-      status: this.status(request?.status === 'failed' ? request.detail : null),
+      status: this.status(keys, request?.status === 'failed' ? request.detail : null),
       lastRequestAt: request?.createdAt ?? null,
       lastRequestResult: request ? request.detail ?? request.status : '아직 호출하지 않음',
+      keys,
       counts: {
         success: counts.success ?? 0,
         failed: counts.failed ?? 0,
@@ -55,11 +64,12 @@ export class ModelService {
     }, { now: this.now(), ignoreCooldown: true, fresh: optionalBoolean(body.fresh) ?? false });
   }
 
-  private status(latestFailure: string | null): ModelStatus {
+  private status(keys: ModelKeyDiagnostics, latestFailure: string | null): ModelStatus {
     // 키 설정과 최근 실패로 표시 상태를 계산한다. 이 조회 자체로 외부 API를 호출하지 않는다.
-    if (!resolveModelApiKey(this.options.env)) return 'missing-key';
-    if (latestFailure === 'invalid-key') return 'invalid-key';
-    return 'ready';
+    if (keys.primary.state === 'missing' && keys.fallback.state === 'missing') return 'missing-key';
+    if (keys.activeKey) return 'ready';
+    if (latestFailure?.endsWith('invalid-key')) return 'invalid-key';
+    return 'cooldown';
   }
 
   private now(): string {

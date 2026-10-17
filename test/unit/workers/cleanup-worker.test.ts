@@ -17,20 +17,25 @@ describe('CleanupWorker', () => {
     expect(delayUntilNextKstMidnight('2026-05-29T15:00:00.000Z')).toBe(24 * 60 * 60 * 1000);
   });
 
-  it('prunes old fetch, delivery and translation events in one worker run', async () => {
+  it('prunes events older than 30 days and retains events at the cutoff and newer', async () => {
     const container = openContainer();
-    const old = '2026-01-01T00:00:00.000Z';
+    const old = '2026-04-28T00:00:00.000Z';
+    const cutoff = '2026-04-29T00:00:00.000Z';
+    const recent = '2026-04-30T00:00:00.000Z';
     const base = '2026-05-29T00:00:00.000Z';
     const source = container.repositories.sources.create({ feedUrl: 'https://example.com/feed.xml', createdAt: base });
     const item = container.repositories.items.insert({ sourceId: source.id, atomId: 'atom-1', contentHash: 'hash-1', createdAt: base });
-    container.repositories.eventLog.append({ kind: 'delivery', status: 'failed', itemId: item.id, createdAt: old });
-    container.repositories.eventLog.append({ kind: 'fetch', status: 'error', sourceId: source.id, createdAt: old });
-    container.repositories.eventLog.append({ kind: 'translation', status: 'success', createdAt: old });
-    container.repositories.eventLog.append({ kind: 'fetch', status: 'ok', sourceId: source.id, createdAt: base });
+    for (const createdAt of [old, cutoff, recent]) {
+      container.repositories.eventLog.append({ kind: 'delivery', status: 'failed', itemId: item.id, createdAt });
+      container.repositories.eventLog.append({ kind: 'fetch', status: 'error', sourceId: source.id, createdAt });
+      container.repositories.eventLog.append({ kind: 'translation', status: 'success', createdAt });
+    }
 
     const worker = new CleanupWorker({ db: container.db, repositories: container.repositories });
     await expect(worker.runOnce(base)).resolves.toEqual({ events: 3 });
-    expect(container.repositories.eventLog.list().map((event) => event.createdAt)).toEqual([base]);
+    expect(container.repositories.eventLog.list().map((event) => event.createdAt)).toEqual([
+      recent, recent, recent, cutoff, cutoff, cutoff
+    ]);
   });
 
   it('clears scheduled timers on stop', () => {

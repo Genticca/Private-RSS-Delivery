@@ -1,282 +1,144 @@
-<div class="modal-overlay" data-page="source-form">
-  <div class="modal-container" style="display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;">
-    <div class="modal-header">
-      <h2>{{#if source}}📡 수집 소스 설정 수정{{else}}📡 새 수집 소스 추가{{/if}}</h2>
-      <a href="/sources" class="modal-close" title="닫기" onclick="var m=document.getElementById('source-modal-mount'); if(m&&m.contains(this)){event.preventDefault(); m.innerHTML='';}">&times;</a>
-    </div>
-    
-    <form style="display: flex; flex-direction: column; overflow: hidden; flex: 1; margin: 0;" {{#if source}}hx-patch="/api/sources/{{source.id}}"{{else}}hx-post="/api/sources"{{/if}} hx-swap="none">
-      <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 1.5rem;">
-        <p class="muted" style="margin:-0.25rem 0 1rem; font-size:0.85rem; line-height:1.4;">하나의 RSS/Atom 피드를 등록합니다. 피드 URL과 전송할 그룹만 정하면 바로 작동하고, 아래 멘션·스레드·번역 설정은 모두 선택입니다.</p>
-        <p class="callout">새 소스 또는 새 웹훅·스레드 연결은 첫 성공 수집을 기준으로 기존 글을 제외합니다. 연결 직후 첫 수집 전까지 나온 새 글도 제외될 수 있습니다.</p>
-        <div class="form-grid">
-          <label>수집 소스 이름 (별칭)
-            <input name="name" value="{{source.name}}" placeholder="비워 두면 피드 제목을 이름으로 사용합니다" autocomplete="off">
-          </label>
-          <label>피드 URL (RSS/Atom)
-            <input name="feedUrl" value="{{source.feedUrl}}" placeholder="https://example.com/rss.xml" required></label>
-
-          <label>파싱 프로필
-            <select name="profile" data-current="{{source.profile}}">
-              {{#each profiles}}
-              <option value="{{this}}">{{this}}</option>
-              {{/each}}
-            </select>
-          </label>
-          <p class="muted" style="font-size:0.8rem; line-height:1.4; margin-top:-0.25rem;">피드 형식을 해석하는 방식입니다. 보통 <code>generic</code>이면 충분하며, 소스 등록 시 자동 감지됩니다. Statuspage·incident.io 장애 피드만 전용 프로필을 고르세요.</p>
-          
-          <label>자동 수집 주기 (초)
-            <input name="pollIntervalSeconds" type="number" min="60" max="86400" value="{{#if source}}{{source.pollIntervalSeconds}}{{else}}300{{/if}}">
-          </label>
-          
-          <label>메시지 포맷 템플릿 프리셋
-            <select name="templateId" data-current="{{source.templateId}}">
-              <option value="">미지정 (기본 시스템 포맷 적용)</option>
-              {{#each templates}}
-              <option value="{{id}}">{{label}}</option>
-              {{/each}}
-            </select>
-          </label>
-          
-          <div style="margin-bottom: 0.5rem; margin-top: 0.5rem;">
-            <label class="toggle-switch-wrapper">
-              <span class="toggle-switch">
-                <input type="hidden" name="translate" id="input-translate" value="{{#if source.translate}}true{{else}}false{{/if}}">
-                <input type="checkbox" id="checkbox-translate" {{#if source.translate}}checked{{/if}}
-                       onchange="document.getElementById('input-translate').value = this.checked ? 'true' : 'false'">
-                <span class="toggle-slider"></span>
-              </span>
-              <span class="toggle-label-text">🌐 디스코드 전송 시 한국어로 자동 번역</span>
-            </label>
-            <p class="muted" style="margin-left: 3.5rem; font-size: 0.8rem; line-height: 1.4; margin-top: -0.25rem;">※ AI 기계 번역을 활용하여 원문 피드 내용을 한국어로 실시간 로컬화 번역합니다.</p>
-          </div>
-
-          <fieldset data-selected-groups="{{source.groupIds}}" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; margin-top: 0.5rem; background-color: var(--bg-app);">
-            <legend style="padding: 0 0.5rem; font-weight: 600; color: var(--primary); font-size: 0.95rem; display: flex; align-items: center; gap: 0.35rem;">
-              <span>📨</span> 수집 항목을 전송할 그룹 선택
-            </legend>
-            <p class="muted" style="font-size: 0.8rem; line-height: 1.4; margin-top: -0.25rem; margin-bottom: 1rem;">
-              그룹은 미리 등록한 디스코드 웹훅입니다. 체크한 그룹의 웹훅으로 피드 내용이 전송됩니다.
-            </p>
-            
-            <input type="hidden" name="groupIds" value="">
-            
-            {{#if groups}}
-              <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem;">
-                {{#each groups}}
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px;">
-                  <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
-                    <label class="check" style="margin: 0; display: flex; align-items: center; cursor: pointer; font-weight: inherit;">
-                      <input type="checkbox" name="groupIds" value="{{id}}" {{#if selected}}checked{{/if}} style="margin-right: 0.5rem;">
-                      <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">{{name}}</span>
-                    </label>
-                  </div>
-                  
-                  <div style="display: flex; align-items: center; gap: 1rem; flex: 1.5; justify-content: flex-end; min-width: 0;">
-                    {{#if hasWebhook}}
-                      <span class="badge ok" style="font-size: 0.75rem; flex-shrink: 0;">연결됨</span>
-                      <span class="truncate" style="font-family: monospace; font-size: 0.8rem; color: var(--text-muted); max-width: 200px;" title="{{maskedWebhookUrl}}">{{maskedWebhookUrl}}</span>
-                    {{else}}
-                      <span class="badge warn" style="font-size: 0.75rem; flex-shrink: 0;">미설정</span>
-                      <span style="font-size: 0.8rem; color: var(--text-muted);" class="muted">웹훅 없음 → 이 그룹으로는 전송되지 않음</span>
-                    {{/if}}
-                  </div>
-                </div>
-                {{/each}}
-              </div>
-            {{else}}
-              <p class="muted" style="font-size: 0.85rem; padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; text-align: center;">
-                등록된 그룹이 없습니다. 웹훅을 수신할 전송 그룹을 먼저 등록하세요.
-              </p>
-            {{/if}}
-            
-            <div style="font-size: 0.85rem; margin-top: 0.5rem;">
-              <a href="/groups" style="color: var(--primary); text-decoration: none; font-weight: 600;">＋ 새 그룹/웹훅 등록하러 가기 →</a>
-            </div>
-          </fieldset>
-
-          <fieldset style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; margin-top: 0.5rem; background-color: var(--bg-app);">
-            <legend style="padding: 0 0.5rem; font-weight: 600; color: var(--text-main); font-size: 0.9rem; display: flex; align-items: center; gap: 0.35rem;">
-              <span>🎭</span> 발신 프로필 이름/이미지 우회 설정 (선택)
-            </legend>
-            <div class="form-grid" style="margin-top: 0.5rem; gap: 1rem;">
-              <label>발신 프로필 이름 우회 설정 (선택)
-                <input name="webhookName" value="{{source.webhookName}}" placeholder="디스코드 기본 프로필 발신명을 변경할 경우 입력">
-              </label>
-              <label>발신 프로필 이미지 우회 설정 (선택)
-                <input name="webhookAvatarUrl" value="{{source.webhookAvatarUrl}}" placeholder="디스코드 기본 프로필 이미지를 변경할 경우 입력">
-              </label>
-              <p class="muted" style="font-size: 0.8rem; line-height: 1.4; margin-top: -0.25rem; margin-bottom: 0;">※ 위 두 항목을 비워 두면 선택한 그룹의 공용 발신 이름·이미지가 자동으로 사용됩니다. 값을 입력하면 그룹 설정을 덮어써 이 소스에만 개별 적용됩니다.</p>
-            </div>
-          </fieldset>
-
-          <!-- 섹션 3: 디스코드 전송 및 알림 설정 (접힘) -->
-          <details class="advanced-section-fieldset" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; margin-top: 0.5rem; background-color: var(--bg-app); display: block;" {{#if source.silent}}open{{else}}{{#if source.mentionRoleIds}}open{{else}}{{#if source.mentionUserIds}}open{{else}}{{#if source.mentionEveryone}}open{{else}}{{#if source.mentionHere}}open{{else}}{{#if source.editInPlace}}open{{/if}}{{/if}}{{/if}}{{/if}}{{/if}}{{/if}}>
-            <summary style="font-weight: 600; color: var(--primary); font-size: 0.95rem; cursor: pointer; user-select: none; padding: 0.25rem 0.5rem; display: list-item;">✉️ 디스코드 전송 및 알림 설정 (선택)</summary>
-            
-            <div style="margin-top: 1rem;">
-              <div style="margin-bottom: 0.75rem; margin-top: 0.5rem;">
-                <label class="toggle-switch-wrapper">
-                  <span class="toggle-switch">
-                    <input type="hidden" name="silent" id="input-silent" value="{{#if source.silent}}true{{else}}false{{/if}}">
-                    <input type="checkbox" id="checkbox-silent" {{#if source.silent}}checked{{/if}}
-                           onchange="document.getElementById('input-silent').value = this.checked ? 'true' : 'false'">
-                    <span class="toggle-slider"></span>
-                  </span>
-                  <span class="toggle-label-text" style="font-weight: 500;">🔔 조용히 보내기 (무음 전송)</span>
-                </label>
-                <p class="muted" style="margin-left: 3.5rem; font-size: 0.8rem; line-height: 1.4; margin-top: -0.25rem;">※ 모바일 및 PC 디스코드 푸시 알림이 울리지 않도록 디스코드 flags 속성을 적용해 전송합니다.</p>
-              </div>
-              
-              <details style="margin-top: 1rem; margin-bottom: 1rem; border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem; background: var(--bg-surface);" {{#if source.mentionRoleIds}}open{{else}}{{#if source.mentionUserIds}}open{{else}}{{#if source.mentionEveryone}}open{{else}}{{#if source.mentionHere}}open{{/if}}{{/if}}{{/if}}{{/if}}>
-                <summary style="font-weight: 600; color: var(--text-main); cursor: pointer; user-select: none; padding: 0.25rem 0;">🔔 멘션 핑 설정 (역할·사용자·@everyone·@here)</summary>
-                
-                <div style="margin-top: 1rem;">
-                  <div class="discord-guide-banner">
-                    <p>💡 <strong>멘션 핑 Snowflake ID 가이드</strong><br>
-                    디스코드 서버 설정의 역할이나 사용자 프로필에서 복사한 <strong>18자리 숫자 Snowflake 고유 식별자(ID)</strong>를 쉼표로 구분해 입력해 주십시오. (예: <code>123456789012345678</code>)</p>
-                  </div>
-                  
-                  <label style="margin-bottom: 0.75rem;">알림 대상 멘션 역할 ID 지정 (역할 Snowflake ID, 쉼표 구분)
-                    <input name="mentionRoleIds" value="{{source.mentionRoleIds}}" placeholder="예: 123456789012345678, 876543210987654321">
-                  </label>
-                  
-                  <label style="margin-bottom: 0.75rem;">알림 대상 멘션 사용자 ID 지정 (사용자 Snowflake ID, 쉼표 구분)
-                    <input name="mentionUserIds" value="{{source.mentionUserIds}}" placeholder="예: 123456789012345678">
-                  </label>
-                  
-                  <label class="check" style="margin-bottom: 0.5rem; font-weight: 500;">
-                    <input type="hidden" name="mentionEveryone" id="input-mentionEveryone" value="{{#if source.mentionEveryone}}true{{else}}false{{/if}}">
-                    <input type="checkbox" id="checkbox-mentionEveryone" {{#if source.mentionEveryone}}checked{{/if}}
-                           onchange="document.getElementById('input-mentionEveryone').value = this.checked ? 'true' : 'false'"> 
-                    @everyone 멘션 핑 포함
-                  </label>
-
-                  <label class="check" style="margin-bottom: 0.5rem; font-weight: 500;">
-                    <input type="hidden" name="mentionHere" id="input-mentionHere" value="{{#if source.mentionHere}}true{{else}}false{{/if}}">
-                    <input type="checkbox" id="checkbox-mentionHere" {{#if source.mentionHere}}checked{{/if}}
-                           onchange="document.getElementById('input-mentionHere').value = this.checked ? 'true' : 'false'">
-                    @here 멘션 핑 포함
-                  </label>
-                  
-                  <p class="muted" style="margin-top: 0.5rem; font-size: 0.8rem; line-height: 1.4;">※ 멘션은 본문 텍스트 내에서만 유효하며, 임베드 메시지 내부에서는 핑 알림이 울리지 않습니다.</p>
-                </div>
-              </details>
-              
-              <div style="margin-bottom: 0.5rem; margin-top: 1rem; border-top: 1px dashed var(--border-color); padding-top: 1rem;">
-                <label class="toggle-switch-wrapper">
-                  <span class="toggle-switch">
-                    <input type="hidden" name="editInPlace" id="input-editInPlace" value="{{#if source.editInPlace}}true{{else}}false{{/if}}">
-                    <input type="checkbox" id="checkbox-editInPlace" {{#if source.editInPlace}}checked{{/if}}
-                           onchange="document.getElementById('input-editInPlace').value = this.checked ? 'true' : 'false'">
-                    <span class="toggle-slider"></span>
-                  </span>
-                  <span class="toggle-label-text" style="font-weight: 500;">🔄 기존 발행 원본 메시지 직접 편집 (In-Place Edit)</span>
-                </label>
-                <p class="muted" style="margin-left: 3.5rem; font-size: 0.8rem; line-height: 1.4; margin-top: -0.25rem;">켜면 원래 발송한 메시지를 수정합니다. 끄면 원래 발송한 연결에 변경 알림을 새 메시지로 보냅니다. 새 웹훅·스레드에는 과거 글을 보내지 않습니다.</p>
-              </div>
-            </div>
-          </details>
-
-          <!-- 섹션 4: 디스코드 포럼 및 스레드 설정 (접힘) -->
-          <details class="advanced-section-fieldset" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; margin-top: 0.5rem; background-color: var(--bg-app); display: block;" {{#if source.threadId}}open{{else}}{{#if source.threadName}}open{{else}}{{#if source.appliedTags}}open{{/if}}{{/if}}{{/if}}>
-            <summary style="font-weight: 600; color: var(--primary); font-size: 0.95rem; cursor: pointer; user-select: none; padding: 0.25rem 0.5rem; display: list-item;">💬 디스코드 포럼 및 스레드 설정 (선택)</summary>
-            
-            <div style="margin-top: 1rem;">
-              <label style="margin-bottom: 1rem;">수신 채널 유형 선택
-                <select id="channel-type-selector" style="max-width: 100%;">
-                  <option value="text">#️⃣ 일반 채팅 채널 (General Text Channel)</option>
-                  <option value="thread">🧵 스레드 채널 (Existing Thread)</option>
-                  <option value="forum">💬 포럼 및 미디어 채널 (Forum / Media Channel)</option>
-                </select>
-              </label>
-
-              <!-- 1) 일반 채팅 채널 안내부 -->
-              <div id="section-text-only" style="display: none; padding: 0.75rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 0.5rem;">
-                <p class="muted" style="font-size: 0.8rem; line-height: 1.5; margin: 0;">
-                  ℹ️ <strong>일반 채팅 모드:</strong> 디스코드 웹훅의 기본 텍스트 채널에 일반 메시지 형식으로 전송됩니다. 추가적인 포럼/스레드 설정이 적용되지 않습니다.
-                </p>
-              </div>
-
-              <!-- 2) 스레드 채널 설정부 -->
-              <div id="section-thread-only" style="display: none;">
-                <label style="margin-bottom: 0.75rem;">포럼 대상 스레드 고유 ID (기존 스레드 ID)
-                  <input name="threadId" value="{{source.threadId}}" placeholder="예: 123456789012345678">
-                </label>
-                <p class="muted" style="margin-bottom: 0.5rem; font-size: 0.8rem; line-height: 1.4;">※ 기존에 생성된 스레드 채널의 Snowflake 고유 식별자(ID)를 지정합니다.</p>
-              </div>
-
-              <!-- 3) 포럼 채널 설정부 -->
-              <div id="section-forum-only" style="display: none;">
-                <label style="margin-bottom: 0.75rem;">포럼 대상 신규 스레드 제목 (스레드 생성 시 적용)
-                  <input name="threadName" value="{{source.threadName}}" placeholder="새로 생성될 스레드 명칭 입력">
-                </label>
-
-                <label style="margin-bottom: 0.5rem;">포럼 태그 지정 (태그 ID · Snowflake, 쉼표 구분)
-                  <input name="appliedTags" value="{{source.appliedTags}}" placeholder="예: 1234567890, 87654321">
-                </label>
-                <p class="muted" style="margin-bottom: 0.5rem; font-size: 0.8rem; line-height: 1.4;">※ 포럼 채널에 글을 새로 발행할 때 사용할 스레드 제목 서식과 태그 Snowflake 식별자들을 설정합니다.</p>
-              </div>
-              
-              <p class="muted" style="font-size: 0.8rem; line-height: 1.4; margin-top: 0.75rem; border-top: 1px dashed var(--border-color); padding-top: 0.5rem;">※ 스레드 및 포럼 옵션은 디스코드 수신 채널의 아키텍처 형식에 정확히 부합해야 유효하게 전송됩니다.</p>
-            </div>
-          </details>
-        </div>
-
-        {{#if source}}
-          {{#unless source.hasAnyDestination}}
-          <p class="callout warn" style="margin-top: 1rem;">⚠️ 이 소스가 선택한 그룹 중 웹훅이 연결된 그룹이 없거나 그룹이 선택되지 않아, 새 글이 수집되어도 어디로도 전송되지 않습니다. 위에서 웹훅이 연결된 그룹을 선택하거나, <a href="/groups">그룹 관리</a>에서 웹훅을 연결해주세요.</p>
-          {{/unless}}
-        {{/if}}
-      </div>
-      
-      <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-surface); display: flex; justify-content: flex-end; gap: 0.5rem; z-index: 10;">
-        <a class="button secondary" href="/sources" onclick="var m=document.getElementById('source-modal-mount'); if(m&&m.contains(this)){event.preventDefault(); m.innerHTML='';}">취소</a>
-        <button type="submit" class="primary">소스 설정 저장</button>
-      </div>
-    </form>
-  </div>
-
-  <script>
-  (() => {
-    const selector = document.getElementById('channel-type-selector');
-    const textSection = document.getElementById('section-text-only');
-    const threadSection = document.getElementById('section-thread-only');
-    const forumSection = document.getElementById('section-forum-only');
-    if (!selector || !textSection || !threadSection || !forumSection) return;
-
-    // 비활성 섹션 입력은 disabled → 폼 제출에서 제외(숨겨진 stale thread/forum 값이 함께 전송되지 않음).
-    function setSectionEnabled(section, enabled) {
-      section.querySelectorAll('input, select, textarea').forEach((el) => {
-        el.disabled = !enabled;
-      });
-    }
-
-    function updateVisibility() {
-      const val = selector.value;
-      const isText = val === 'text';
-      const isThread = val === 'thread';
-      const isForum = val === 'forum';
-      textSection.style.display = isText ? 'block' : 'none';
-      threadSection.style.display = isThread ? 'block' : 'none';
-      forumSection.style.display = isForum ? 'block' : 'none';
-      setSectionEnabled(threadSection, isThread);
-      setSectionEnabled(forumSection, isForum);
-    }
-
-    const hasThreadId = "{{source.threadId}}".trim() !== "";
-    const hasForum = "{{source.threadName}}".trim() !== "" || "{{source.appliedTags}}".trim() !== "";
-
-    if (hasThreadId) {
-      selector.value = 'thread';
-    } else if (hasForum) {
-      selector.value = 'forum';
-    } else {
-      selector.value = 'text';
-    }
-
-    selector.addEventListener('change', updateVisibility);
-    updateVisibility();
-  })();
-  </script>
+<dialog class="app-dialog source-dialog" data-page="source-form" aria-labelledby="source-form-title">
+  <div class="modal-header">
+<div>
+<p class="eyebrow">{{#if source}}SOURCE SETTINGS{{else}}CONNECT A FEED{{/if}}</p>
+<h2 id="source-form-title">{{#if source}}수집 소스 설정{{else}}새 수집 소스{{/if}}</h2>
 </div>
+<button type="button" class="icon-button" data-close-dialog aria-label="닫기">{{> icon name="close"}}</button>
+</div>
+  <form {{#if source}}hx-patch="/api/sources/{{source.id}}"{{else}}hx-post="/api/sources"{{/if}} hx-swap="none">
+    <div class="modal-body form-grid">
+      <div class="form-section-heading">
+<span>01</span>
+<div>
+<h3>피드 연결</h3>
+<p>수집할 주소와 표시 이름을 입력하세요.</p>
+</div>
+</div>
+      <label>피드 URL <span class="required">*</span>
+<input name="feedUrl" type="url" value="{{source.feedUrl}}" placeholder="https://example.com/feed.xml" required autofocus>
+</label>
+      <label>소스 이름<input name="name" value="{{source.name}}" maxlength="200" placeholder="비워 두면 피드 제목을 사용합니다">
+</label>
+      <div class="form-columns">
+<label>파싱 프로필<select name="profile" data-current="{{source.profile}}">{{#each profiles}}<option value="{{this}}">{{this}}</option>{{/each}}</select>
+<small>auto를 선택하면 제공자를 자동 감지합니다.</small>
+</label>
+<label>수집 주기 (초)<input name="pollIntervalSeconds" type="number" min="60" max="86400" value="{{#if source}}{{source.pollIntervalSeconds}}{{else}}300{{/if}}">
+<small>최소 60초 · 기본 5분</small>
+</label>
+</div>
+      <div class="form-section-heading">
+<span>02</span>
+<div>
+<h3>발신 그룹</h3>
+<p>알림을 받을 그룹을 하나 이상 선택하세요.</p>
+</div>
+</div>
+      <fieldset class="group-selection" data-selected-groups="{{source.groupIds}}">
+<legend class="sr-only">발신 그룹 선택</legend>
+<input type="hidden" name="groupIds" value="">
+        {{#each groups}}<label class="group-option">
+<input type="checkbox" name="groupIds" value="{{id}}" {{#if selected}}checked{{/if}}>
+<span>
+<strong>{{name}}</strong>
+<small>{{#if hasWebhook}}{{maskedWebhookUrl}}{{else}}웹훅 미설정 · 연결 후 수집됩니다{{/if}}</small>
+</span>
+<span class="badge {{#if hasWebhook}}ok{{else}}warn{{/if}}">{{#if hasWebhook}}연결됨{{else}}미연결{{/if}}</span>
+</label>
+        {{else}}<div class="empty-inline">그룹이 없습니다. <a href="/groups">그룹을 먼저 만들어 주세요 →</a>
+</div>{{/each}}
+      </fieldset>
+      <div class="callout">
+<p>새 연결의 첫 수집은 기준선으로 저장하고 발송하지 않습니다. 첫 수집 전까지 나온 글도 제외될 수 있습니다.</p>
+</div>
+      <div class="form-section-heading">
+<span>03</span>
+<div>
+<h3>메시지 설정</h3>
+<p>알림의 모양과 전달 방식을 선택하세요.</p>
+</div>
+</div>
+      <label>메시지 템플릿<select name="templateId" data-current="{{source.templateId}}">
+<option value="">기본 시스템 포맷</option>{{#each templates}}<option value="{{id}}">{{label}}</option>{{/each}}</select>
+</label>
+      <label class="switch-row">
+<span>
+<strong>한국어 자동 번역</strong>
+<small>Gemini로 번역합니다. 실패하면 원문을 사용합니다.</small>
+</span>
+<input type="hidden" name="translate" value="{{#if source.translate}}true{{else}}false{{/if}}">
+<input type="checkbox" role="switch" data-boolean="translate" {{#if source.translate}}checked{{/if}}>
+</label>
+      <label class="switch-row">
+<span>
+<strong>기존 메시지 수정</strong>
+<small>끄면 같은 연결에 변경 알림을 새 메시지로 보냅니다.</small>
+</span>
+<input type="hidden" name="editInPlace" value="{{#if source.editInPlace}}true{{else}}false{{/if}}">
+<input type="checkbox" role="switch" data-boolean="editInPlace" {{#if source.editInPlace}}checked{{/if}}>
+</label>
+      <details class="form-details">
+<summary>발신 프로필</summary>
+<div class="details-body form-columns">
+<label>발신 이름<input name="webhookName" value="{{source.webhookName}}" maxlength="80" placeholder="그룹 설정 사용">
+</label>
+<label>프로필 이미지 URL<input name="webhookAvatarUrl" type="url" value="{{source.webhookAvatarUrl}}" placeholder="그룹 설정 사용">
+</label>
+</div>
+</details>
+      <details class="form-details">
+<summary>알림 및 멘션</summary>
+<div class="details-body form-grid">
+        <label class="switch-row">
+<span>
+<strong>조용히 보내기</strong>
+<small>Discord 푸시 알림 없이 전달합니다.</small>
+</span>
+<input type="hidden" name="silent" value="{{#if source.silent}}true{{else}}false{{/if}}">
+<input type="checkbox" role="switch" data-boolean="silent" {{#if source.silent}}checked{{/if}}>
+</label>
+        <label>멘션할 역할 ID<input name="mentionRoleIds" value="{{source.mentionRoleIds}}" placeholder="숫자 ID를 쉼표로 구분">
+</label>
+<label>멘션할 사용자 ID<input name="mentionUserIds" value="{{source.mentionUserIds}}" placeholder="숫자 ID를 쉼표로 구분">
+</label>
+        <div class="inline-form">
+<label class="check">
+<input type="hidden" name="mentionEveryone" value="{{#if source.mentionEveryone}}true{{else}}false{{/if}}">
+<input type="checkbox" data-boolean="mentionEveryone" {{#if source.mentionEveryone}}checked{{/if}}> @everyone 포함</label>
+<label class="check">
+<input type="hidden" name="mentionHere" value="{{#if source.mentionHere}}true{{else}}false{{/if}}">
+<input type="checkbox" data-boolean="mentionHere" {{#if source.mentionHere}}checked{{/if}}> @here 포함</label>
+</div>
+      </div>
+</details>
+      <details class="form-details" {{#if source.threadId}}open{{else}}{{#if source.threadName}}open{{/if}}{{/if}}>
+<summary>스레드 및 포럼</summary>
+<div class="details-body form-grid">
+        <label>전송 채널 유형<select data-channel-type>
+<option value="text">일반 텍스트 채널</option>
+<option value="thread">기존 스레드</option>
+<option value="forum">포럼 · 새 스레드</option>
+</select>
+</label>
+        <div data-channel-section="thread">
+<label>기존 스레드 ID<input name="threadId" value="{{source.threadId}}" inputmode="numeric" pattern="[0-9]*" placeholder="Discord 스레드 ID">
+</label>
+</div>
+        <div data-channel-section="forum" class="form-grid">
+<label>새 스레드 제목<input name="threadName" value="{{source.threadName}}" maxlength="100">
+</label>
+<label>포럼 태그 ID<input name="appliedTags" value="{{source.appliedTags}}" placeholder="숫자 ID를 쉼표로 구분 · 최대 5개">
+</label>
+</div>
+        <p class="muted">채널 유형을 바꾸면 이전 유형의 스레드·포럼 설정은 비워집니다.</p>
+      </div>
+</details>
+      {{#if source}}{{#unless source.hasAnyDestination}}<div class="callout warn">선택한 그룹에 연결된 웹훅이 없습니다. <a href="/groups">그룹 관리</a>에서 웹훅을 연결해 주세요.</div>{{/unless}}{{/if}}
+    </div>
+    <div class="modal-footer">
+<button type="button" class="secondary" data-close-dialog>취소</button>
+<button type="submit" class="primary">{{#if source}}변경사항 저장{{else}}소스 연결하기{{/if}}</button>
+</div>
+  </form>
+</dialog>
