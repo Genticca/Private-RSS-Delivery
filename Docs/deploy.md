@@ -1,7 +1,7 @@
 # Ubuntu Server 배포 런북 (Production / 시범 운용)
 
 대상: 단일 관리자용 내부 도구. **production 에서는 앱이 loopback(`127.0.0.1`)에만 바인딩**되며,
-비-loopback HOST 로는 기동 자체가 거부된다(`src/server/config.ts`). 외부 접속은 **SSH 터널**로 한다.
+비-loopback HOST 로는 기동 자체가 거부된다(`src/server/core/config.ts`). 외부 접속은 **SSH 터널**로 한다.
 
 핵심 전제 3가지(과거에 실제로 막혔던 지점):
 1. **네이티브 모듈은 배포 서버에서 직접 빌드한다.** `better-sqlite3` 의 `.node` 바이너리는 OS/ABI 종속이다.

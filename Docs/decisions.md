@@ -1,4 +1,4 @@
-# 결정 기록 (D1~D29)
+# 결정 기록 (D1~D30)
 
 > 정책이 바뀌면 기존 줄을 고치지 않고 새 결정을 추가하고, 대체된 결정에 표시한다. 결정 당시의 상세 논의는 보관본에 있다(D1~D24: [design-v1.md](../Archive/2026-10-17/Docs/history/design-v1.md), D25: [backend-spec.md](../Archive/2026-10-17/Docs/history/backend-spec.md)·[frontend-spec.md](../Archive/2026-10-17/Docs/history/frontend-spec.md) 머리말).
 
@@ -7,7 +7,7 @@
 | D1 | 최상위 `src/` + `test/`, 백엔드 `src/server`, 화면 `src/resources/templates` | 유효 |
 | D2 | Discord 템플릿은 DB에 저장하고 런타임에 편집한다 | 유효 |
 | D3 | 마이그레이션은 `src/resources/migrations/*.sql` 순번 파일 | 유효 |
-| D4 | 순수 로직은 `src/server/domain/`, `services/`는 얇게 | 유효 |
+| D4 | 순수 로직은 `src/server/domain/`, `services/`는 얇게 | **D30으로 대체** |
 | D5 | DnD 빌더 제거 → 프리셋 + JSON 편집 | 유효 |
 | D6 | React/Vite 제거 → 서버 렌더 + htmx + CodeMirror | 유효 |
 | D7 | WebSocket 실시간 미리보기 제거 → debounce REST | 유효 |
@@ -33,3 +33,4 @@
 | D27 | 런타임은 TypeScript(Node) 하나로 유지한다. 수집(Go)·발송(Node) 분리는 하지 않는다. 병목이 외부 I/O라 성능 이득이 없고, SQLite 동시 쓰기·정규화/해시 이중 구현·배포 2벌이 생긴다 (2026-10-18) | 유효 |
 | D28 | 스키마 정리: 로그 4개(`delivery_log`·`fetch_log`·`model_usage`·`translation_events`)를 `event_log` 하나로 합치고 축소, 모델 설정(`model_config`)은 환경 변수 `GEMINI_MODEL`로, 항목의 발송·번역 사본(`syncItemState`)·`legacy_unknown`·`sources.webhook_url` 제거, 메시지 수정(edit-in-place)은 유지. 운영 DB가 없어 `0001_init`을 직접 고쳤다 (2026-10-18) | 유효 — 현재 스키마는 [db-schema.md](db-schema.md) |
 | D29 | Gemini의 한도·인증·통신 오류에 대비해 `FALLBACK_MODEL_API_KEY`를 같은 Gemini 모델의 대체 키로 지원한다. 기본 → 대체 순서, 실패한 키는 메모리에서 5분 대기, SDK 내부 재시도는 끄고 키별 한 번만 요청한다. 모두 실패하면 원문을 사용하며 키 원문은 DB·진단·로그에 노출하지 않는다. NVIDIA NIM은 복원하지 않는다 (2026-10-18) | 유효 |
+| D30 | 서버를 기능별 패키지로 재구성하고 tier 의존 규칙을 `test/architecture.test.ts`로 강제한다. DTO·정규화·저장소·라우트는 소유 기능에 두고, 역방향 동작은 콜백으로 연결한다. 재수출 index와 사용하지 않는 Legacy 소스 웹훅 입력을 제거한다 (2026-10-18) | 유효 |

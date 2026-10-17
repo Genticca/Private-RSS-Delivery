@@ -1,6 +1,6 @@
 # 아키텍처
 
-> 코드 기준: `5e4b68c` · 갱신 2026-10-18 · 현재 구성과 실행 흐름을 설명한다. 기능·API·점검 결과는 [server-features.md](server-features.md)에 있다. 테이블과 상태 값의 정의는 [db-schema.md](db-schema.md), 결정 배경은 [decisions.md](decisions.md)에 있다.
+> 코드 기준: 기능별 재구성 완료(D30, 기준 커밋 `e3f5d92`) · 갱신 2026-10-18 · 현재 구성과 실행 흐름을 설명한다. 기능·API·점검 결과는 [server-features.md](server-features.md)에 있다. 테이블과 상태 값은 [db-schema.md](db-schema.md), 결정 배경은 [decisions.md](decisions.md)에 있다.
 
 ## 1. 무엇을 하는가
 
@@ -29,58 +29,52 @@ flowchart LR
 
 ## 2. 프로세스 구성과 디렉터리
 
-```mermaid
-flowchart TB
-  subgraph HTTP["HTTP (Fastify)"]
-    CTRL["controllers<br/>web.ts · api/*"]
-    MW["middleware<br/>Host·Origin 검증"]
-  end
-  subgraph BG["백그라운드 워커"]
-    PW["PollWorker<br/>30초 · 동시 2"]
-    DW["DeliveryWorker<br/>1초 · 웹훅별 순차 · 동시 2"]
-    CW["CleanupWorker<br/>부팅 직후 · 매일 KST 0시"]
-  end
-  SVC["services<br/>소스·그룹·템플릿·모델·import<br/>Poll · DeliveryPlan · DeliveryBinding · Delivery"]
-  DOM["domain (순수)<br/>envelope · normalize · delivery · translation"]
-  DSP["dispatcher<br/>render · validate · discord-client"]
-  TR["translator<br/>캐시 · Gemini"]
-  SEC["security<br/>SSRF-safe fetch · 웹훅 검증"]
-  REPO["db (repositories)"]
-  CTRL --> SVC
-  PW --> SVC
-  DW --> SVC
-  CW --> SVC
-  SVC --> DOM
-  SVC --> DSP
-  SVC --> TR
-  SVC --> SEC
-  SVC --> REPO
-  DSP --> SEC
+서버는 기능별 패키지 13개와 진입·조립 파일 3개, 총 52개 TypeScript 파일로 구성한다. 파일 이동표는 [작업 지시서 §4](Work/2026-10-18-package-by-feature-refactor.md#4-파일-이동표-현재-100개--52개)에 있다.
+
+```text
+src/server/
+  main.ts                 # 부팅·워커 시작·시그널 처리
+  app.ts                  # Fastify와 기능별 라우트 등록
+  container.ts            # 저장소·서비스·워커 생성과 콜백 연결
+  core/       config.ts db.ts errors.ts input.ts http.ts worker.ts
+  net/        fetch.ts address.ts webhook-url.ts
+  feed/       parse.ts normalize.ts repository.ts
+  logs/       repository.ts service.ts routes.ts
+  templates/  repository.ts render.ts payload.ts service.ts routes.ts
+  groups/     repository.ts service.ts routes.ts
+  sources/    repository.ts input.ts service.ts routes.ts
+  translation/ translator.ts gemini.ts cache.ts service.ts routes.ts
+  delivery/   repository.ts bindings.ts plan.ts service.ts discord.ts worker.ts review.ts preview.ts routes.ts
+  collect/    service.ts worker.ts routes.ts
+  transfer/   service.ts document.ts routes.ts
+  cleanup/    worker.ts
+  web/        pages.ts
 ```
 
-`domain/`은 DB·네트워크 I/O 없이 파싱·정규화·정책 계산을 수행한다. DB 레코드의 타입을 참조하는 `import type`은 있지만 저장소 실행 코드는 호출하지 않는다. 서비스는 런타임 컨테이너 전체가 아니라 필요한 repository와 실행 의존성을 받는다.
+| tier | 패키지 | 책임 | 다른 패키지의 import 허용 범위 |
+| --- | --- | --- | --- |
+| 0 | `core` | 설정·환경 병합, SQLite·마이그레이션, 공통 검증·오류·HTTP·작업 추적 | Node·npm 패키지만 |
+| 1 | `net`, `feed` | SSRF·HTTP·웹훅 URL 검사 / 피드 해석·정규화·항목 저장소 | `core` |
+| 2 | `logs` | 통합 로그 저장소·조회·SSE | `core` |
+| 3 | `templates` | 템플릿 저장·프리셋·렌더·payload 검증 | tier 0~2 |
+| 4 | `groups` | 발신 그룹 관리 | tier 0~3 |
+| 5 | `sources` | 수집 소스·그룹 배정·입력 검증 | tier 0~4 |
+| 6 | `translation` | Gemini·대체 키·번역 캐시·진단 | tier 0~5 |
+| 7 | `delivery` | 연결 세대·계획·발송·검토·미리보기 | tier 0~6 |
+| 8 | `collect` | 피드 수집·수동 실행·수집 워커 | tier 0~7 |
+| 9 | `transfer`, `cleanup` | 설정 Export/Import / 보존 기간 정리 | tier 0~8 |
+| 10 | `web` | 관리 페이지·화면 모델 | tier 0~9 |
+| 11 | `container.ts` | 의존성 조립과 콜백 연결 | tier 0~10 |
+| 12 | `app.ts` | HTTP 구성과 기능별 라우트 등록 | tier 0~11 |
+| 13 | `main.ts` | 진입점 | tier 0~12 |
 
-| 경로 | 책임 | 의존해도 되는 것 |
-| --- | --- | --- |
-| `src/server/main.ts` | 부팅, listen, 워커 시작, 시그널 처리 | app |
-| `src/server/app.ts` | Fastify 구성: 파서·오류 처리·미들웨어·rate limit·뷰·라우트 등록, `/healthz`·`/ready` | runtime, controllers |
-| `src/server/config.ts` | HOST·PORT·DB 경로 검증 | runtime/environment |
-| `runtime/` | 환경 병합(`environment`), 실행 제한값(`options`), DI 조립(`container`), 마이그레이션(`migrator`), 종료 대기(`lifecycle`) | 전부 |
-| `controllers/` | HTTP 어댑터. `web.ts`는 페이지, `api/*`는 JSON·htmx·SSE. 입력을 서비스에 넘기고 결과를 렌더 | services, contracts |
-| `middleware/` | 들어오는 요청의 Host·Origin 검증 | — |
-| `contracts/` | 프런트·백엔드 계약 타입: API DTO, view-model, 프리셋 render context | — |
-| `services/` | 유스케이스. 관리 기능과 수집·발송 오케스트레이션 | domain, db, dispatcher, translator, security |
-| `domain/` | **순수 함수**만. `envelope`(Stage 1), `normalize`(Stage 2·프로필), `delivery`(cutoff·보류·순서·재시도 간격), `translation`(필드 판정·캐시 키·로컬 처리), `text` | 없음 |
-| `dispatcher/` | 프리셋 렌더, payload 검증, 웹훅 옵션 적용, 목적지 해석, Discord HTTP(`discord-client`), 빌트인 프리셋 시드 | security, contracts |
-| `translator/` | 번역 캐시·single-flight(`translation-cache.service`), Gemini 호출·타임아웃(`translator`), 프롬프트, 키 해석, Gemini 어댑터 | domain, db |
-| `security/` | 나가는 요청 보안: SSRF-safe fetch(크기·시간 제한, TLS 재시도, 리다이렉트), IP 검사, Agent 캐시, 웹훅 URL 검증 | — |
-| `db/` | repository. SQL과 행 ↔ 레코드 매핑만, 비즈니스 규칙 없음 | — |
-| `workers/` | 주기 실행과 동시성·진행 중 작업 추적(`TaskTracker`). 실제 일은 서비스에 위임 | services |
-| `scheduler/` | 이전 경로 호환용 재수출 | — |
-| `src/resources/migrations/` | 순번 SQL 마이그레이션 | |
-| `src/resources/templates/` | 관리 화면 Handlebars(`layouts`·`pages`·`partials`)와 정적 자산(htmx, CodeMirror, app.js·css) | |
-| `src/resources/presets/` | Discord 프리셋 4종 `.hbs` | |
-| `Archive/` | 교체된 이전 구현과 테스트 보관본. 빌드·테스트 대상 아님 | |
+다른 패키지는 자신보다 작은 tier만 import한다. 같은 tier 사이의 import와 타입 전용 역방향 의존도 금지한다. 패키지 안에서 `repository.ts`는 다른 파일을 import하지 않고, 다른 파일은 같은 패키지의 `routes.ts`를 import하지 않는다. `app.ts`는 각 기능의 라우트를 직접 등록한다. `index.ts` 재수출과 `.gitkeep`은 두지 않는다. 새 서버 파일은 40줄 이상이며 `routes.ts`와 `cleanup/worker.ts`는 예외다.
+
+라우트는 컨테이너 전체 대신 필요한 서비스만 받는다. 수동 수집은 소스 조회 저장소와 PollWorker를 명시적으로 받는다. 소스·그룹 관리에서 상위 tier의 연결 갱신이 필요하면 `container.ts`가 콜백을 주입한다. 피드 파싱·정규화와 순수 정책 함수는 해당 기능 안에 유지한다. 정리 워커는 각 저장소의 정리 메서드를 기존 순서·트랜잭션으로 호출한다.
+
+[test/architecture.test.ts](../test/architecture.test.ts)가 패키지·tier·패키지 내부 방향·파일 규칙을 검증한다. 작은따옴표·큰따옴표, 타입 import·재수출·리터럴 동적 import·경로 별칭도 검사하고 주석·일반 문자열을 제외한다. 계산된 동적 import는 의존을 정적으로 확인할 수 없어 허용하지 않는다.
+
+화면·프리셋·마이그레이션은 기존 `src/resources/{templates,presets,migrations}/`에 있다. 빌드는 `dist/server`와 `dist/resources`를 생성하며 테스트는 `test/<기능>/`와 `test/app`, `test/core`, `test/mocks`에 둔다.
 
 ## 3. 데이터 변환과 핵심 불변식
 
@@ -98,10 +92,10 @@ flowchart LR
 
 | 불변식 | 지키는 곳 |
 | --- | --- |
-| **형식과 내용의 분리**: Stage 1은 형식, Stage 2는 내용 | `domain/envelope`, `domain/normalize` |
+| **형식과 내용의 분리**: Stage 1은 형식, Stage 2는 내용 | `feed/parse.ts`, `feed/normalize.ts` |
 | **식별 ≠ 변경**: 식별은 `(source_id, atom_id)`, 변경은 `content_hash`·`content_revision` | `items` UNIQUE, PollService |
-| **결정적 정규화**: 같은 입력 → 같은 해시. incident 해시는 최신 segment만 | `domain/normalize` |
-| **첫 수집은 보내지 않는다**: 소스의 첫 성공 수집은 모두 historical | `domain/delivery/cutoff.ts` |
+| **결정적 정규화**: 같은 입력 → 같은 해시. incident 해시는 최신 segment만 | `feed/normalize.ts` |
+| **첫 수집은 보내지 않는다**: 소스의 첫 성공 수집은 모두 historical | `collect/service.ts` |
 | **새 연결은 과거 항목을 받지 않는다**: 연결 세대마다 baseline | `delivery_bindings`, DeliveryPlanService |
 | **수정은 원래 보낸 연결에만** | `item_deliveries`, DeliveryPlanService |
 | **결과가 불명확한 POST는 자동으로 다시 보내지 않는다** | DeliveryService, `recoverInterrupted` |
@@ -174,7 +168,7 @@ flowchart TD
 
 ## 5. 수집: 피드 → 항목 저장 → 작업 계획
 
-코드: `workers/poll-worker.ts`, `services/poll.service.ts`, `security/ssrf-fetch.ts`, `domain/*`, `services/delivery-plan.service.ts`
+코드: `collect/worker.ts`, `collect/service.ts`, `net/fetch.ts`, `feed/parse.ts`·`feed/normalize.ts`, `delivery/plan.ts`
 
 ```mermaid
 flowchart TD
@@ -235,7 +229,7 @@ flowchart TD
 
 ## 6. 발송: 작업 한 건 처리
 
-코드: `workers/delivery-worker.ts`, `services/delivery.service.ts`, `dispatcher/*`, `db/delivery-job.repository.ts`
+코드: `delivery/worker.ts`, `delivery/service.ts`, `templates/render.ts`·`templates/payload.ts`·`delivery/discord.ts`, `delivery/repository.ts`
 
 ```mermaid
 flowchart TD
@@ -289,7 +283,7 @@ flowchart TD
 
 ## 7. 번역 (발송 중 payload를 만들 때)
 
-코드: `translator/translation-cache.service.ts`, `translator/translator.ts`, `domain/translation/policy.ts`
+코드: `translation/cache.ts`, `translation/translator.ts`, `translation/cache.ts`
 
 ```mermaid
 flowchart LR
@@ -340,7 +334,7 @@ stateDiagram-v2
 
 ## 9. 설정 변경과 연결 세대
 
-코드: `services/delivery-binding.service.ts`
+코드: `delivery/bindings.ts`
 
 ```mermaid
 flowchart LR
@@ -365,13 +359,13 @@ flowchart LR
 PATCH /api/sources/:id → SourceService.update()
   └ 트랜잭션: sources.update · source_groups.setGroups
       └ (트리거) sources.config_revision +1
-      └ DeliveryBindingService.reconcile(feedUrl이 바뀌면 전체 재시작)
+      └ 콜백 reconcileDestinations → DeliveryBindingService.reconcile(feedUrl이 바뀌면 전체 재시작)
 
 수집 한 번
 PollWorker.runDuePolls → PollService.poll
   ├ DeliveryBindingService.reconcile
-  ├ security.fetchFeed
-  └ 트랜잭션: domain.parseFeed → domain.normalize
+  ├ net/fetch.fetchFeed
+  └ 트랜잭션: feed/parse.parseFeed → feed/normalize.normalize
               → items insert/update → DeliveryPlanService.planNew / planUpdate
               → DeliveryBindingService.completeBaselines → event_log(fetch)
 
@@ -379,8 +373,8 @@ PollWorker.runDuePolls → PollService.poll
 DeliveryWorker.runDueDeliveries → DeliveryService.processJob
   ├ delivery_jobs.claim
   ├ DispatchTranslationService → TranslationCacheService → ModelTranslator
-  ├ dispatcher.render · validate → delivery_jobs.savePayload
-  ├ dispatcher.discord-client (POST / PATCH)
+  ├ templates/render · templates/payload.validate → delivery_jobs.savePayload
+  ├ delivery/discord (POST / PATCH)
   └ 트랜잭션: delivery_jobs.finish · item_deliveries.save · event_log(delivery)
 ```
 
@@ -416,11 +410,11 @@ DeliveryWorker.runDueDeliveries → DeliveryService.processJob
 
 | 계약 | 코드 | 문서 |
 | --- | --- | --- |
-| DB 스키마 | `src/resources/migrations/*.sql` | [db-schema.md](db-schema.md) (`test/integration/docs/db-schema-doc.test.ts`로 검증) |
-| API 입력·JSON 결과 | `src/server/contracts/api.ts` | [서버 기능 문서 §4](server-features.md#4-http-요청과-응답-목록)와 코드 주석 |
-| 페이지 view-model | `src/server/contracts/view-models.ts` | 코드 주석 |
-| 프리셋 render context | `src/server/contracts/render-context.ts` | 코드 주석 |
-| 환경 변수 | `config.ts`, `runtime/options.ts`, `translator/keys.ts` | §11 |
+| DB 스키마 | `src/resources/migrations/*.sql` | [db-schema.md](db-schema.md) (`test/core/db-schema-doc.test.ts`로 검증) |
+| API 입력·JSON 결과 | 각 기능의 `service.ts`·`logs/repository.ts`·`delivery/preview.ts` | [서버 기능 문서 §4](server-features.md#4-http-요청과-응답-목록)와 코드 주석 |
+| 페이지 view-model | `src/server/web/pages.ts` | 코드 주석 |
+| 프리셋 render context | `src/server/templates/render.ts` | 코드 주석 |
+| 환경 변수 | `core/config.ts`, `translation/gemini.ts` | §11 |
 
 ## 13. 현재 동작 범위와 알려진 한계
 

@@ -94,14 +94,14 @@ env는 프로젝트 루트의 `.env`(gitignore)에서 읽는다. 템플릿은 `d
 ```
 .
 ├── src/
-│   ├── server/        # 백엔드: controllers contracts services db domain
-│   │   │              #         scheduler dispatcher translator security runtime
-│   │   └── app.ts
+│   ├── server/        # 기능별 패키지(core, net, feed, logs, templates, groups,
+│   │                  # sources, translation, delivery, collect, transfer, cleanup, web)
+│   │                  # 진입·조립: main.ts, app.ts, container.ts
 │   └── resources/
 │       ├── templates/ # 관리 UI 서버 렌더 뷰(.hbs) + 정적자산(htmx, CodeMirror)
 │       ├── presets/   # *.hbs 프리셋 시드 → 부팅 시 DB seed
 │       └── migrations/# 0001_init.sql … (순번 적용)
-├── test/{unit,integration,mocks}/
+├── test/              # 기능별 테스트 + app, core, mocks, architecture.test.ts
 ├── Docs/              # 설계 문서
 ├── default.env.example
 └── data/              # SQLite DB — gitignore

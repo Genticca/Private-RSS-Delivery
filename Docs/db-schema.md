@@ -2,11 +2,11 @@
 
 > 🔒 **보호 문서**: 수정 전 파일·항목 단위 사용자 승인이 필요하다.
 > 기준: 마이그레이션 `0001_init`(2026-10-17 통합, 2026-10-18 정리 — D28) · 작성 2026-10-18
-> **진실원은 `src/resources/migrations/*.sql`이다.** 이 문서는 그 결과 스키마와 의미를 설명한다. 테이블·컬럼·인덱스·트리거 이름이 실제 스키마와 다르면 [db-schema-doc.test.ts](../test/integration/docs/db-schema-doc.test.ts)가 실패한다.
+> **진실원은 `src/resources/migrations/*.sql`이다.** 이 문서는 그 결과 스키마와 의미를 설명한다. 테이블·컬럼·인덱스·트리거 이름이 실제 스키마와 다르면 [db-schema-doc.test.ts](../test/core/db-schema-doc.test.ts)가 실패한다.
 
 ## 1. 공통 규칙
 
-- **엔진**: better-sqlite3, `journal_mode=WAL`, `foreign_keys=ON`, `busy_timeout=5000` (`runtime/container.ts`).
+- **엔진**: better-sqlite3, `journal_mode=WAL`, `foreign_keys=ON`, `busy_timeout=5000` (`container.ts`).
 - **마이그레이션**: `resources/migrations/NNNN_*.sql`을 파일명 순서로, 버전마다 트랜잭션 하나로 적용한다. 적용 이력은 `schema_migrations`. **운영 DB가 생긴 뒤에는 기존 파일을 수정하지 않고 새 번호로 추가한다.** 현재는 `0001_init` 하나다(§7).
 - **시각**: 모든 시각 컬럼은 ISO-8601 UTC 문자열(`YYYY-MM-DDTHH:MM:SS.sssZ`)이다. DEFAULT도 `strftime('%Y-%m-%dT%H:%M:%fZ','now')`로 같은 형식이다. 비교는 TEXT 비교로 한다.
 - **불리언**: `INTEGER` 0/1, `CHECK (… IN (0, 1))`.
@@ -278,7 +278,7 @@ Discord rate limit 대기. `bucket_key = '__discord_global__'`은 전역 제한.
 
 ### `schema_migrations`
 
-마이그레이션 적용 이력(`runtime/migrator.ts`가 만든다).
+마이그레이션 적용 이력(`core/db.ts`가 만든다).
 
 | 컬럼 | 타입 | 제약·기본값 | 의미 |
 | --- | --- | --- | --- |
