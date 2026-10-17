@@ -1,12 +1,12 @@
 import type { FastifyInstance } from 'fastify';
-import type { Container } from './runtime/container.js';
+import type { Container } from './container.js';
 import Fastify from 'fastify';
-import { createContainer } from './runtime/container.js';
-import { registerAdminOrigin } from './middleware/admin-origin.js';
+import { createContainer } from './container.js';
+import { registerAdminOrigin } from './core/http.js';
 import { registerApiRoutes } from './controllers/api/index.js';
 import { registerWebRoutes } from './controllers/web.js';
 import rateLimitPlugin from '@fastify/rate-limit';
-import { AppError } from './services/errors.js';
+import { AppError } from './core/errors.js';
 import multipartPlugin from '@fastify/multipart';
 import { fileURLToPath } from 'node:url';
 import staticPlugin from '@fastify/static';
@@ -18,7 +18,7 @@ import { readdirSync } from 'node:fs';
 import { extname } from 'node:path';
 import { basename } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { SecurityError } from './security/errors.js';
+import { SecurityError } from './core/errors.js';
 
 export type AppInstance = FastifyInstance & {
   container: Container

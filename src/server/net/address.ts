@@ -1,8 +1,8 @@
-import dns from 'node:dns';
-import net from 'node:net';
 import type { LookupFunction } from 'node:net';
-import type { TlsMaxVersion } from './types.js';
-import { SecurityError } from './errors.js';
+import dns from 'node:dns';
+import { SecurityError } from '../core/errors.js';
+import net from 'node:net';
+import type { TlsMaxVersion } from './fetch.js';
 
 export interface LookupAddress {
   address: string;

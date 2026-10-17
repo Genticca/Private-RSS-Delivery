@@ -2,17 +2,17 @@ import type { DeliveryJobState } from '../domain/delivery/policy.js';
 import type Database from 'better-sqlite3';
 import type { DeliveryJobRepository } from '../db/delivery-job.repository.js';
 import type { DeliveryBindingRepository } from '../db/delivery-binding.repository.js';
-import type { ItemRepository } from '../db/item.repository.js';
+import type { ItemRepository } from '../feed/repository.js';
 import type { SourceRepository } from '../db/source.repository.js';
 import type { ItemDeliveryRepository } from '../db/item-delivery.repository.js';
 import type { DeliveryPlanService } from './delivery-plan.service.js';
-import { requireObject } from './validation.js';
-import { optionalString } from './validation.js';
-import { validationError } from './errors.js';
-import { optionalInteger } from './validation.js';
-import { notFound } from './errors.js';
-import { nowIso } from '../db/time.js';
-import { parseDiscordId } from './validation.js';
+import { requireObject } from '../core/input.js';
+import { optionalString } from '../core/input.js';
+import { validationError } from '../core/errors.js';
+import { optionalInteger } from '../core/input.js';
+import { notFound } from '../core/errors.js';
+import { nowIso } from '../core/db.js';
+import { parseDiscordId } from '../core/input.js';
 
 const DELIVERY_JOB_STATES: readonly DeliveryJobState[] = [
   'pending', 'running', 'succeeded', 'failed', 'cancelled',

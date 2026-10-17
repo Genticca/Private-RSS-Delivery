@@ -1,12 +1,18 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { afterEach } from 'vitest';
+import { rmSync } from 'node:fs';
+import { describe } from 'vitest';
+import { it } from 'vitest';
 import Database from 'better-sqlite3';
-import { afterEach, describe, expect, it } from 'vitest';
-import { createContainer } from '../../../src/server/runtime/container.js';
-import { runMigrations } from '../../../src/server/runtime/migrator.js';
+import { runMigrations } from '../../../src/server/core/db.js';
+import { expect } from 'vitest';
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { createContainer } from '../../../src/server/container.js';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 
 const tempDirs: string[] = [];
+
 const PROJECT_MIGRATIONS = ['0001_init'];
 
 afterEach(() => {

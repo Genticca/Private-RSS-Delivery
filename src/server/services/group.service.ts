@@ -3,18 +3,18 @@ import type { GroupRepository } from '../db/group.repository.js';
 import type { DeliveryBindingService } from './delivery-binding.service.js';
 import type { GroupDto } from '../contracts/api.js';
 import { toGroupDto } from './serialization.js';
-import { conflict } from './errors.js';
-import { validationError } from './errors.js';
-import { notFound } from './errors.js';
-import { verifyWebhookUrlSafe } from '../security/webhook-guard.js';
-import { nowIso } from '../db/time.js';
+import { conflict } from '../core/errors.js';
+import { validationError } from '../core/errors.js';
+import { notFound } from '../core/errors.js';
+import { verifyWebhookUrlSafe } from '../net/webhook-url.js';
+import { nowIso } from '../core/db.js';
 import type { CreateGroupRequest } from '../contracts/api.js';
-import { requireObject } from './validation.js';
-import { requiredString } from './validation.js';
+import { requireObject } from '../core/input.js';
+import { requiredString } from '../core/input.js';
 import { validateOptionalWebhookUrl } from './validation.js';
-import { optionalString } from './validation.js';
+import { optionalString } from '../core/input.js';
 import type { UpdateGroupRequest } from '../contracts/api.js';
-import { optionalBoolean } from './validation.js';
+import { optionalBoolean } from '../core/input.js';
 
 export interface GroupServiceOptions {
   db: Database.Database;

@@ -4,7 +4,7 @@ import { expect } from 'vitest';
 import { mapGroupDestination } from '../../../src/server/dispatcher/resolve-destinations.js';
 import { resolveDestinationsForSource } from '../../../src/server/dispatcher/resolve-destinations.js';
 import type { GroupRecord } from '../../../src/server/db/group.repository.js';
-import { canonicalWebhookUrl } from '../../../src/server/security/webhook-guard.js';
+import { canonicalWebhookUrl } from '../../../src/server/net/webhook-url.js';
 import { createHash } from 'node:crypto';
 import type { SourceRecord } from '../../../src/server/db/source.repository.js';
 

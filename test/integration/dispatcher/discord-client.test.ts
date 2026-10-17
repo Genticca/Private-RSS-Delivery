@@ -1,10 +1,16 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { RequestInit } from 'undici';
-const mocks = vi.hoisted(() => ({ fetch: vi.fn() }));
-vi.mock('undici', async (importOriginal) => ({ ...await importOriginal<typeof import('undici')>(), fetch: mocks.fetch }));
+import { vi } from 'vitest';
+import { describe } from 'vitest';
+import { it } from 'vitest';
 import { Response } from 'undici';
-import { postDiscordWebhook, editDiscordWebhookMessage } from '../../../src/server/dispatcher/discord-client.js';
-import { canonicalWebhookUrl } from '../../../src/server/security/webhook-guard.js';
+import { postDiscordWebhook } from '../../../src/server/dispatcher/discord-client.js';
+import { expect } from 'vitest';
+import { canonicalWebhookUrl } from '../../../src/server/net/webhook-url.js';
+import { editDiscordWebhookMessage } from '../../../src/server/dispatcher/discord-client.js';
+import type { RequestInit } from 'undici';
+
+const mocks = vi.hoisted(() => ({ fetch: vi.fn() }));
+
+vi.mock('undici', async (importOriginal) => ({ ...await importOriginal<typeof import('undici')>(), fetch: mocks.fetch }));
 
 const destination = { webhookUrl: 'https://discordapp.com/api/webhooks/123/CaseToken?thread_id=999', webhookName: null, webhookAvatarUrl: null, destinationKey: 'key', threadId: null };
 

@@ -1,17 +1,17 @@
-import { randomUUID } from 'node:crypto';
+import type { SourceProfile } from '../feed/parse.js';
+import type { Profile } from '../feed/parse.js';
+import type { FetchOptions } from '../net/fetch.js';
 import type Database from 'better-sqlite3';
-import type { Profile, SourceProfile } from '../domain/normalize/types.js';
-import type { FetchOptions } from '../security/types.js';
-import { addSecondsIso, nowIso } from './time.js';
-import {
-  fromSqliteBoolean,
-  nullable,
-  parseJsonObject,
-  parseJsonStringArray,
-  stringifyJsonObject,
-  stringifyJsonStringArray,
-  toSqliteBoolean
-} from './sqlite.js';
+import { randomUUID } from 'node:crypto';
+import { nowIso } from '../core/db.js';
+import { nullable } from '../core/db.js';
+import { toSqliteBoolean } from '../core/db.js';
+import { stringifyJsonObject } from '../core/db.js';
+import { stringifyJsonStringArray } from '../core/db.js';
+import { addSecondsIso } from '../core/db.js';
+import { fromSqliteBoolean } from '../core/db.js';
+import { parseJsonObject } from '../core/db.js';
+import { parseJsonStringArray } from '../core/db.js';
 
 export interface SourceRecord {
   configRevision: number;

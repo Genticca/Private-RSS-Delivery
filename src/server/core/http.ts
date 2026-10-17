@@ -1,8 +1,10 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import type { FastifyReply } from 'fastify';
+import { AppError } from './errors.js';
+import type { FastifyRequest } from 'fastify';
 import Handlebars from 'handlebars';
-import type { FastifyReply, FastifyRequest } from 'fastify';
-import { AppError } from '../../services/errors.js';
+import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
+import type { FastifyInstance } from 'fastify';
 
 export interface IdParam {
   id: string;
@@ -92,11 +94,9 @@ export function requestBody(request: FastifyRequest): unknown {
   return request.body ?? {};
 }
 
-
 export function isHtmxRequest(request: FastifyRequest): boolean {
   return String(request.headers['hx-request'] ?? '').toLowerCase() === 'true';
 }
-
 
 const partialCache = new Map<string, Handlebars.TemplateDelegate>();
 
@@ -104,7 +104,7 @@ function renderPartial(name: string, context: unknown): string {
   // 같은 부분 템플릿을 요청마다 다시 읽고 컴파일하지 않도록 최초 결과를 재사용한다.
   let template = partialCache.get(name);
   if (!template) {
-    const file = fileURLToPath(new URL(`../../../resources/templates/partials/${name}.hbs`, import.meta.url));
+    const file = fileURLToPath(new URL(`../../resources/templates/partials/${name}.hbs`, import.meta.url));
     template = Handlebars.compile(readFileSync(file, 'utf8'));
     partialCache.set(name, template);
   }
@@ -131,4 +131,70 @@ function escapeHtml(value: string): string {
     '>': '&gt;',
     '"': '&quot;'
   }[char] ?? char));
+}
+
+export interface AdminOriginOptions {
+  port: number;
+  allowedHosts?: string[];
+}
+
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+export async function registerAdminOrigin(app: FastifyInstance, options: AdminOriginOptions): Promise<void> {
+  const allowedHosts = new Set([
+    `localhost:${options.port}`,
+    `127.0.0.1:${options.port}`,
+    `[::1]:${options.port}`,
+    'localhost',
+    '127.0.0.1',
+    '[::1]',
+    ...(options.allowedHosts ?? [])
+  ]);
+
+  app.addHook('onRequest', async (request, reply) => {
+    if (request.url.startsWith('/assets/')) return;
+    if (!isAllowedHost(request.headers.host, allowedHosts)) {
+      reject(reply, 'Host header is not allowed.');
+      return;
+    }
+    if (SAFE_METHODS.has(request.method.toUpperCase())) return;
+    // 상태를 바꾸는 브라우저 요청은 Host 검사에 더해 Origin 또는 Referer도 확인한다.
+    if (!hasAllowedBrowserOrigin(request, allowedHosts)) {
+      reject(reply, 'Origin is not allowed.');
+    }
+  });
+}
+
+export function isAllowedHost(hostHeader: string | undefined, allowedHosts: ReadonlySet<string>): boolean {
+  if (!hostHeader) return false;
+  const host = hostHeader.toLowerCase();
+  return (
+    allowedHosts.has(host) ||
+    host.startsWith('localhost:') ||
+    host.startsWith('127.0.0.1:') ||
+    host.startsWith('[::1]:')
+  );
+}
+
+export function hasAllowedBrowserOrigin(request: FastifyRequest, allowedHosts: ReadonlySet<string>): boolean {
+  const origin = request.headers.origin;
+  const referer = request.headers.referer;
+  // 브라우저 출처 헤더가 없는 CLI 요청은 Host 검사를 통과했다면 허용한다.
+  if (!origin && !referer) return true;
+  if (typeof origin === 'string') return isAllowedUrlHost(origin, allowedHosts);
+  if (typeof referer === 'string') return isAllowedUrlHost(referer, allowedHosts);
+  return false;
+}
+
+function isAllowedUrlHost(value: string, allowedHosts: ReadonlySet<string>): boolean {
+  try {
+    const url = new URL(value);
+    return allowedHosts.has(url.host.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+function reject(reply: FastifyReply, message: string): void {
+  reply.status(403).send({ error: { code: 'forbidden', message } });
 }

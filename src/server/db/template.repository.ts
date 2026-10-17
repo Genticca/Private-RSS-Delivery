@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3';
-import { nowIso } from './time.js';
-import { fromSqliteBoolean, toSqliteBoolean } from './sqlite.js';
+import { nowIso } from '../core/db.js';
+import { toSqliteBoolean } from '../core/db.js';
+import { fromSqliteBoolean } from '../core/db.js';
 
 export interface TemplateRecord {
   id: number;

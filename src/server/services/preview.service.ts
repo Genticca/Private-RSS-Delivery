@@ -1,29 +1,29 @@
 import type { SourceRepository } from '../db/source.repository.js';
-import type { ItemRepository } from '../db/item.repository.js';
-import { fetchFeed } from '../security/ssrf-fetch.js';
-import type { FetchFeedOptions } from '../security/ssrf-fetch.js';
-import type { FeedFetchResult } from '../security/ssrf-fetch.js';
+import type { ItemRepository } from '../feed/repository.js';
+import { fetchFeed } from '../net/fetch.js';
+import type { FetchFeedOptions } from '../net/fetch.js';
+import type { FeedFetchResult } from '../net/fetch.js';
 import type { PreviewResponse } from '../contracts/api.js';
-import { notFound } from './errors.js';
-import type { NormalizedItem } from '../domain/normalize/types.js';
+import { notFound } from '../core/errors.js';
+import type { NormalizedItem } from '../feed/parse.js';
 import { renderDiscordPayload } from '../dispatcher/render.js';
 import { buildPresetRenderContext } from '../dispatcher/render.js';
 import { validateDiscordPayload } from '../dispatcher/validate.js';
 import { applySourceWebhookOptions } from '../dispatcher/payload-options.js';
 import type { SampleItemResponse } from '../contracts/api.js';
-import { parseFeed } from '../domain/envelope/parser.js';
-import { detectProfile } from '../domain/normalize/profile.js';
-import { effectiveProfile } from '../domain/normalize/profile.js';
-import { normalize } from '../domain/normalize/index.js';
-import { nowIso } from '../db/time.js';
+import { parseFeed } from '../feed/parse.js';
+import { detectProfile } from '../feed/normalize.js';
+import { effectiveProfile } from '../feed/normalize.js';
+import { normalize } from '../feed/normalize.js';
+import { nowIso } from '../core/db.js';
 import type { PreviewRequest } from '../contracts/api.js';
-import { requireObject } from './validation.js';
-import { validationError } from './errors.js';
-import { optionalString } from './validation.js';
+import { requireObject } from '../core/input.js';
+import { validationError } from '../core/errors.js';
+import { optionalString } from '../core/input.js';
 import type { PreviewError } from '../contracts/api.js';
 import { DiscordPayloadValidationError } from '../dispatcher/validate.js';
 import { PresetRenderError } from '../dispatcher/render.js';
-import type { ItemRecord } from '../db/item.repository.js';
+import type { ItemRecord } from '../feed/repository.js';
 
 export interface PreviewServiceOptions {
   repositories: {

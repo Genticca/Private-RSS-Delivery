@@ -1,11 +1,11 @@
-import type { ItemRecord } from '../db/item.repository.js';
+import type { ItemRecord } from '../feed/repository.js';
 import type { SourceRecord } from '../db/source.repository.js';
 import type { TranslationCacheRepository } from '../db/translation-cache.repository.js';
 import type { EventLogRepository } from '../db/event-log.repository.js';
 import type { ModelTranslator } from './translator.js';
-import { nowIso } from '../db/time.js';
+import { nowIso } from '../core/db.js';
 import type { TranslationField } from '../domain/translation/policy.js';
-import { effectiveProfile } from '../domain/normalize/profile.js';
+import { effectiveProfile } from '../feed/normalize.js';
 import { requiredTranslationFields } from '../domain/translation/policy.js';
 import { localTranslation } from '../domain/translation/policy.js';
 import { TARGET_LANG } from './prompt.js';

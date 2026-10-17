@@ -1,5 +1,5 @@
-import type { NormalizedItem } from '../normalize/types.js';
 import type { SourceRecord } from '../../db/source.repository.js';
+import type { NormalizedItem } from '../../feed/parse.js';
 
 export function shouldQueueNewItem(source: SourceRecord, item: NormalizedItem): boolean {
   // 첫 수집은 과거 항목의 기준점만 만든다. 기존 공지가 한꺼번에 발송되는 것을 막는다.

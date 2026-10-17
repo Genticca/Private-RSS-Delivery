@@ -1,7 +1,7 @@
 import type { SourceRepository } from '../db/source.repository.js';
 import type { PollWorker } from '../workers/poll-worker.js';
 import type { PollSourceResult } from './poll.service.js';
-import { notFound } from './errors.js';
+import { notFound } from '../core/errors.js';
 
 export interface SchedulerServiceOptions {
   repositories: {

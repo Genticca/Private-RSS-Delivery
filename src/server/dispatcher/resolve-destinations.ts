@@ -2,10 +2,10 @@ import type { SourceGroupRepository } from '../db/source-group.repository.js';
 import type { GroupRepository } from '../db/group.repository.js';
 import type { SourceRecord } from '../db/source.repository.js';
 import type { GroupRecord } from '../db/group.repository.js';
-import { assertSafeWebhookUrl } from '../security/webhook-guard.js';
-import { blankToNull } from '../domain/text.js';
+import { assertSafeWebhookUrl } from '../net/webhook-url.js';
+import { blankToNull } from '../core/input.js';
 import { createHash } from 'node:crypto';
-import { canonicalWebhookUrl } from '../security/webhook-guard.js';
+import { canonicalWebhookUrl } from '../net/webhook-url.js';
 
 export interface DeliveryDestination {
   webhookUrl: string;

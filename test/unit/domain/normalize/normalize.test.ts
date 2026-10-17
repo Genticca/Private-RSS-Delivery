@@ -1,14 +1,14 @@
 import { describe } from 'vitest';
 import { it } from 'vitest';
-import type { FeedEnvelope } from '../../../../src/server/domain/normalize/types.js';
-import { normalize } from '../../../../src/server/domain/normalize/index.js';
+import type { FeedEnvelope } from '../../../../src/server/feed/parse.js';
+import { normalize } from '../../../../src/server/feed/normalize.js';
 import { expect } from 'vitest';
-import { computeGenericContentHash } from '../../../../src/server/domain/normalize/content-hash.js';
-import { parseFeed } from '../../../../src/server/domain/envelope/parser.js';
+import { computeGenericContentHash } from '../../../../src/server/feed/normalize.js';
+import { parseFeed } from '../../../../src/server/feed/parse.js';
 import { readFeedFixture } from '../../../mocks/fixtures.js';
-import { normalizeGeneric } from '../../../../src/server/domain/normalize/generic.js';
-import { detectProfile } from '../../../../src/server/domain/normalize/profile.js';
-import { effectiveProfile } from '../../../../src/server/domain/normalize/profile.js';
+import { normalizeGeneric } from '../../../../src/server/feed/normalize.js';
+import { detectProfile } from '../../../../src/server/feed/normalize.js';
+import { effectiveProfile } from '../../../../src/server/feed/normalize.js';
 
 describe('normalize Stage 2', () => {
   it('normalizes generic HTML into clean text and strips title markup without leaking raw fields', () => {

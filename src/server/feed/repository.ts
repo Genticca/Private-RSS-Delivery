@@ -1,6 +1,9 @@
 import type Database from 'better-sqlite3';
-import { nowIso } from './time.js';
-import { fromSqliteBoolean, nullable, requireNonEmpty, toSqliteBoolean } from './sqlite.js';
+import { nullable } from '../core/db.js';
+import { requireNonEmpty } from '../core/db.js';
+import { toSqliteBoolean } from '../core/db.js';
+import { nowIso } from '../core/db.js';
+import { fromSqliteBoolean } from '../core/db.js';
 
 /** 수집한 항목의 내용과 버전이다. 발송 상태는 delivery_jobs·item_deliveries에만 있다. */
 export interface ItemRecord {

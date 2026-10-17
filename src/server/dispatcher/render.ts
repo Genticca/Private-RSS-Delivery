@@ -1,9 +1,9 @@
 import Handlebars from 'handlebars';
-import type { ItemRecord } from '../db/item.repository.js';
-import type { NormalizedItem } from '../domain/normalize/types.js';
+import type { ItemRecord } from '../feed/repository.js';
+import type { NormalizedItem } from '../feed/parse.js';
 import type { SourceRecord } from '../db/source.repository.js';
 import type { PresetRenderContext } from '../contracts/render-context.js';
-import { effectiveProfile } from '../domain/normalize/profile.js';
+import { effectiveProfile } from '../feed/normalize.js';
 import type { DiscordWebhookPayload } from '../contracts/render-context.js';
 import { validateDiscordPayload } from './validate.js';
 import type { PresetRenderItem } from '../contracts/render-context.js';

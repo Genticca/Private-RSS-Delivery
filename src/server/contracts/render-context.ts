@@ -1,4 +1,5 @@
-import type { NormalizedItem, Profile } from '../domain/normalize/types.js';
+import type { NormalizedItem } from '../feed/parse.js';
+import type { Profile } from '../feed/parse.js';
 
 export interface PresetRenderItem extends NormalizedItem {
   publishedAtFormatted?: string;

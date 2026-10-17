@@ -1,7 +1,10 @@
 import type { FastifyInstance } from 'fastify';
-import type { ServiceRegistry } from '../../runtime/container.js';
-import { groupRow, mutationReply, requestBody, type IdParam } from './helpers.js';
-import { parseIdParam } from '../../services/validation.js';
+import type { ServiceRegistry } from '../../container.js';
+import { mutationReply } from '../../core/http.js';
+import { requestBody } from '../../core/http.js';
+import { groupRow } from '../../core/http.js';
+import type { IdParam } from '../../core/http.js';
+import { parseIdParam } from '../../core/input.js';
 
 /** Discord 발송 그룹의 조회·변경 라우트다. 웹훅 검증과 소스 연결 조정은 서비스가 담당한다. */
 export async function registerGroupRoutes(app: FastifyInstance, services: ServiceRegistry): Promise<void> {

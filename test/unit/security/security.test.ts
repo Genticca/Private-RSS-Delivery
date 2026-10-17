@@ -1,22 +1,22 @@
-import type { DnsLookup } from '../../../src/server/security/ip.js';
+import type { DnsLookup } from '../../../src/server/net/address.js';
 import { describe } from 'vitest';
 import { it } from 'vitest';
 import { expect } from 'vitest';
-import { assertSafeFeedUrl } from '../../../src/server/security/ip.js';
-import { SecurityError } from '../../../src/server/security/errors.js';
-import { verifyFeedUrlSafe } from '../../../src/server/security/ip.js';
-import { createSsrSafeLookup } from '../../../src/server/security/ip.js';
-import { assertSafeWebhookUrl } from '../../../src/server/security/webhook-guard.js';
-import { canonicalWebhookUrl } from '../../../src/server/security/webhook-guard.js';
-import { assertSafeWebhookMessageUrl } from '../../../src/server/security/webhook-guard.js';
-import { verifyWebhookUrlSafe } from '../../../src/server/security/webhook-guard.js';
-import { getSsrSafeAgent } from '../../../src/server/security/agent-cache.js';
-import { closeSsrSafeAgents } from '../../../src/server/security/agent-cache.js';
+import { assertSafeFeedUrl } from '../../../src/server/net/address.js';
+import { SecurityError } from '../../../src/server/core/errors.js';
+import { verifyFeedUrlSafe } from '../../../src/server/net/address.js';
+import { createSsrSafeLookup } from '../../../src/server/net/address.js';
+import { assertSafeWebhookUrl } from '../../../src/server/net/webhook-url.js';
+import { canonicalWebhookUrl } from '../../../src/server/net/webhook-url.js';
+import { assertSafeWebhookMessageUrl } from '../../../src/server/net/webhook-url.js';
+import { verifyWebhookUrlSafe } from '../../../src/server/net/webhook-url.js';
+import { getSsrSafeAgent } from '../../../src/server/net/fetch.js';
+import { closeSsrSafeAgents } from '../../../src/server/net/fetch.js';
 import type { RequestInit } from 'undici';
-import type { FetchImplementation } from '../../../src/server/security/ssrf-fetch.js';
+import type { FetchImplementation } from '../../../src/server/net/fetch.js';
 import type { RequestInfo } from 'undici';
 import { Response } from 'undici';
-import { fetchFeed } from '../../../src/server/security/ssrf-fetch.js';
+import { fetchFeed } from '../../../src/server/net/fetch.js';
 import { Buffer } from 'node:buffer';
 
 const publicLookup: DnsLookup = (_hostname, _options, callback) => {

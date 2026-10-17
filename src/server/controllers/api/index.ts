@@ -1,12 +1,12 @@
 import type { FastifyInstance } from 'fastify';
-import type { ServiceRegistry } from '../../runtime/container.js';
-import { registerExportImportRoutes } from './export-import.js';
-import { registerGroupRoutes } from './groups.js';
-import { registerLogRoutes } from './logs.js';
-import { registerModelRoutes } from './model.js';
-import { registerPreviewRoutes } from './preview.js';
+import type { ServiceRegistry } from '../../container.js';
 import { registerSourceRoutes } from './sources.js';
+import { registerGroupRoutes } from './groups.js';
 import { registerTemplateRoutes } from './templates.js';
+import { registerPreviewRoutes } from './preview.js';
+import { registerModelRoutes } from './model.js';
+import { registerLogRoutes } from './logs.js';
+import { registerExportImportRoutes } from './export-import.js';
 import { registerDeliveryJobRoutes } from './delivery-jobs.js';
 
 /** 기능별 관리 라우트를 등록한다. HTTP 입력·응답을 연결하고 업무 규칙은 서비스에 맡긴다. */

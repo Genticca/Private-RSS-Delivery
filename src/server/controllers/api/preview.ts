@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
-import type { ServiceRegistry } from '../../runtime/container.js';
-import { requestBody } from './helpers.js';
+import type { ServiceRegistry } from '../../container.js';
+import { requestBody } from '../../core/http.js';
 
 /** 템플릿을 렌더링해 payload 또는 단계별 오류를 JSON으로 반환한다. Discord 발송은 수행하지 않는다. */
 export async function registerPreviewRoutes(app: FastifyInstance, services: ServiceRegistry): Promise<void> {

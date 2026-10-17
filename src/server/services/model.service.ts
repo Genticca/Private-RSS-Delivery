@@ -5,12 +5,12 @@ import type { ModelDiagnosticsResponse } from '../contracts/api.js';
 import { resolveModelCredentials } from '../translator/keys.js';
 import type { ModelKeyDiagnostics } from '../contracts/api.js';
 import { DEFAULT_MODEL } from '../translator/keys.js';
-import { requireObject } from './validation.js';
-import { optionalString } from './validation.js';
-import { validationError } from './errors.js';
-import { optionalBoolean } from './validation.js';
+import { requireObject } from '../core/input.js';
+import { optionalString } from '../core/input.js';
+import { validationError } from '../core/errors.js';
+import { optionalBoolean } from '../core/input.js';
 import type { ModelStatus } from '../contracts/api.js';
-import { nowIso } from '../db/time.js';
+import { nowIso } from '../core/db.js';
 
 export interface ModelServiceOptions {
   repositories: {

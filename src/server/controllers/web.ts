@@ -1,8 +1,9 @@
-import type { FastifyInstance, FastifyReply } from 'fastify';
-import type { ServiceRegistry } from '../runtime/container.js';
-import { PRESET_VARIABLES } from '../contracts/render-context.js';
-import { parseIdParam } from '../services/validation.js';
+import type { FastifyInstance } from 'fastify';
+import type { ServiceRegistry } from '../container.js';
+import { parseIdParam } from '../core/input.js';
 import type { DashboardViewModel } from '../contracts/view-models.js';
+import { PRESET_VARIABLES } from '../contracts/render-context.js';
+import type { FastifyReply } from 'fastify';
 
 export async function registerWebRoutes(app: FastifyInstance, services: ServiceRegistry): Promise<void> {
   app.get('/', async (_request, reply) => render(reply, 'pages/dashboard.hbs', dashboardModel(services)));
@@ -81,7 +82,6 @@ export async function registerWebRoutes(app: FastifyInstance, services: ServiceR
 }
 
 const PROFILE_VIEW_OPTIONS = ['auto', 'incident-io', 'atlassian-statuspage', 'generic'] as const;
-
 
 function withDestinationStatus<T extends {
   groupIds: number[]

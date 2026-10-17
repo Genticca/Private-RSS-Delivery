@@ -1,7 +1,9 @@
 import type Database from 'better-sqlite3';
-import { nowIso } from '../db/time.js';
-import { CleanupService, type CleanupRepositories, type CleanupRunResult } from '../services/cleanup.service.js';
-import { TaskTracker } from './task-tracker.js';
+import type { CleanupRepositories } from '../services/cleanup.service.js';
+import { TaskTracker } from '../core/worker.js';
+import type { CleanupRunResult } from '../services/cleanup.service.js';
+import { CleanupService } from '../services/cleanup.service.js';
+import { nowIso } from '../core/db.js';
 
 export interface CleanupWorkerOptions {
   db: Database.Database;
@@ -14,9 +16,8 @@ export interface CleanupWorkerOptions {
   onError?: (error: unknown) => void;
 }
 
-export type { CleanupRunResult };
-
 const DEFAULT_LOG_RETENTION_DAYS = 30;
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export class CleanupWorker {

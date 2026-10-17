@@ -1,8 +1,65 @@
-import { fetch as undiciFetch, type Dispatcher, type RequestInfo, type RequestInit, type Response } from 'undici';
-import { getSsrSafeAgent } from './agent-cache.js';
-import { SecurityError } from './errors.js';
-import { assertSafeFeedUrl, verifyFeedUrlSafe, type DnsLookup } from './ip.js';
-import type { FetchOptions, TlsMaxVersion } from './types.js';
+import type { DnsLookup } from './address.js';
+import { Agent } from 'undici';
+import type { Dispatcher } from 'undici';
+import { tlsProfileKey } from './address.js';
+import { createSsrSafeLookup } from './address.js';
+import type { RequestInfo } from 'undici';
+import type { RequestInit } from 'undici';
+import type { Response } from 'undici';
+import { assertSafeFeedUrl } from './address.js';
+import { verifyFeedUrlSafe } from './address.js';
+import { SecurityError } from '../core/errors.js';
+import { fetch as undiciFetch } from 'undici';
+
+export interface AgentCacheOptions {
+  tlsMaxVersion?: TlsMaxVersion;
+  lookup?: DnsLookup;
+}
+
+const cachedAgents = new Map<string, Agent>();
+
+export function getSsrSafeAgent(options: AgentCacheOptions = {}): Dispatcher {
+  if (options.lookup) {
+    // 주입된 DNS 조회 함수를 사용하는 연결은 기본 DNS 연결 풀과 섞지 않는다.
+    return createAgent(options);
+  }
+
+  const key = tlsProfileKey(options.tlsMaxVersion);
+  const cached = cachedAgents.get(key);
+  if (cached && !cached.closed && !cached.destroyed) {
+    return cached;
+  }
+
+  const agent = createAgent(options);
+  cachedAgents.set(key, agent);
+  return agent;
+}
+
+export async function closeSsrSafeAgents(): Promise<void> {
+  const agents = [...cachedAgents.values()];
+  cachedAgents.clear();
+  await Promise.all(agents.map((agent) => agent.close()));
+}
+
+function createAgent(options: AgentCacheOptions): Agent {
+  const connect =
+    options.tlsMaxVersion === 'TLSv1.2'
+      ? {
+        lookup: createSsrSafeLookup({ lookup: options.lookup }),
+        minVersion: 'TLSv1.2' as const,
+        maxVersion: 'TLSv1.2' as const
+      }
+      : {
+        lookup: createSsrSafeLookup({ lookup: options.lookup }),
+        maxVersion: options.tlsMaxVersion
+      };
+
+  return new Agent({
+    connect,
+    keepAliveTimeout: 10_000,
+    keepAliveMaxTimeout: 60_000
+  });
+}
 
 export interface FeedFetchSource {
   id?: string;
@@ -49,8 +106,11 @@ export type FeedFetchResult =
   };
 
 const DEFAULT_TIMEOUT_MS = 15_000;
+
 const DEFAULT_USER_AGENT = 'rss-discord-bridge/0.4.0';
+
 const DEFAULT_ACCEPT = 'application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.5';
+
 const MAX_REDIRECTS = 3;
 
 export async function fetchFeed(source: FeedFetchSource, options: FetchFeedOptions = {}): Promise<FeedFetchResult> {
@@ -316,4 +376,18 @@ function mapFetchError(error: unknown): SecurityError {
     return new SecurityError('timeout', 'Feed fetch timed out.');
   }
   return new SecurityError('fetch_failed', 'Feed fetch failed.', { message });
+}
+
+export const TLS_MAX_VERSIONS = ['TLSv1.2', 'TLSv1.3'] as const;
+
+export type TlsMaxVersion = (typeof TLS_MAX_VERSIONS)[number];
+
+export interface FetchOptions {
+  charset?: string;
+  userAgent?: string;
+  headers?: Record<string, string>;
+  timeoutMs?: number;
+  tlsMaxVersion?: TlsMaxVersion;
+  /** 자동 TLS 호환 모드 적용 시각. 수동 TLS 설정에는 없으며 기본 TLS 재검사 여부를 판단한다. */
+  tlsPinnedAt?: string;
 }

@@ -1,15 +1,15 @@
-import type { Container } from '../../src/server/runtime/container.js';
+import type { Container } from '../../src/server/container.js';
 import { afterEach } from 'vitest';
 import type { CreateSourceRequest } from '../../src/server/contracts/api.js';
-import type { CreateContainerOptions } from '../../src/server/runtime/container.js';
+import type { CreateContainerOptions } from '../../src/server/container.js';
 import { vi } from 'vitest';
 import type { WebhookPostRequest } from '../../src/server/dispatcher/discord-client.js';
 import type { WebhookPostResponse } from '../../src/server/dispatcher/discord-client.js';
 import type { WebhookEditRequest } from '../../src/server/dispatcher/discord-client.js';
-import type { FeedFetchSource } from '../../src/server/security/ssrf-fetch.js';
-import type { FetchFeedOptions } from '../../src/server/security/ssrf-fetch.js';
-import type { FeedFetchResult } from '../../src/server/security/ssrf-fetch.js';
-import { createContainer } from '../../src/server/runtime/container.js';
+import type { FeedFetchSource } from '../../src/server/net/fetch.js';
+import type { FetchFeedOptions } from '../../src/server/net/fetch.js';
+import type { FeedFetchResult } from '../../src/server/net/fetch.js';
+import { createContainer } from '../../src/server/container.js';
 
 export const BASE = '2026-10-16T00:00:00.000Z';
 

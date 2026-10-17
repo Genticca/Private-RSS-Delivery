@@ -1,9 +1,14 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { createContainer, type Container } from '../../../src/server/runtime/container.js';
+import type { Container } from '../../../src/server/container.js';
+import { afterEach } from 'vitest';
+import { describe } from 'vitest';
+import { it } from 'vitest';
 import type { WebhookPostRequest } from '../../../src/server/dispatcher/discord-client.js';
 import { TestSendService } from '../../../src/server/services/test-send.service.js';
+import { expect } from 'vitest';
+import { createContainer } from '../../../src/server/container.js';
 
 const containers: Container[] = [];
+
 const base = '2026-05-29T00:00:00.000Z';
 
 afterEach(() => {

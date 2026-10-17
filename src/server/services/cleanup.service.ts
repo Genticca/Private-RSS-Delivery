@@ -1,6 +1,6 @@
 import type { EventLogRepository } from '../db/event-log.repository.js';
 import type Database from 'better-sqlite3';
-import { subtractDaysIso } from '../db/time.js';
+import { subtractDaysIso } from '../core/db.js';
 
 export interface CleanupRunResult {
   events: number;

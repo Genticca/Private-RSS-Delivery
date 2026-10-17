@@ -1,9 +1,15 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { mkdtempSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it, vi } from 'vitest';
-import { harness, BASE } from '../../mocks/runtime.js';
-import { loadEnvironment } from '../../../src/server/runtime/environment.js';
+import { tmpdir } from 'node:os';
+import { writeFileSync } from 'node:fs';
+import { vi } from 'vitest';
+import { harness } from '../../mocks/runtime.js';
+import { expect } from 'vitest';
+import { BASE } from '../../mocks/runtime.js';
+import { rmSync } from 'node:fs';
+import { loadEnvironment } from '../../../src/server/core/config.js';
 
 describe('shared runtime environment', () => {
   it('uses a fallback-only key from .env for diagnostics and dispatch', async () => {

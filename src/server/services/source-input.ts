@@ -1,18 +1,17 @@
-import type { CreateSourceRequest, UpdateSourceRequest } from '../contracts/api.js';
-import {
-  optionalBoolean,
-  optionalInteger,
-  optionalString,
-  parseDiscordId,
-  parseDiscordIdList,
-  parseDiscordTagIds,
-  parseGroupIds,
-  parseSourceProfile,
-  requireObject,
-  validateFeedUrl,
-  validateFetchOptions,
-  validateOptionalHttpUrl
-} from './validation.js';
+import type { CreateSourceRequest } from '../contracts/api.js';
+import { requireObject } from '../core/input.js';
+import { validateFeedUrl } from './validation.js';
+import { optionalString } from '../core/input.js';
+import { parseSourceProfile } from './validation.js';
+import { optionalInteger } from '../core/input.js';
+import { optionalBoolean } from '../core/input.js';
+import { validateOptionalHttpUrl } from './validation.js';
+import { validateFetchOptions } from './validation.js';
+import { parseGroupIds } from './validation.js';
+import { parseDiscordIdList } from '../core/input.js';
+import { parseDiscordId } from '../core/input.js';
+import { parseDiscordTagIds } from '../core/input.js';
+import type { UpdateSourceRequest } from '../contracts/api.js';
 
 export function normalizeSourceCreate(value: unknown): Required<Pick<CreateSourceRequest, 'feedUrl'>> & CreateSourceRequest {
   const body = requireObject(value);

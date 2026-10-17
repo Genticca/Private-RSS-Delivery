@@ -1,15 +1,17 @@
 import type { FastifyInstance } from 'fastify';
-import type { ServiceRegistry } from '../../runtime/container.js';
-import { validationError } from '../../services/errors.js';
+import type { ServiceRegistry } from '../../container.js';
+import { queryInt } from '../../core/http.js';
 import type { LogType } from '../../services/log.service.js';
-import { queryInt } from './helpers.js';
+import { validationError } from '../../core/errors.js';
 
 export interface LogRouteOptions {
   maxSseConnections?: number;
 }
 
 const DEFAULT_MAX_SSE_CONNECTIONS = 5;
+
 const STREAM_POLL_INTERVAL_MS = 1000;
+
 const HEARTBEAT_EVERY_TICKS = 15;
 
 /** 로그 목록은 JSON으로 조회하고, 실시간 추가 로그는 SSE 연결을 유지하며 전달한다. */
@@ -92,7 +94,6 @@ export function parseSseCursor(value: string | string[] | undefined): number | n
   const id = Number(value);
   return Number.isSafeInteger(id) ? id : null;
 }
-
 
 export interface SseConnectionLimiter {
   active(): number;

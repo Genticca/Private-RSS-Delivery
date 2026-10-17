@@ -1,8 +1,12 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { loadConfig } from '../../../src/server/core/config.js';
+import { expect } from 'vitest';
+import { mkdtempSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
-import { loadConfig } from '../../../src/server/config.js';
+import { tmpdir } from 'node:os';
+import { writeFileSync } from 'node:fs';
+import { rmSync } from 'node:fs';
 
 describe('loadConfig', () => {
   it('returns loopback defaults without baking API keys into AppConfig', () => {

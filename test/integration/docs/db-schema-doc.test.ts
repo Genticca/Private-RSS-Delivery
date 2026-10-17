@@ -1,8 +1,10 @@
-import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
-import { describe, expect, it } from 'vitest';
-import { runMigrations } from '../../../src/server/runtime/migrator.js';
+import { runMigrations } from '../../../src/server/core/db.js';
+import { expect } from 'vitest';
+import { describe } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { it } from 'vitest';
 
 // Docs/db-schema.md must describe exactly the schema the migrations produce.
 const DOC_PATH = fileURLToPath(new URL('../../../Docs/db-schema.md', import.meta.url));

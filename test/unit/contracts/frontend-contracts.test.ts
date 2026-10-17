@@ -1,23 +1,19 @@
-import { describe, expect, it } from 'vitest';
-import { SOURCE_PROFILE_OPTIONS } from '../../../src/server/domain/normalize/types.js';
-import {
-  PRESET_HELPERS,
-  PRESET_VARIABLES,
-  type PresetRenderContext
-} from '../../../src/server/contracts/render-context.js';
-import type {
-  DashboardViewModel,
-  LogsViewModel,
-  SourceFormViewModel,
-  TemplateEditorViewModel
-} from '../../../src/server/contracts/view-models.js';
-import type {
-  GroupDto,
-  LogsResponse,
-  ModelDiagnosticsResponse,
-  PreviewError,
-  SourceDto
-} from '../../../src/server/contracts/api.js';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { expect } from 'vitest';
+import { PRESET_VARIABLES } from '../../../src/server/contracts/render-context.js';
+import { PRESET_HELPERS } from '../../../src/server/contracts/render-context.js';
+import type { PresetRenderContext } from '../../../src/server/contracts/render-context.js';
+import type { SourceDto } from '../../../src/server/contracts/api.js';
+import type { GroupDto } from '../../../src/server/contracts/api.js';
+import type { LogsResponse } from '../../../src/server/contracts/api.js';
+import type { ModelDiagnosticsResponse } from '../../../src/server/contracts/api.js';
+import type { PreviewError } from '../../../src/server/contracts/api.js';
+import type { DashboardViewModel } from '../../../src/server/contracts/view-models.js';
+import { SOURCE_PROFILE_OPTIONS } from '../../../src/server/feed/parse.js';
+import type { SourceFormViewModel } from '../../../src/server/contracts/view-models.js';
+import type { TemplateEditorViewModel } from '../../../src/server/contracts/view-models.js';
+import type { LogsViewModel } from '../../../src/server/contracts/view-models.js';
 
 describe('Turn 0 frontend/backend contracts', () => {
   it('freezes preset render variables and helpers for Gemini templates', () => {

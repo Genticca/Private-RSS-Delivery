@@ -1,8 +1,14 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { createApp, type AppInstance } from '../../../../src/server/app.js';
-import { createContainer, type Container } from '../../../../src/server/runtime/container.js';
+import type { AppInstance } from '../../../../src/server/app.js';
+import type { Container } from '../../../../src/server/container.js';
+import { afterEach } from 'vitest';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { expect } from 'vitest';
+import { createContainer } from '../../../../src/server/container.js';
+import { createApp } from '../../../../src/server/app.js';
 
 const apps: AppInstance[] = [];
+
 const containers: Container[] = [];
 
 afterEach(async () => {

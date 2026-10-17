@@ -1,8 +1,13 @@
-import { SecurityError } from './errors.js';
-import { assertAddressAllowed, parseHttpUrl, resolveSafeHostname, type DnsLookup } from './ip.js';
+import type { DnsLookup } from './address.js';
+import { SecurityError } from '../core/errors.js';
+import { parseHttpUrl } from './address.js';
+import { resolveSafeHostname } from './address.js';
+import { assertAddressAllowed } from './address.js';
 
 const ALLOWED_WEBHOOK_HOSTS = new Set(['discord.com', 'discordapp.com']);
+
 const WEBHOOK_PATH_RE = /^\/api\/webhooks\/[^/]+\/[^/]+\/?$/;
+
 const WEBHOOK_MESSAGE_PATH_RE = /^\/api\/webhooks\/[^/]+\/[^/]+\/messages\/\d+$/;
 
 export interface WebhookGuardOptions {

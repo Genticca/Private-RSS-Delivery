@@ -1,12 +1,8 @@
-/** 서버가 Handlebars 화면에 전달하는 표시용 데이터의 형태를 정의한다. */
-import type {
-  GroupDto,
-  EventLogDto,
-  ModelDiagnosticsResponse,
-  SourceDto,
-  TemplateDto
-} from './api.js';
-import type { SourceProfile } from '../domain/normalize/types.js';
+import type { SourceDto } from './api.js';
+import type { SourceProfile } from '../feed/parse.js';
+import type { EventLogDto } from './api.js';
+import type { GroupDto } from './api.js';
+import type { TemplateDto } from './api.js';
 import type { PresetVariable } from './render-context.js';
 
 export interface DashboardSourceSummary {

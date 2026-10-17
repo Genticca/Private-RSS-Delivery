@@ -6,7 +6,7 @@ import type { DeliveryBindingRepository } from '../db/delivery-binding.repositor
 import { resolveDestinationsForSource } from '../dispatcher/resolve-destinations.js';
 import { mapGroupDestination } from '../dispatcher/resolve-destinations.js';
 import { createDestinationKey } from '../dispatcher/resolve-destinations.js';
-import { canonicalWebhookUrl } from '../security/webhook-guard.js';
+import { canonicalWebhookUrl } from '../net/webhook-url.js';
 
 export interface DeliveryBindingServiceOptions {
   db: Database.Database;

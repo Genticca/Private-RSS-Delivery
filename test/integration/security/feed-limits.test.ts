@@ -1,12 +1,12 @@
 import type { Server } from 'node:http';
-import type { DnsLookup } from '../../../src/server/security/ip.js';
+import type { DnsLookup } from '../../../src/server/net/address.js';
 import { afterEach } from 'vitest';
 import type { ServerResponse } from 'node:http';
 import { createServer } from 'node:http';
 import { describe } from 'vitest';
 import { it } from 'vitest';
 import { expect } from 'vitest';
-import { fetchFeed } from '../../../src/server/security/ssrf-fetch.js';
+import { fetchFeed } from '../../../src/server/net/fetch.js';
 import { fetch as undiciFetch } from 'undici';
 import { Response } from 'undici';
 

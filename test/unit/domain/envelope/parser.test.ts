@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { parseFeed } from '../../../../src/server/domain/envelope/parser.js';
-import { FEED_FIXTURE_NAMES, readFeedFixture } from '../../../mocks/fixtures.js';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { FEED_FIXTURE_NAMES } from '../../../mocks/fixtures.js';
+import { parseFeed } from '../../../../src/server/feed/parse.js';
+import { readFeedFixture } from '../../../mocks/fixtures.js';
+import { expect } from 'vitest';
 
 const EXPECTED_FIXTURE_COUNTS = {
   'CISA.xml': 30,

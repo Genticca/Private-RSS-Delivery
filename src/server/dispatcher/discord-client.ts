@@ -1,11 +1,11 @@
 import type { DeliveryDestination } from './resolve-destinations.js';
 import type { DiscordWebhookPayload } from '../contracts/render-context.js';
-import { assertSafeWebhookUrl } from '../security/webhook-guard.js';
-import { canonicalWebhookUrl } from '../security/webhook-guard.js';
-import { assertSafeWebhookMessageUrl } from '../security/webhook-guard.js';
+import { assertSafeWebhookUrl } from '../net/webhook-url.js';
+import { canonicalWebhookUrl } from '../net/webhook-url.js';
+import { assertSafeWebhookMessageUrl } from '../net/webhook-url.js';
 import type { Response } from 'undici';
 import { fetch as undiciFetch } from 'undici';
-import { getSsrSafeAgent } from '../security/agent-cache.js';
+import { getSsrSafeAgent } from '../net/fetch.js';
 
 export interface WebhookPostRequest {
   destination: DeliveryDestination;

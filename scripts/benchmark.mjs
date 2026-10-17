@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { performance, monitorEventLoopDelay } from 'node:perf_hooks';
-import { createContainer } from '../dist/server/runtime/container.js';
+import { createContainer } from '../dist/server/container.js';
 
 // Deterministic local fixtures only. This does not call real feed/model/Discord APIs.
 const count = 25;

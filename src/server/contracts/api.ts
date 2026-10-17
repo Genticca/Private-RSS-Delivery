@@ -1,7 +1,8 @@
-/** HTTP API에서 주고받는 DTO다. DB 레코드의 내부 필드와 분리해 관리한다. */
-import type { NormalizedItem, Profile, SourceProfile } from '../domain/normalize/types.js';
-import type { FetchOptions } from '../security/types.js';
+import type { SourceProfile } from '../feed/parse.js';
+import type { Profile } from '../feed/parse.js';
+import type { FetchOptions } from '../net/fetch.js';
 import type { DiscordWebhookPayload } from './render-context.js';
+import type { NormalizedItem } from '../feed/parse.js';
 
 export type SourceId = string;
 

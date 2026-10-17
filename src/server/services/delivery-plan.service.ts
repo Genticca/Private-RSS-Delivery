@@ -2,7 +2,7 @@ import type { DeliveryBindingRepository } from '../db/delivery-binding.repositor
 import type { DeliveryJobRepository } from '../db/delivery-job.repository.js';
 import type { ItemDeliveryRepository } from '../db/item-delivery.repository.js';
 import type { TemplateRepository } from '../db/template.repository.js';
-import type { ItemRecord } from '../db/item.repository.js';
+import type { ItemRecord } from '../feed/repository.js';
 import type { SourceRecord } from '../db/source.repository.js';
 import { updateOperation } from '../domain/delivery/policy.js';
 

@@ -1,7 +1,8 @@
-import type { FetchOptions } from '../security/types.js';
-import { validationError } from './errors.js';
+import type { FetchOptions } from '../net/fetch.js';
+import { validationError } from '../core/errors.js';
+import { requiredString } from '../core/input.js';
 import { normalizeSourceCreate } from './source-input.js';
-import { requiredString, validateFetchOptions } from './validation.js';
+import { validateFetchOptions } from './validation.js';
 
 export interface ExportDocumentV1 {
   kind: 'rss-discord-bridge/export';
@@ -150,7 +151,6 @@ export function validateDocument(document: ExportDocumentV1): void {
   }
 }
 
-
 function validateOptionalString(value: unknown, field: string, maxLength: number): string | null {
   if (value === undefined || value === null || value === '') return null;
   if (typeof value !== 'string') {
@@ -191,7 +191,6 @@ function validateGroupRefs(value: unknown): string[] {
   }
   return refs;
 }
-
 
 export function sanitizeFetchOptions(input: FetchOptions): FetchOptions {
   const output: FetchOptions = {};

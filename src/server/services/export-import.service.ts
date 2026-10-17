@@ -12,11 +12,11 @@ import type { ImportBlockedSource } from './export-import.document.js';
 import { parseDocument } from './export-import.document.js';
 import { validateDocument } from './export-import.document.js';
 import type { ExportSource } from './export-import.document.js';
-import { verifyFeedUrlSafe } from '../security/ip.js';
+import { verifyFeedUrlSafe } from '../net/address.js';
 import type { ExportGroup } from './export-import.document.js';
 import { validateOptionalWebhookUrl } from './validation.js';
-import { verifyWebhookUrlSafe } from '../security/webhook-guard.js';
-import { nowIso } from '../db/time.js';
+import { verifyWebhookUrlSafe } from '../net/webhook-url.js';
+import { nowIso } from '../core/db.js';
 
 export interface ExportImportServiceOptions {
   bindings?: DeliveryBindingService;
