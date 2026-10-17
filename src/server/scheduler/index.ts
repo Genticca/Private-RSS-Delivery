@@ -1,3 +1,3 @@
-export { classifyExistingItem, type ExistingItemDecision } from './change-detect.js';
-export { shouldQueueNewItem } from './cutoff.js';
-export { Poller, type PollCounts, type PollOutcome, type PollerOptions, type PollSourceResult } from './poller.js';
+export { shouldQueueNewItem } from '../domain/delivery/cutoff.js';
+export { PollWorker } from '../workers/poll-worker.js';
+export type { PollCounts, PollOutcome, PollSourceResult } from '../services/poll.service.js';

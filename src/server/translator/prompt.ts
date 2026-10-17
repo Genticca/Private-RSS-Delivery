@@ -14,7 +14,7 @@ export const TRANSLATION_SYSTEM_PROMPT =
 
 export function buildTranslationPrompt(input: TranslationPromptInput): string {
   return JSON.stringify({
-    instruction: `Translate title and summary to ${input.targetLang}. Preserve URLs, CVE IDs, product names, versions, and incident stage labels.`,
+    instruction: `Translate title and summary to ${input.targetLang}. Translate each field independently without using the other field as context. Preserve URLs, CVE IDs, product names, versions, and incident stage labels.`,
     title: input.title,
     summary: input.summary
   });

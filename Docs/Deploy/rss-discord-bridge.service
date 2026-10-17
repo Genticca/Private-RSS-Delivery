@@ -29,11 +29,12 @@ EnvironmentFile=-/opt/rss-discord-bridge/.env
 Environment=NODE_ENV=production
 
 # node 절대경로는 서버에 맞게 조정: `which node` (NodeSource 설치 시 보통 /usr/bin/node).
-ExecStart=/usr/bin/node dist/server/app.js
+ExecStart=/usr/bin/node dist/server/main.js
 
 # 앱은 SIGTERM 에서 워커 정지 후 단일 flight 로 graceful shutdown 함.
 KillSignal=SIGTERM
-TimeoutStopSec=15
+# HTTP 완료와 SHUTDOWN_TIMEOUT_MS=30000 워커 drain에 충분한 시간을 확보한다.
+TimeoutStopSec=90
 Restart=on-failure
 RestartSec=3
 

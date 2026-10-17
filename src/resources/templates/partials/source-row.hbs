@@ -3,7 +3,7 @@
   <td class="truncate" title="{{feedUrl}}">{{feedUrl}}</td>
   <td><code>{{profile}}</code></td>
   <td>{{#if groupNames}}{{groupNames}}{{else}}<span class="muted">없음</span>{{/if}}</td>
-  <td><span class="badge {{#if enabled}}ok{{else}}muted{{/if}}">{{#if enabled}}수집 중{{else}}중지됨{{/if}}</span></td>
+  <td><span class="badge {{#if enabled}}ok{{else}}muted{{/if}}">{{#if enabled}}수집 중{{else}}중지됨{{/if}}</span>{{#if consecutiveFailures}}<br><span class="badge">연속 실패 {{consecutiveFailures}}회</span>{{/if}}</td>
   <td>{{#if translate}}<span class="badge ok">번역</span>{{else}}<span class="muted">—</span>{{/if}}</td>
   <td class="row-actions">
     <form hx-patch="/api/sources/{{id}}/enabled" hx-target="#source-{{id}}" hx-swap="outerHTML">
@@ -12,7 +12,8 @@
     </form>
     <button hx-post="/api/sources/{{id}}/poll" hx-swap="none">즉시 수집</button>
     <button hx-post="/api/sources/{{id}}/test" hx-swap="none">테스트 전송</button>
-    <button hx-post="/api/sources/{{id}}/retry-failed" hx-swap="none">실패 항목 재시도</button>
+    <button hx-post="/api/sources/{{id}}/retry-failed" hx-swap="none">실패 작업 재시도</button>
+    <a href="/delivery-jobs">발송 작업 검토</a>
     <button class="danger" hx-delete="/api/sources/{{id}}" hx-confirm="이 소스를 삭제하시겠습니까?" hx-target="closest tr" hx-swap="delete">삭제</button>
   </td>
 </tr>

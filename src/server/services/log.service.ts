@@ -1,12 +1,16 @@
 import type { DeliveryLogDto, FetchLogDto, LogsResponse } from '../contracts/api.js';
-import type { RepositoryRegistry } from '../runtime/container.js';
+import type { DeliveryLogRepository, FetchLogRepository, SourceRepository } from '../db/index.js';
 import { validationError } from './errors.js';
 import { toDeliveryLogDto, toFetchLogDto } from './serialization.js';
 
 export type LogType = 'delivery' | 'fetch';
 
 export interface LogServiceOptions {
-  repositories: RepositoryRegistry;
+  repositories: {
+    deliveryLogs: Pick<DeliveryLogRepository, 'list' | 'listAfterId'>;
+    fetchLogs: Pick<FetchLogRepository, 'list' | 'listAfterId'>;
+    sources: Pick<SourceRepository, 'getById'>;
+  };
 }
 
 export interface SseLogEvent {
@@ -35,7 +39,7 @@ export class LogService {
     const delivery = this.options.repositories.deliveryLogs.list({ limit }).map(toDeliveryLogDto).reverse();
     const fetch = this.options.repositories.fetchLogs.list({ limit }).map((row) => toFetchLogDto(row, this.sourceName(row.sourceId))).reverse();
     return [...delivery.map((data) => ({ event: 'delivery' as const, id: data.id, data })), ...fetch.map((data) => ({ event: 'fetch' as const, id: data.id, data }))].sort(
-      (left, right) => left.data.createdAt.localeCompare(right.data.createdAt) || left.id - right.id
+      (left, right) => left.id - right.id || left.event.localeCompare(right.event)
     );
   }
 
@@ -43,7 +47,7 @@ export class LogService {
     const delivery = this.options.repositories.deliveryLogs.listAfterId(deliveryAfterId, limit).map(toDeliveryLogDto);
     const fetch = this.options.repositories.fetchLogs.listAfterId(fetchAfterId, limit).map((row) => toFetchLogDto(row, this.sourceName(row.sourceId)));
     return [...delivery.map((data) => ({ event: 'delivery' as const, id: data.id, data })), ...fetch.map((data) => ({ event: 'fetch' as const, id: data.id, data }))].sort(
-      (left, right) => left.data.createdAt.localeCompare(right.data.createdAt) || left.id - right.id
+      (left, right) => left.id - right.id || left.event.localeCompare(right.event)
     );
   }
 

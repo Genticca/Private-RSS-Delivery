@@ -14,6 +14,8 @@ import {
 } from './sqlite.js';
 
 export interface SourceRecord {
+  configRevision: number;
+  consecutiveFailures: number;
   id: string;
   feedUrl: string;
   name: string | null;
@@ -108,6 +110,8 @@ export interface UpdateSourceInput {
 }
 
 interface SourceRow {
+  config_revision: number;
+  consecutive_failures: number;
   id: string;
   feed_url: string;
   name: string | null;
@@ -140,6 +144,7 @@ interface SourceRow {
 }
 
 const SOURCE_COLUMNS = `
+  config_revision, consecutive_failures,
   id, feed_url, name, enabled, profile, detected_profile, initialized,
   delivery_cutoff_at, etag, last_modified, last_polled_at, next_poll_at,
   template_id, webhook_url, webhook_name, webhook_avatar_url,
@@ -316,6 +321,8 @@ export class SourceRepository {
 
 function mapSourceRow(row: SourceRow): SourceRecord {
   return {
+    configRevision: row.config_revision,
+    consecutiveFailures: row.consecutive_failures,
     id: row.id,
     feedUrl: row.feed_url,
     name: row.name,

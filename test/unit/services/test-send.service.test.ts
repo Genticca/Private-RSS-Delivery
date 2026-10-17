@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { createContainer, type Container } from '../../../src/server/runtime/container.js';
-import type { WebhookPostRequest } from '../../../src/server/dispatcher/webhook.js';
+import type { WebhookPostRequest } from '../../../src/server/dispatcher/discord-client.js';
 import { TestSendService } from '../../../src/server/services/test-send.service.js';
 
 const containers: Container[] = [];

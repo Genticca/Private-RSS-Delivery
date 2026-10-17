@@ -61,7 +61,7 @@ describe('dispatcher destination resolution', () => {
     const source = sourceRecord({ threadId: '999' });
     const groups = [
       groupRecord(10, { webhookUrl: 'https://discord.com/api/webhooks/123/TokenABC/', webhookName: 'First' }),
-      groupRecord(11, { webhookUrl: 'https://discord.com/api/webhooks/123/tokenabc', webhookName: 'Duplicate' }),
+      groupRecord(11, { webhookUrl: 'https://DISCORD.com/api/webhooks/123/TokenABC', webhookName: 'Duplicate' }),
       groupRecord(12, { webhookUrl: 'https://discord.com/api/webhooks/124/tokenabc', webhookName: 'Other' })
     ];
 
@@ -74,7 +74,7 @@ describe('dispatcher destination resolution', () => {
     ]);
   });
 
-  it('keeps keys byte-identical to D23 rows copied from group webhooks', () => {
+  it('preserves canonical group identity together with source thread identity', () => {
     const source = sourceRecord({ threadId: '1234567890' });
     const groupUrl = 'https://discord.com/api/webhooks/400/GroupToken/';
     const d23CopiedSourceDestinationUrl = groupUrl;
@@ -109,6 +109,8 @@ ${threadId}` : canonical).digest('hex');
 function sourceRecord(patch: Partial<SourceRecord> = {}): SourceRecord {
   return {
     id: 'source-1',
+    configRevision: 1,
+    consecutiveFailures: 0,
     feedUrl: 'https://example.com/feed.xml',
     name: 'Example Feed',
     enabled: true,

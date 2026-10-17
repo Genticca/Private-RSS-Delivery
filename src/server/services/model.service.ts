@@ -1,21 +1,46 @@
 import type { ModelConfigResponse, ModelProvider, ModelRole, ModelStatus, ModelStatusResponse, ModelUsageResponse } from '../contracts/api.js';
 import { nowIso } from '../db/time.js';
-import type { RepositoryRegistry } from '../runtime/container.js';
+import type { ModelUsageRepository, TranslationCacheRepository, ModelConfigRepository } from '../db/index.js';
 import { resolveModelApiKey } from '../translator/keys.js';
+import type { TranslationCacheService } from '../translator/translation-cache.service.js';
 import { validationError } from './errors.js';
 import { toModelConfigEntryDto, toModelUsageDto } from './serialization.js';
 import { optionalBoolean, optionalInteger, optionalString, requireObject, validateProvider } from './validation.js';
 
 export interface ModelServiceOptions {
-  repositories: RepositoryRegistry;
+  repositories: {
+    modelUsage: Pick<ModelUsageRepository, 'latestRequest' | 'statistics' | 'list'>;
+    translationCache: Pick<TranslationCacheRepository, 'statistics'>;
+    modelConfig: Pick<ModelConfigRepository, 'updateRole' | 'getByRole'>;
+  };
   env?: NodeJS.ProcessEnv;
   now?: () => string;
+  translation?: TranslationCacheService;
 }
 
 const ROLES: ModelRole[] = ['primary', 'fallback'];
 
 export class ModelService {
   constructor(private readonly options: ModelServiceOptions) {}
+
+  getDiagnostics() {
+    return { roles: ROLES.map((role) => {
+      const request = this.options.repositories.modelUsage.latestRequest(role);
+      return { role, keyStatus: this.statusFor(role), lastRequestAt: request?.createdAt ?? null,
+        lastRequestResult: request ? request.error ?? 'success' : '아직 호출하지 않음' };
+    }), requests: this.options.repositories.modelUsage.statistics(), cache: { cache_hit: 0, local_skip: 0, single_flight: 0,
+      failure_cooldown: 0, ...this.options.repositories.translationCache.statistics() } };
+  }
+
+  async diagnose(value: unknown) {
+    const body = requireObject(value);
+    const title = optionalString(body.title, 'title', 1000) ?? '';
+    const summary = optionalString(body.summary, 'summary', 3500) ?? '';
+    if (!title && !summary) throw validationError('진단할 제목 또는 본문이 필요합니다.');
+    if (!this.options.translation) throw validationError('번역 진단을 사용할 수 없습니다.');
+    return this.options.translation.translate({ title, summary }, { profileSetting: 'generic', detectedProfile: null,
+      threadId: null, threadName: null, appliedTags: [] }, { now: this.now(), ignoreCooldown: true, fresh: optionalBoolean(body.fresh) ?? false });
+  }
 
   getConfig(): ModelConfigResponse {
     const primary = this.requireConfig('primary');

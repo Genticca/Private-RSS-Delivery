@@ -4,6 +4,9 @@ import { nullable } from './sqlite.js';
 import { subtractDaysIso, nowIso } from './time.js';
 
 export interface ModelUsageRecord {
+  httpRequested: boolean;
+  itemId: number | null;
+  jobId: number | null;
   id: number;
   role: ModelRole;
   provider: ModelProvider;
@@ -16,6 +19,9 @@ export interface ModelUsageRecord {
 }
 
 export interface AppendModelUsageInput {
+  httpRequested?: boolean;
+  itemId?: number;
+  jobId?: number;
   role: ModelRole;
   provider: ModelProvider;
   model: string;
@@ -35,6 +41,9 @@ export interface ListModelUsageOptions {
 }
 
 interface ModelUsageRow {
+  http_requested: number;
+  item_id: number | null;
+  job_id: number | null;
   id: number;
   role: ModelRole;
   provider: ModelProvider;
@@ -47,19 +56,32 @@ interface ModelUsageRow {
 }
 
 const MODEL_USAGE_COLUMNS = `
+  http_requested, item_id, job_id,
   id, role, provider, model, input_tokens, output_tokens, latency_ms, error, created_at
 `;
 
 export class ModelUsageRepository {
   constructor(private readonly db: Database.Database) {}
 
+  latestRequest(role: ModelRole): ModelUsageRecord | null {
+    const row = this.db.prepare(`SELECT ${MODEL_USAGE_COLUMNS} FROM model_usage WHERE role = ? AND http_requested = 1 ORDER BY id DESC LIMIT 1`).get(role) as ModelUsageRow | undefined;
+    return row ? mapModelUsageRow(row) : null;
+  }
+
+  statistics(): { requests: number; fallback: number; failed: number; truncated: number; inputTokens: number; outputTokens: number } {
+    return this.db.prepare(`SELECT COUNT(*) AS requests, COALESCE(SUM(role = 'fallback'),0) AS fallback,
+      COALESCE(SUM(error IS NOT NULL),0) AS failed, COALESCE(SUM(error = 'length'),0) AS truncated,
+      COALESCE(SUM(input_tokens),0) AS inputTokens, COALESCE(SUM(output_tokens),0) AS outputTokens
+      FROM model_usage WHERE http_requested = 1`).get() as ReturnType<ModelUsageRepository['statistics']>;
+  }
+
   append(input: AppendModelUsageInput): ModelUsageRecord {
     const createdAt = input.createdAt ?? nowIso();
     const result = this.db
       .prepare(
         `INSERT INTO model_usage (
-           role, provider, model, input_tokens, output_tokens, latency_ms, error, prompt_log, created_at
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+           role, provider, model, input_tokens, output_tokens, latency_ms, error, prompt_log, created_at, http_requested, item_id, job_id
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         input.role,
@@ -70,7 +92,10 @@ export class ModelUsageRepository {
         nullable(input.latencyMs),
         nullable(input.error),
         nullable(input.promptLog),
-        createdAt
+        createdAt,
+        input.httpRequested === false ? 0 : 1,
+        input.itemId ?? null,
+        input.jobId ?? null
       );
     return this.requireById(Number(result.lastInsertRowid));
   }
@@ -119,6 +144,9 @@ export class ModelUsageRepository {
 
 function mapModelUsageRow(row: ModelUsageRow): ModelUsageRecord {
   return {
+    httpRequested: row.http_requested === 1,
+    itemId: row.item_id,
+    jobId: row.job_id,
     id: row.id,
     role: row.role,
     provider: row.provider,

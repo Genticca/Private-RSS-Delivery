@@ -1,5 +1,19 @@
 # Backend 모듈 & 라우터 명세 (Codex 트랙)
 
+## D25 — 2026-10-16 승인된 발송·번역·실행 계약
+
+사용자가 2026-10-16에 §4.2·4.4·4.6·4.7·4.9·4.11 및 Fetch/runtime 변경을 명시 승인했다. 아래 계약은 해당 절의 기존 item 전체 재큐·로그 기반 중복 판단·PATCH 404 POST·실패 원문 캐시 계약보다 우선한다. 그룹이 webhook URL을 소유하는 D24는 계속 적용한다.
+
+- **§4.2 저장:** `items.content_revision`은 contentHash가 바뀔 때 증가한다. 항목 상태는 호환용 집계이며 실행 근거는 `delivery_bindings`(source×destination 연결 세대), `item_deliveries`(영속 message/channel/thread ID·마지막 revision), `delivery_jobs`(고정 연결·revision·원문 snapshot·렌더 payload·독립 재시도)다. `delivery_log`는 삭제 가능한 감사 로그다. 연결 키와 작업에는 webhook 비밀 URL을 복제하지 않는다.
+- **§4.4 수집:** Stage 1/2, atom_id 식별, 최초 source poll historical을 유지한다. 새 연결 첫 성공 200 스냅샷은 묵음 baseline이며 첫 요청의 조건부 GET을 생략한다. 304·실패는 baseline을 완료하지 않는다. 연결부터 첫 스냅샷까지의 새 글도 묵음 처리될 수 있다. 신규 최초 발송은 관측 당시 유효하고 baseline이 완료된 연결에만 계획한다. 기존 글 갱신은 최초 발송했던 유효 연결에만 계획한다. poll 커밋에서 설정 버전을 재검증하고 바뀌었으면 결과를 버린다. 초기 baseline을 제외하고 신규 건수가 `NEW_ITEMS_HOLD_COUNT`(기본 50) 이상이거나, 신규가 `NEW_ITEMS_HOLD_MIN`(10) 이상이며 스냅샷의 `NEW_ITEMS_HOLD_RATIO`(0.8) 이상이면 신규 작업을 held로 둔다. 같은 소스·연결 안에서는 게시 시각 순서로 처리한다.
+- **§4.6 발송:** 모든 최초 POST에 wait=true를 사용한다. editInPlace=true는 원래 message에 PATCH, false는 원래 연결에 update_post다. message ID 미상·PATCH 404는 uneditable이며 자동 POST하지 않는다. POST timeout·5xx·응답 ID 미상·송신 후 기록 불명은 unknown이며 자동 재POST하지 않는다. 429는 목적지 cooldown에 반영하고 일반 실패 횟수에서 제외한다. 연결 종료는 미실행 작업을 취소하고 새 연결로 이전하지 않는다. 비활성화는 연결을 종료하며 재활성화는 새 baseline을 확립한다. H1→H2→H1도 revision 1→2→3으로 갱신한다. 네트워크 I/O는 SQLite 트랜잭션 밖에서 수행한다.
+- **§4.7 번역:** .env와 process 환경을 한 번 병합해 모델 실행·상태 서비스에 함께 주입한다. 성공 공유 캐시는 policyVersion·targetLang·field·contextProfile·glossaryVersion·실제 입력을 키로 삼는다. contentHash·item/job/webhook ID는 캐시 키가 아니다. 필요한 필드만 요청하고 캐시 미스 필드는 한 호출로 묶으며 같은 입력의 동시 요청은 합친다. minimal은 제목만 번역하고 템플릿 AST 판정이 불확실하면 제목·본문을 요청한다. 포럼 제목 요구도 포함한다. 실패는 성공 캐시로 저장하지 않고 별도 cooldown을 둔다. 발송 payload를 고정해 Discord 재시도가 번역을 반복하지 않게 한다. Gemini에 abortSignal·JSON schema를 전달한다. 파싱 실패·잘림은 현행 원문 발송이며, 번역 복구만으로 과거 글을 새 POST하지 않는다. 실제 요청·cache hit·skip·fallback·토큰·작업 상관관계를 구분한다.
+- **§4.9·§4.11/API:** 소스·그룹 변경과 import는 같은 binding reconciliation을 트랜잭션 안에서 수행한다. 동일 목적지 중복 그룹은 연결 하나이며 무변경 저장으로 세대가 바뀌지 않는다. retry-failed는 기존 유효 연결의 failed 작업 수이며 unknown·legacy_unknown·held를 포함하지 않는다. held는 관리자가 historical 또는 발송으로 결정하고 unknown은 전송 결과를 확인한 뒤 처리한다.
+- **Fetch/runtime:** 본문 스트림까지 timeout을 유지하고 최대 응답 바이트를 제한한다(기본 FEED_MAX_BYTES=5242880). 수집·발송 실행 루프를 독립시키고 동시성은 각각 기본 2로 제한한다. 종료는 신규 작업을 막고 수동·예약 작업을 모두 drain한 뒤 DB·Agent를 닫는다. SHUTDOWN_TIMEOUT_MS(기본 30000)를 초과하면 사용 중 DB를 닫지 않고 종료 실패를 기록한다. 오래된 item 본문은 식별자·해시·revision을 보존하는 tombstone으로 축소하며 대기·보류·미확정 작업이 있는 항목은 제외한다.
+- **이관:** 0021 이후 새 마이그레이션만 추가한다. historical·완료 건은 재큐하지 않는다. 기존 로그는 확인 가능한 ID만 영속 기록으로 옮기며 연결 계보가 증명되지 않는 pending/failed는 legacy_unknown으로 격리한다. 작업 계획·실행을 함께 전환한다. 실행 전 정지된 운영 DB 사본으로 이관 검증·백업을 수행한다.
+
+---
+
 > 작성: 2026-05-28 · 상위: [README.md](../README.md) (Stage 2 정규화 상세 = README §7)
 > 갱신: 2026-06-09 — D24 채널 모델 반영(그룹=전송 채널 통일, 소스 자체 webhook 제거, 그룹 최소 1개 필수; D23 `source_destinations`는 폐기·역전)
 > 본 문서는 **백엔드(`src/server/`) 전체 라우터와 모듈**을 구현 직전 수준으로 정의한다.

@@ -1,5 +1,5 @@
-import type { NormalizedItem } from '../domain/normalize/types.js';
-import type { SourceRecord } from '../db/source.repository.js';
+import type { NormalizedItem } from '../normalize/types.js';
+import type { SourceRecord } from '../../db/source.repository.js';
 
 export function shouldQueueNewItem(source: SourceRecord, item: NormalizedItem): boolean {
   if (!source.initialized) return false;

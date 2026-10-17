@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { createApp, type AppInstance } from '../../../../src/server/app.js';
 import { createContainer, type Container } from '../../../../src/server/runtime/container.js';
 import { createSseConnectionLimiter } from '../../../../src/server/controllers/api/logs.js';
-import { WebhookDispatcher, type WebhookPostRequest } from '../../../../src/server/dispatcher/webhook.js';
+import type { WebhookPostRequest } from '../../../../src/server/dispatcher/discord-client.js';
+import { DeliveryWorker } from '../../../../src/server/workers/delivery-worker.js';
+import { DeliveryService } from '../../../../src/server/services/delivery.service.js';
 
 const apps: AppInstance[] = [];
 const containers: Container[] = [];
@@ -17,7 +19,7 @@ afterEach(async () => {
   }
 });
 
-describe('Turn 10 API controllers', () => {
+describe('API controllers', () => {
   it('creates sources without exposing raw webhook URLs and resets state when feedUrl changes', async () => {
     const { app, container } = await openApp();
     const group = container.repositories.groups.create({
@@ -194,14 +196,17 @@ describe('Turn 10 API controllers', () => {
     expect(source?.webhookUrl).toBeNull();
 
     const calls: WebhookPostRequest[] = [];
-    const dispatcher = new WebhookDispatcher({
-      db: container.db,
-      repositories: container.repositories,
+    const dispatcher = new DeliveryWorker({
+      jobs: container.repositories.deliveryJobs,
+      bindings: container.repositories.deliveryBindings,
+      service: new DeliveryService({ db: container.db, repositories: container.repositories, planner: container.services.deliveryPlan,
       postWebhook: async (request) => {
         calls.push(request);
-        return { statusCode: 204 };
+        return { statusCode: 200, messageId: '123' };
       }
+      })
     });
+    container.services.deliveryBindings.completeBaselines(source!.id, base);
     const item = container.repositories.items.insert({
       sourceId: source!.id,
       atomId: 'atom-group-channel',
@@ -212,7 +217,8 @@ describe('Turn 10 API controllers', () => {
       createdAt: base
     });
 
-    expect(await dispatcher.runDueDeliveries(base)).toEqual([{ itemId: item.id, outcome: 'delivered', attemptNo: 1, nextAttemptAt: null }]);
+    container.services.deliveryPlan.planNew(item, source!, base);
+    expect(await dispatcher.runDueDeliveries(base)).toMatchObject([{ itemId: item.id, outcome: 'delivered', attemptNo: 1 }]);
     expect(calls).toHaveLength(1);
     expect(calls[0]?.destination.webhookUrl).toBe('https://discord.com/api/webhooks/222/group-token');
     expect(calls[0]?.payload.username).toBe('Source Bot');

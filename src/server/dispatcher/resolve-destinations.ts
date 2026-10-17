@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { GroupRecord, GroupRepository, SourceGroupRepository, SourceRecord } from '../db/index.js';
 import { assertSafeWebhookUrl, canonicalWebhookUrl } from '../security/webhook-guard.js';
-import { blankToNull } from '../services/validation.js';
+import { blankToNull } from '../domain/text.js';
 
 export interface DeliveryDestination {
   webhookUrl: string;

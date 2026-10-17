@@ -67,7 +67,7 @@ describe('security outbound URL guards', () => {
     expect(assertSafeWebhookUrl('https://discord.com/api/webhooks/123/token').hostname).toBe('discord.com');
     expect(assertSafeWebhookUrl('https://discordapp.com/api/webhooks/123/token/').hostname).toBe('discordapp.com');
     expect(canonicalWebhookUrl('https://DISCORD.com/api/webhooks/ABC/Token/')).toBe(
-      'https://discord.com/api/webhooks/abc/token'
+      'https://discord.com/api/webhooks/ABC/Token'
     );
     expect(() => assertSafeWebhookUrl('http://discord.com/api/webhooks/123/token')).toThrow(SecurityError);
     expect(() => assertSafeWebhookUrl('https://discord.com.evil.test/api/webhooks/123/token')).toThrow(SecurityError);
@@ -278,7 +278,7 @@ describe('fetchFeed', () => {
       usedTlsMaxVersion: 'TLSv1.2',
       persistedFetchOptions: { userAgent: 'agent', tlsMaxVersion: 'TLSv1.2' }
     });
-    expect(persisted).toEqual([{ userAgent: 'agent', tlsMaxVersion: 'TLSv1.2' }]);
+    expect(persisted).toEqual([{ userAgent: 'agent', tlsMaxVersion: 'TLSv1.2', tlsPinnedAt: expect.any(String) }]);
   });
 
   it('does not retry non-403 HTTP errors', async () => {

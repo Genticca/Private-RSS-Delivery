@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type DatabaseType from 'better-sqlite3';
 import { sha256Hex } from '../domain/normalize/content-hash.js';
+import { backfillLegacyReceipts } from './delivery-backfill.js';
 
 // D3/D9: resources/migrations 의 .sql 을 순번대로 적용 (copy 스텝으로 dist/resources/migrations 에 안착).
 // import.meta.url 상대 resolve → dev(src/resources) / prod(dist/resources) 모두 동작.
@@ -52,6 +53,7 @@ export function runMigrations(db: DatabaseType.Database, options: RunMigrationsO
 }
 
 function runPostMigrationBackfill(db: DatabaseType.Database, version: string): void {
+  if (version === '0021_delivery_jobs') backfillLegacyReceipts(db);
   if (version === '0014_generic_content_hash_title_link') {
     backfillGenericContentHashes(db);
   }

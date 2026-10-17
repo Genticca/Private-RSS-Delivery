@@ -6,6 +6,3 @@ data/
 *.sqlite-wal
 .env
 .env.local
-
-# 설계 전체본(작성 이력·상태 포함) — 로컬 전용, 공개 README.md 와 별개로 Push 제외
-README_DEV.md
