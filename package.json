@@ -14,8 +14,6 @@
     "build:resources": "copyfiles -u 1 \"src/resources/migrations/**/*\" \"src/resources/config/**/*\" \"src/resources/templates/**/*\" \"src/resources/presets/**/*\" dist",
     "start": "node dist/server/main.js",
     "test": "vitest run",
-    "test:unit": "vitest run test/unit",
-    "test:integration": "vitest run test/integration",
     "smoke": "npm run build && node scripts/smoke.mjs",
     "benchmark": "npm run build && node scripts/benchmark.mjs",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.test.json --noEmit"
