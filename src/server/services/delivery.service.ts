@@ -1,28 +1,35 @@
+import type { ItemRepository } from '../db/item.repository.js';
+import type { SourceRepository } from '../db/source.repository.js';
+import type { GroupRepository } from '../db/group.repository.js';
+import type { SourceGroupRepository } from '../db/source-group.repository.js';
+import type { DeliveryBindingRepository } from '../db/delivery-binding.repository.js';
+import type { DeliveryJobRepository } from '../db/delivery-job.repository.js';
+import type { ItemDeliveryRepository } from '../db/item-delivery.repository.js';
+import type { EventLogRepository } from '../db/event-log.repository.js';
 import type Database from 'better-sqlite3';
-import type { DiscordWebhookPayload } from '../contracts/render-context.js';
-import type {
-  DeliveryBindingRepository,
-  DeliveryJobRecord,
-  DeliveryJobRepository,
-  EventLogRepository,
-  GroupRepository,
-  ItemDeliveryRepository,
-  ItemRecord,
-  ItemRepository,
-  SourceGroupRepository,
-  SourceRecord,
-  SourceRepository
-} from '../db/index.js';
-import { nowIso } from '../db/time.js';
-import { retryAt, type DeliveryJobState } from '../domain/delivery/policy.js';
-import { applySourceWebhookOptions } from '../dispatcher/payload-options.js';
-import { buildPresetRenderContext, PresetRenderError, renderDiscordPayload, type TranslatedItem } from '../dispatcher/render.js';
-import { resolveDestinationsForSource } from '../dispatcher/resolve-destinations.js';
-import { DiscordPayloadValidationError, validateDiscordPayload } from '../dispatcher/validate.js';
-import { SecurityError } from '../security/errors.js';
-import { editDiscordWebhookMessage, postDiscordWebhook, type WebhookEditFunction, type WebhookPostFunction, type WebhookPostResponse } from '../dispatcher/discord-client.js';
-import type { DispatchTranslationService } from '../translator/translator.js';
 import type { DeliveryPlanService } from './delivery-plan.service.js';
+import type { DispatchTranslationService } from '../translator/translator.js';
+import type { WebhookPostFunction } from '../dispatcher/discord-client.js';
+import type { WebhookEditFunction } from '../dispatcher/discord-client.js';
+import { nowIso } from '../db/time.js';
+import type { DiscordWebhookPayload } from '../contracts/render-context.js';
+import type { SourceRecord } from '../db/source.repository.js';
+import type { ItemRecord } from '../db/item.repository.js';
+import type { TranslatedItem } from '../dispatcher/render.js';
+import { renderDiscordPayload } from '../dispatcher/render.js';
+import { buildPresetRenderContext } from '../dispatcher/render.js';
+import { validateDiscordPayload } from '../dispatcher/validate.js';
+import { applySourceWebhookOptions } from '../dispatcher/payload-options.js';
+import { editDiscordWebhookMessage } from '../dispatcher/discord-client.js';
+import { postDiscordWebhook } from '../dispatcher/discord-client.js';
+import { SecurityError } from '../security/errors.js';
+import { DiscordPayloadValidationError } from '../dispatcher/validate.js';
+import { PresetRenderError } from '../dispatcher/render.js';
+import type { DeliveryJobRecord } from '../db/delivery-job.repository.js';
+import { resolveDestinationsForSource } from '../dispatcher/resolve-destinations.js';
+import type { WebhookPostResponse } from '../dispatcher/discord-client.js';
+import { retryAt } from '../domain/delivery/policy.js';
+import type { DeliveryJobState } from '../domain/delivery/policy.js';
 
 export interface DeliveryRepositories {
   items: ItemRepository;
@@ -34,6 +41,7 @@ export interface DeliveryRepositories {
   itemDeliveries: ItemDeliveryRepository;
   eventLog: EventLogRepository;
 }
+
 export interface DeliveryServiceOptions {
   db: Database.Database;
   repositories: DeliveryRepositories;
@@ -43,7 +51,9 @@ export interface DeliveryServiceOptions {
   editWebhook?: WebhookEditFunction;
   requestTimeoutMs?: number;
 }
+
 export type DeliveryRunOutcome = 'delivered' | 'failed' | 'retrying' | 'skipped' | 'unknown' | 'uneditable';
+
 export interface DeliveryRunResult {
   itemId: number;
   jobId: number;

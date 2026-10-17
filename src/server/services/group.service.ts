@@ -1,12 +1,20 @@
 import type Database from 'better-sqlite3';
-import type { CreateGroupRequest, GroupDto, UpdateGroupRequest } from '../contracts/api.js';
-import { nowIso } from '../db/time.js';
+import type { GroupRepository } from '../db/group.repository.js';
 import type { DeliveryBindingService } from './delivery-binding.service.js';
-import type { GroupRepository } from '../db/index.js';
-import { verifyWebhookUrlSafe } from '../security/index.js';
-import { conflict, notFound, validationError } from './errors.js';
+import type { GroupDto } from '../contracts/api.js';
 import { toGroupDto } from './serialization.js';
-import { optionalBoolean, optionalString, requireObject, requiredString, validateOptionalWebhookUrl } from './validation.js';
+import { conflict } from './errors.js';
+import { validationError } from './errors.js';
+import { notFound } from './errors.js';
+import { verifyWebhookUrlSafe } from '../security/webhook-guard.js';
+import { nowIso } from '../db/time.js';
+import type { CreateGroupRequest } from '../contracts/api.js';
+import { requireObject } from './validation.js';
+import { requiredString } from './validation.js';
+import { validateOptionalWebhookUrl } from './validation.js';
+import { optionalString } from './validation.js';
+import type { UpdateGroupRequest } from '../contracts/api.js';
+import { optionalBoolean } from './validation.js';
 
 export interface GroupServiceOptions {
   db: Database.Database;

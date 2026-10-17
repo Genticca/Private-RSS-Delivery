@@ -12,9 +12,6 @@ export interface ParsedTranslation {
   summary: string;
 }
 
-export const TRANSLATION_SYSTEM_PROMPT =
-  'Translate RSS item title and summary into the requested target language. Return only JSON with string keys title and summary.';
-
 export function buildTranslationPrompt(input: TranslationPromptInput): string {
   return JSON.stringify({
     instruction: `Translate title and summary to ${input.targetLang}. Translate each field independently without using the other field as context. Preserve URLs, CVE IDs, product names, versions, and incident stage labels.`,

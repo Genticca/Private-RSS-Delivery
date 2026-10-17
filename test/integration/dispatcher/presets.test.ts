@@ -1,6 +1,12 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { buildPresetRenderContext, BUILTIN_PRESETS, renderDiscordPayload } from '../../../src/server/dispatcher/index.js';
-import { createContainer, type Container } from '../../../src/server/runtime/container.js';
+import type { Container } from '../../../src/server/runtime/container.js';
+import { afterEach } from 'vitest';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { BUILTIN_PRESETS } from '../../../src/server/dispatcher/presets.js';
+import { expect } from 'vitest';
+import { renderDiscordPayload } from '../../../src/server/dispatcher/render.js';
+import { buildPresetRenderContext } from '../../../src/server/dispatcher/render.js';
+import { createContainer } from '../../../src/server/runtime/container.js';
 
 const containers: Container[] = [];
 

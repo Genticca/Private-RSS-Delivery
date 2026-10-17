@@ -1,22 +1,31 @@
-import type { SourceId } from '../contracts/api.js';
-import type { DiscordWebhookPayload } from '../contracts/render-context.js';
-import { applySourceWebhookOptions } from '../dispatcher/payload-options.js';
-import {
-  resolveDestinationsForSource,
-  type DeliveryDestination
-} from '../dispatcher/resolve-destinations.js';
-import { buildPresetRenderContext, PresetRenderError, renderDiscordPayload } from '../dispatcher/render.js';
-import { DiscordPayloadValidationError, validateDiscordPayload } from '../dispatcher/validate.js';
-import { postDiscordWebhook, type WebhookPostFunction } from '../dispatcher/discord-client.js';
-import type { SourceRecord } from '../db/index.js';
-import { SecurityError } from '../security/index.js';
-import type { SourceRepository, GroupRepository, SourceGroupRepository, TemplateRepository } from '../db/index.js';
-import { notFound, validationError } from './errors.js';
+import type { SourceRepository } from '../db/source.repository.js';
+import type { GroupRepository } from '../db/group.repository.js';
+import type { SourceGroupRepository } from '../db/source-group.repository.js';
+import type { TemplateRepository } from '../db/template.repository.js';
 import type { PreviewService } from './preview.service.js';
+import type { WebhookPostFunction } from '../dispatcher/discord-client.js';
+import type { SourceId } from '../contracts/api.js';
+import { notFound } from './errors.js';
+import { validationError } from './errors.js';
+import type { SourceRecord } from '../db/source.repository.js';
+import type { DeliveryDestination } from '../dispatcher/resolve-destinations.js';
+import { resolveDestinationsForSource } from '../dispatcher/resolve-destinations.js';
+import { SecurityError } from '../security/errors.js';
+import type { DiscordWebhookPayload } from '../contracts/render-context.js';
+import { renderDiscordPayload } from '../dispatcher/render.js';
+import { buildPresetRenderContext } from '../dispatcher/render.js';
+import { applySourceWebhookOptions } from '../dispatcher/payload-options.js';
+import { validateDiscordPayload } from '../dispatcher/validate.js';
+import { DiscordPayloadValidationError } from '../dispatcher/validate.js';
+import { PresetRenderError } from '../dispatcher/render.js';
+import { postDiscordWebhook } from '../dispatcher/discord-client.js';
 
 const TEST_TIMEOUT_MS = 10_000;
+
 const TEST_MARKER = '🧪 [테스트 전송] ';
+
 const CONTENT_MAX = 2000;
+
 const MIN_TEST_INTERVAL_MS = 5_000;
 
 export interface TestSendServiceOptions {

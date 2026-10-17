@@ -1,7 +1,12 @@
+import type { Container } from '../../../src/server/runtime/container.js';
+import { afterEach } from 'vitest';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { expect } from 'vitest';
+import { delayUntilNextKstMidnight } from '../../../src/server/workers/cleanup-worker.js';
+import { CleanupWorker } from '../../../src/server/workers/cleanup-worker.js';
 import Database from 'better-sqlite3';
-import { afterEach, describe, expect, it } from 'vitest';
-import { CleanupWorker, delayUntilNextKstMidnight } from '../../../src/server/workers/index.js';
-import { createContainer, type Container } from '../../../src/server/runtime/container.js';
+import { createContainer } from '../../../src/server/runtime/container.js';
 
 const containers: Container[] = [];
 

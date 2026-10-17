@@ -1,21 +1,23 @@
 import type Database from 'better-sqlite3';
-import type { SourceDto } from '../contracts/api.js';
-import { nowIso } from '../db/time.js';
+import type { SourceRepository } from '../db/source.repository.js';
+import type { SourceGroupRepository } from '../db/source-group.repository.js';
+import type { GroupRepository } from '../db/group.repository.js';
+import type { EventLogRepository } from '../db/event-log.repository.js';
+import type { ItemRepository } from '../db/item.repository.js';
+import type { DeliveryJobRepository } from '../db/delivery-job.repository.js';
+import type { TemplateRepository } from '../db/template.repository.js';
 import type { DeliveryBindingService } from './delivery-binding.service.js';
-import type {
-  SourceRepository,
-  SourceGroupRepository,
-  GroupRepository,
-  EventLogRepository,
-  ItemRepository,
-  DeliveryJobRepository,
-  TemplateRepository
-} from '../db/index.js';
-import { verifyFeedUrlSafe } from '../security/index.js';
-import { conflict, notFound, validationError } from './errors.js';
+import type { SourceDto } from '../contracts/api.js';
 import { toSourceDto } from './serialization.js';
-import { optionalBoolean, requireObject } from './validation.js';
-import { normalizeSourceCreate, normalizeSourceUpdate } from './source-input.js';
+import { normalizeSourceCreate } from './source-input.js';
+import { conflict } from './errors.js';
+import { normalizeSourceUpdate } from './source-input.js';
+import { notFound } from './errors.js';
+import { requireObject } from './validation.js';
+import { optionalBoolean } from './validation.js';
+import { validationError } from './errors.js';
+import { verifyFeedUrlSafe } from '../security/ip.js';
+import { nowIso } from '../db/time.js';
 
 export interface SourceServiceOptions {
   db: Database.Database;

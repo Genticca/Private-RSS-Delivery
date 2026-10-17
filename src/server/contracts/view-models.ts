@@ -36,12 +36,6 @@ export interface DashboardViewModel {
   }>;
 }
 
-export interface SourcesViewModel {
-  sources: SourceDto[];
-  groups: GroupDto[];
-  profiles: readonly SourceProfile[];
-}
-
 /** 소스 폼 그룹: 현재 배정 여부(selected) 체크박스 prefill용 — web.ts withGroupSelection. */
 export interface GroupWithSelection extends GroupDto {
   selected: boolean;
@@ -57,14 +51,6 @@ export interface SourceFormViewModel {
   profiles: readonly SourceProfile[];
 }
 
-export interface GroupsViewModel {
-  groups: GroupDto[];
-}
-
-export interface TemplatesViewModel {
-  templates: TemplateDto[];
-}
-
 export interface TemplateEditorViewModel {
   template: TemplateDto;
   presetVars: readonly PresetVariable[];
@@ -76,9 +62,3 @@ export interface TemplateEditorViewModel {
 }
 
 export type LogsViewModel = Record<string, never>;
-
-export interface ModelViewModel {
-  diagnostics: ModelDiagnosticsResponse;
-  /** missing-key/invalid-key일 때만 채우는 안내 문구 — web.ts modelStatusGuidance. */
-  statusGuidance: string | null;
-}

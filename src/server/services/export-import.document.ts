@@ -35,8 +35,6 @@ export interface ExportSource {
   threadName?: string | null;
   appliedTags?: string[];
   editInPlace?: boolean;
-  /** @deprecated 이전 소스 웹훅의 호환 입력이다. 새 문서에는 기록하지 않는다. */
-  legacyWebhookUrl?: string | null;
   webhookName?: string | null;
   webhookAvatarUrl?: string | null;
   templateRef?: string | null;
@@ -66,9 +64,6 @@ export interface ImportPlan {
 }
 
 type ImportGroupWithLegacyWebhook = ExportGroup & {
-  webhookUrl?: unknown
-};
-type ImportSourceWithLegacyWebhook = ExportSource & {
   webhookUrl?: unknown
 };
 
@@ -144,8 +139,6 @@ export function validateDocument(document: ExportDocumentV1): void {
     source.threadName = normalized.threadName ?? null;
     source.appliedTags = normalized.appliedTags ?? [];
     source.editInPlace = normalized.editInPlace ?? false;
-    const importSource = source as ImportSourceWithLegacyWebhook;
-    source.legacyWebhookUrl = validateOptionalString(importSource.webhookUrl ?? source.legacyWebhookUrl, 'sources.webhookUrl', 2048);
     source.webhookName = normalized.webhookName ?? null;
     source.webhookAvatarUrl = normalized.webhookAvatarUrl ?? null;
     source.templateRef = validateOptionalString(source.templateRef, 'sources.templateRef', 200);

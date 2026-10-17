@@ -1,6 +1,7 @@
-import type { ItemRecord, SourceRecord } from '../../db/index.js';
+import type { SourceRecord } from '../../db/source.repository.js';
 
 export type DeliveryOperation = 'initial_post' | 'edit' | 'update_post';
+
 export type DeliveryJobState = 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'held' | 'unknown' | 'uneditable';
 
 export function updateOperation(source: Pick<SourceRecord, 'editInPlace'>): DeliveryOperation {
@@ -18,10 +19,6 @@ export function shouldHoldNewItems(newCount: number, totalCount: number, limits:
 
   // 소수의 업데이트만으로 비율이 높아져 보류되지 않도록 최소 건수도 확인한다.
   return exceedsCountLimit || (hasEnoughItems && newItemRatio >= limits.holdRatio);
-}
-
-export function itemOrder(item: Pick<ItemRecord, 'publishedAt' | 'updatedAt' | 'createdAt'>): string {
-  return item.publishedAt ?? item.updatedAt ?? item.createdAt;
 }
 
 export function retryAt(now: string, failures: number, retryAfterMs?: number): string {

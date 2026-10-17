@@ -1,7 +1,11 @@
-import type { DeliveryBindingRepository, DeliveryJobRecord, DeliveryJobRepository, ItemRecord } from '../db/index.js';
+import type { DeliveryJobRepository } from '../db/delivery-job.repository.js';
+import type { DeliveryBindingRepository } from '../db/delivery-binding.repository.js';
+import type { DeliveryService } from '../services/delivery.service.js';
+import { TaskTracker } from './task-tracker.js';
+import type { DeliveryRunResult } from '../services/delivery.service.js';
+import { mapConcurrent } from './task-tracker.js';
+import type { DeliveryJobRecord } from '../db/delivery-job.repository.js';
 import { nowIso } from '../db/time.js';
-import type { DeliveryRunResult, DeliveryService } from '../services/delivery.service.js';
-import { mapConcurrent, TaskTracker } from './task-tracker.js';
 
 export interface DeliveryWorkerOptions {
   jobs: DeliveryJobRepository;
@@ -86,24 +90,6 @@ export class DeliveryWorker {
       this.buckets.delete(bucket);
     }
     return results;
-  }
-
-  /** 이미 계획된 작업만 실행한다. 과거 항목에 현재 발송 대상을 새로 연결하지 않는다. */
-  async processItem(item: ItemRecord, now = this.now()): Promise<DeliveryRunResult> {
-    const job = this.options.jobs.findDue(now, 100_000).find((entry) => entry.itemId === item.id);
-    if (!job || this.tracker.stopped) return {
-      itemId: item.id,
-      jobId: 0,
-      outcome: 'skipped',
-      attemptNo: null
-    };
-    return await this.tracker.track(() => this.options.service.processJob(job.id, now, () => this.tracker.stopped))
-      ?? {
-      itemId: item.id,
-      jobId: job.id,
-      outcome: 'skipped',
-      attemptNo: null
-    };
   }
 
   private now(): string {

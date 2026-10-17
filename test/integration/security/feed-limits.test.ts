@@ -1,10 +1,19 @@
-import { createServer, type Server, type ServerResponse } from 'node:http';
-import { afterEach, describe, expect, it } from 'vitest';
-import { fetch as undiciFetch, Response } from 'undici';
-import { fetchFeed, type DnsLookup } from '../../../src/server/security/index.js';
+import type { Server } from 'node:http';
+import type { DnsLookup } from '../../../src/server/security/ip.js';
+import { afterEach } from 'vitest';
+import type { ServerResponse } from 'node:http';
+import { createServer } from 'node:http';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { expect } from 'vitest';
+import { fetchFeed } from '../../../src/server/security/ssrf-fetch.js';
+import { fetch as undiciFetch } from 'undici';
+import { Response } from 'undici';
 
 const servers: Server[] = [];
+
 const lookup: DnsLookup = (_hostname, _options, callback) => callback(null, [{ address: '93.184.216.34', family: 4 }]);
+
 afterEach(async () => {
   for (const server of servers.splice(0)) { server.closeAllConnections(); await new Promise<void>((resolve) => server.close(() => resolve())); }
 });

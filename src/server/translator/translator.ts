@@ -1,12 +1,22 @@
-import type { EventLogRepository, ItemRecord, SourceRecord, TranslationCacheRepository } from '../db/index.js';
-import type { TranslatedItem } from '../dispatcher/render.js';
-import type { ModelKeyDiagnostics } from '../contracts/api.js';
-import { TranslationCacheService } from './translation-cache.service.js';
-import { nowIso } from '../db/time.js';
-import { DEFAULT_MODEL, resolveModelCredentials, type ModelCredential } from './keys.js';
-import { buildTranslationPrompt, parseTranslationResponse, TARGET_LANG } from './prompt.js';
+import type { EventLogRepository } from '../db/event-log.repository.js';
+import type { TranslationProvider } from './types.js';
+import type { TranslationCacheRepository } from '../db/translation-cache.repository.js';
+import type { ModelCredential } from './keys.js';
 import { GeminiTranslationProvider } from './providers/gemini.js';
-import type { TranslationInput, TranslationProvider, TranslationProviderResponse, TranslationResult } from './types.js';
+import type { TranslationInput } from './types.js';
+import type { TranslationResult } from './types.js';
+import { resolveModelCredentials } from './keys.js';
+import { buildTranslationPrompt } from './prompt.js';
+import { TARGET_LANG } from './prompt.js';
+import type { TranslationProviderResponse } from './types.js';
+import { DEFAULT_MODEL } from './keys.js';
+import { parseTranslationResponse } from './prompt.js';
+import type { ModelKeyDiagnostics } from '../contracts/api.js';
+import { nowIso } from '../db/time.js';
+import { TranslationCacheService } from './translation-cache.service.js';
+import type { ItemRecord } from '../db/item.repository.js';
+import type { SourceRecord } from '../db/source.repository.js';
+import type { TranslatedItem } from '../dispatcher/render.js';
 import { TranslationProviderError } from './types.js';
 
 export interface ModelTranslatorOptions {
@@ -33,7 +43,9 @@ export interface DispatchTranslationServiceOptions {
 }
 
 const DEFAULT_MAX_OUTPUT_TOKENS = 1200;
+
 const DEFAULT_PROVIDER_TIMEOUT_MS = 15_000;
+
 const DEFAULT_KEY_COOLDOWN_MS = 300_000;
 
 export class ModelTranslator {
@@ -155,7 +167,6 @@ export class DispatchTranslationService {
     return this.options.now?.() ?? nowIso();
   }
 }
-
 
 function originalTextResult(input: TranslationInput): TranslationResult {
   return { title: input.title, summary: input.summary, translated: false };

@@ -1,10 +1,11 @@
 import type { DiscordWebhookPayload } from '../contracts/render-context.js';
-import type { SourceRecord } from '../db/index.js';
+import type { SourceRecord } from '../db/source.repository.js';
 
 export const SUPPRESS_NOTIFICATIONS_FLAG = 4096;
 
 /** Discord thread_name 최대 길이(초과 시 페이로드 검증에서 거부됨). */
 const MAX_THREAD_NAME_LENGTH = 100;
+
 /** 포럼 신규 스레드인데 제목 후보가 모두 비었을 때 쓰는 최소 보장값. */
 const DEFAULT_FORUM_THREAD_NAME = '새 게시물';
 

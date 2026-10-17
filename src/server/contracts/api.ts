@@ -72,18 +72,6 @@ export interface CreateSourceRequest {
 
 export type UpdateSourceRequest = Partial<CreateSourceRequest>;
 
-export interface SetSourceEnabledRequest {
-  enabled: boolean;
-}
-
-export interface SetSourceGroupsRequest {
-  groupIds: GroupId[];
-}
-
-export interface QueuedResponse {
-  queued: true;
-}
-
 export interface GroupDto {
   id: GroupId;
   name: string;

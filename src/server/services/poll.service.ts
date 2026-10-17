@@ -1,23 +1,28 @@
+import type { Profile } from '../domain/normalize/types.js';
 import type Database from 'better-sqlite3';
-import type {
-  DeliveryBindingRepository,
-  EventLogRepository,
-  GroupRepository,
-  ItemRepository,
-  SourceGroupRepository,
-  SourceRecord,
-  SourceRepository
-} from '../db/index.js';
-import { nowIso } from '../db/time.js';
-import { parseFeed } from '../domain/envelope/index.js';
-import { detectProfile, effectiveProfile, normalize } from '../domain/normalize/index.js';
-import type { NormalizedItem, Profile } from '../domain/normalize/types.js';
-import { shouldHoldNewItems } from '../domain/delivery/policy.js';
-import { resolveDestinationsForSource } from '../dispatcher/resolve-destinations.js';
-import { fetchFeed, SecurityError, type FeedFetchResult, type FeedFetchSource, type FetchFeedOptions } from '../security/index.js';
-import { shouldQueueNewItem } from '../domain/delivery/cutoff.js';
+import type { SourceRepository } from '../db/source.repository.js';
+import type { ItemRepository } from '../db/item.repository.js';
+import type { EventLogRepository } from '../db/event-log.repository.js';
+import type { GroupRepository } from '../db/group.repository.js';
+import type { SourceGroupRepository } from '../db/source-group.repository.js';
+import type { DeliveryBindingRepository } from '../db/delivery-binding.repository.js';
 import type { DeliveryBindingService } from './delivery-binding.service.js';
 import type { DeliveryPlanService } from './delivery-plan.service.js';
+import type { FeedFetchSource } from '../security/ssrf-fetch.js';
+import type { FetchFeedOptions } from '../security/ssrf-fetch.js';
+import type { FeedFetchResult } from '../security/ssrf-fetch.js';
+import { nowIso } from '../db/time.js';
+import { resolveDestinationsForSource } from '../dispatcher/resolve-destinations.js';
+import { fetchFeed } from '../security/ssrf-fetch.js';
+import { SecurityError } from '../security/errors.js';
+import type { SourceRecord } from '../db/source.repository.js';
+import { parseFeed } from '../domain/envelope/parser.js';
+import { detectProfile } from '../domain/normalize/profile.js';
+import { effectiveProfile } from '../domain/normalize/profile.js';
+import { normalize } from '../domain/normalize/index.js';
+import type { NormalizedItem } from '../domain/normalize/types.js';
+import { shouldQueueNewItem } from '../domain/delivery/cutoff.js';
+import { shouldHoldNewItems } from '../domain/delivery/policy.js';
 
 export interface PollCounts {
   itemsNew: number;
@@ -25,7 +30,9 @@ export interface PollCounts {
   itemsChanged: number;
   itemsSkipped: number;
 }
+
 export type PollOutcome = '200' | '304' | 'error' | 'skipped';
+
 export interface PollSourceResult extends PollCounts {
   sourceId: string;
   outcome: PollOutcome;
@@ -33,6 +40,7 @@ export interface PollSourceResult extends PollCounts {
   error?: string;
   detectedProfile?: Profile;
 }
+
 export interface PollServiceOptions {
   db: Database.Database;
   repositories: {

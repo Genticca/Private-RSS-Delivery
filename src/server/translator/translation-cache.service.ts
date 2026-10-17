@@ -1,9 +1,15 @@
-import type { EventLogRepository, ItemRecord, SourceRecord, TranslationCacheRepository } from '../db/index.js';
-import { nowIso } from '../db/time.js';
-import { effectiveProfile } from '../domain/normalize/profile.js';
-import { localTranslation, requiredTranslationFields, translationCacheKey, type TranslationField } from '../domain/translation/policy.js';
-import { TARGET_LANG } from './prompt.js';
+import type { ItemRecord } from '../db/item.repository.js';
+import type { SourceRecord } from '../db/source.repository.js';
+import type { TranslationCacheRepository } from '../db/translation-cache.repository.js';
+import type { EventLogRepository } from '../db/event-log.repository.js';
 import type { ModelTranslator } from './translator.js';
+import { nowIso } from '../db/time.js';
+import type { TranslationField } from '../domain/translation/policy.js';
+import { effectiveProfile } from '../domain/normalize/profile.js';
+import { requiredTranslationFields } from '../domain/translation/policy.js';
+import { localTranslation } from '../domain/translation/policy.js';
+import { TARGET_LANG } from './prompt.js';
+import { translationCacheKey } from '../domain/translation/policy.js';
 
 interface FieldResult {
   value: string;
@@ -16,6 +22,7 @@ interface Deferred {
 }
 
 type TranslationItem = Pick<ItemRecord, 'title' | 'summary'> & Partial<Pick<ItemRecord, 'id'>>;
+
 type TranslationSource = Pick<SourceRecord, 'profileSetting' | 'detectedProfile' | 'threadId' | 'threadName' | 'appliedTags'>;
 
 interface CachedTranslationOptions {

@@ -35,8 +35,6 @@ export const PRESET_HELPERS = ['truncate', 'stageColor', 'stageLabel', 'eq', 'js
 
 export type PresetVariable = (typeof PRESET_VARIABLES)[number];
 
-export type PresetHelper = (typeof PRESET_HELPERS)[number];
-
 export interface DiscordEmbedField {
   name: string;
   value: string;

@@ -1,11 +1,16 @@
-import type { ModelDiagnosticsResponse, ModelKeyDiagnostics, ModelStatus } from '../contracts/api.js';
-import { nowIso } from '../db/time.js';
-import type { EventLogRepository } from '../db/index.js';
-import { DEFAULT_MODEL, resolveModelCredentials } from '../translator/keys.js';
-import type { ModelTranslator } from '../translator/translator.js';
+import type { EventLogRepository } from '../db/event-log.repository.js';
 import type { TranslationCacheService } from '../translator/translation-cache.service.js';
+import type { ModelTranslator } from '../translator/translator.js';
+import type { ModelDiagnosticsResponse } from '../contracts/api.js';
+import { resolveModelCredentials } from '../translator/keys.js';
+import type { ModelKeyDiagnostics } from '../contracts/api.js';
+import { DEFAULT_MODEL } from '../translator/keys.js';
+import { requireObject } from './validation.js';
+import { optionalString } from './validation.js';
 import { validationError } from './errors.js';
-import { optionalBoolean, optionalString, requireObject } from './validation.js';
+import { optionalBoolean } from './validation.js';
+import type { ModelStatus } from '../contracts/api.js';
+import { nowIso } from '../db/time.js';
 
 export interface ModelServiceOptions {
   repositories: {

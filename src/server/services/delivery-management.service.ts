@@ -1,16 +1,26 @@
-import type Database from 'better-sqlite3';
-import type { DeliveryBindingRepository, DeliveryJobRepository, ItemDeliveryRepository, ItemRepository, SourceRepository } from '../db/index.js';
-import { nowIso } from '../db/time.js';
-import { notFound, validationError } from './errors.js';
-import { optionalInteger, optionalString, parseDiscordId, requireObject } from './validation.js';
 import type { DeliveryJobState } from '../domain/delivery/policy.js';
+import type Database from 'better-sqlite3';
+import type { DeliveryJobRepository } from '../db/delivery-job.repository.js';
+import type { DeliveryBindingRepository } from '../db/delivery-binding.repository.js';
+import type { ItemRepository } from '../db/item.repository.js';
+import type { SourceRepository } from '../db/source.repository.js';
+import type { ItemDeliveryRepository } from '../db/item-delivery.repository.js';
 import type { DeliveryPlanService } from './delivery-plan.service.js';
+import { requireObject } from './validation.js';
+import { optionalString } from './validation.js';
+import { validationError } from './errors.js';
+import { optionalInteger } from './validation.js';
+import { notFound } from './errors.js';
+import { nowIso } from '../db/time.js';
+import { parseDiscordId } from './validation.js';
 
 const DELIVERY_JOB_STATES: readonly DeliveryJobState[] = [
   'pending', 'running', 'succeeded', 'failed', 'cancelled',
   'held', 'unknown', 'uneditable'
 ];
+
 const ARCHIVABLE_STATES: readonly DeliveryJobState[] = ['held', 'unknown', 'uneditable'];
+
 const UNRESOLVED_STATES: readonly DeliveryJobState[] = ['unknown', 'uneditable'];
 
 /** 자동 발송이 멈춘 작업에 관리자 결정을 반영한다. */

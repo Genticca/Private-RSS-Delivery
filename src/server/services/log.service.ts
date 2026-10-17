@@ -1,5 +1,9 @@
-import type { EventKind, EventLogDto, LogsResponse } from '../contracts/api.js';
-import type { EventLogRecord, EventLogRepository, SourceRepository } from '../db/index.js';
+import type { EventKind } from '../contracts/api.js';
+import type { EventLogRepository } from '../db/event-log.repository.js';
+import type { SourceRepository } from '../db/source.repository.js';
+import type { EventLogDto } from '../contracts/api.js';
+import type { LogsResponse } from '../contracts/api.js';
+import type { EventLogRecord } from '../db/event-log.repository.js';
 import { toEventLogDto } from './serialization.js';
 
 export type LogType = EventKind;

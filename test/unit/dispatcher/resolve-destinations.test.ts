@@ -1,8 +1,12 @@
-import { createHash } from 'node:crypto';
-import { describe, expect, it } from 'vitest';
-import { mapGroupDestination, resolveDestinationsForSource } from '../../../src/server/dispatcher/resolve-destinations.js';
-import type { GroupRecord, SourceRecord } from '../../../src/server/db/index.js';
+import { describe } from 'vitest';
+import { it } from 'vitest';
+import { expect } from 'vitest';
+import { mapGroupDestination } from '../../../src/server/dispatcher/resolve-destinations.js';
+import { resolveDestinationsForSource } from '../../../src/server/dispatcher/resolve-destinations.js';
+import type { GroupRecord } from '../../../src/server/db/group.repository.js';
 import { canonicalWebhookUrl } from '../../../src/server/security/webhook-guard.js';
+import { createHash } from 'node:crypto';
+import type { SourceRecord } from '../../../src/server/db/source.repository.js';
 
 const BASE_TIME = '2026-05-29T00:00:00.000Z';
 

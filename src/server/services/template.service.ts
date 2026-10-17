@@ -1,9 +1,15 @@
-import type { CreateTemplateRequest, TemplateDto, UpdateTemplateRequest } from '../contracts/api.js';
-import { nowIso } from '../db/time.js';
-import type { TemplateRepository } from '../db/index.js';
-import { conflict, notFound, validationError } from './errors.js';
+import type { TemplateRepository } from '../db/template.repository.js';
+import type { TemplateDto } from '../contracts/api.js';
 import { toTemplateDto } from './serialization.js';
-import { optionalString, parseIdParam, requireObject, requiredString } from './validation.js';
+import { validationError } from './errors.js';
+import { conflict } from './errors.js';
+import { notFound } from './errors.js';
+import { nowIso } from '../db/time.js';
+import type { CreateTemplateRequest } from '../contracts/api.js';
+import { requireObject } from './validation.js';
+import { optionalString } from './validation.js';
+import { parseIdParam } from './validation.js';
+import type { UpdateTemplateRequest } from '../contracts/api.js';
 
 export interface TemplateServiceOptions {
   repositories: {

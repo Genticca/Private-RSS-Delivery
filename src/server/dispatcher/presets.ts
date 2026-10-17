@@ -1,7 +1,8 @@
+import { fileURLToPath } from 'node:url';
+import type { TemplateRepository } from '../db/template.repository.js';
+import type { TemplateRecord } from '../db/template.repository.js';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import type { TemplateRecord, TemplateRepository } from '../db/index.js';
 
 export interface BuiltinPresetDefinition {
   name: string;

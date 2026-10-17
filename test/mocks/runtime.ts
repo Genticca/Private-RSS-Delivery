@@ -1,16 +1,28 @@
-import { afterEach, vi } from 'vitest';
-import { createContainer, type Container, type CreateContainerOptions } from '../../src/server/runtime/container.js';
+import type { Container } from '../../src/server/runtime/container.js';
+import { afterEach } from 'vitest';
 import type { CreateSourceRequest } from '../../src/server/contracts/api.js';
-import type { WebhookEditRequest, WebhookPostRequest, WebhookPostResponse } from '../../src/server/dispatcher/discord-client.js';
-import type { FeedFetchResult, FeedFetchSource, FetchFeedOptions } from '../../src/server/security/index.js';
+import type { CreateContainerOptions } from '../../src/server/runtime/container.js';
+import { vi } from 'vitest';
+import type { WebhookPostRequest } from '../../src/server/dispatcher/discord-client.js';
+import type { WebhookPostResponse } from '../../src/server/dispatcher/discord-client.js';
+import type { WebhookEditRequest } from '../../src/server/dispatcher/discord-client.js';
+import type { FeedFetchSource } from '../../src/server/security/ssrf-fetch.js';
+import type { FetchFeedOptions } from '../../src/server/security/ssrf-fetch.js';
+import type { FeedFetchResult } from '../../src/server/security/ssrf-fetch.js';
+import { createContainer } from '../../src/server/runtime/container.js';
 
 export const BASE = '2026-10-16T00:00:00.000Z';
+
 export const WEBHOOK_A = 'https://discord.com/api/webhooks/111/test-a';
+
 export const WEBHOOK_B = 'https://discord.com/api/webhooks/222/test-b';
+
 const containers: Container[] = [];
+
 afterEach(async () => { for (const container of containers.splice(0)) await container.close(); });
 
 export interface FeedItem { id: string; title?: string; summary?: string; publishedAt?: string; }
+
 export function rss(items: readonly FeedItem[]): string {
   return `<rss version="2.0"><channel><title>Test feed</title>${items.map((item) => `<item><guid>${item.id}</guid><title>${item.title ?? item.id}</title><link>https://example.com/${item.id}</link><description>${item.summary ?? 'Summary'}</description>${item.publishedAt ? `<pubDate>${new Date(item.publishedAt).toUTCString()}</pubDate>` : ''}</item>`).join('')}</channel></rss>`;
 }

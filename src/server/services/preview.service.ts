@@ -1,16 +1,29 @@
-import type { PreviewError, PreviewRequest, PreviewResponse, SampleItemResponse } from '../contracts/api.js';
-import type { ItemRecord } from '../db/item.repository.js';
-import { nowIso } from '../db/time.js';
-import { parseFeed } from '../domain/envelope/index.js';
-import { detectProfile, effectiveProfile, normalize } from '../domain/normalize/index.js';
+import type { SourceRepository } from '../db/source.repository.js';
+import type { ItemRepository } from '../db/item.repository.js';
+import { fetchFeed } from '../security/ssrf-fetch.js';
+import type { FetchFeedOptions } from '../security/ssrf-fetch.js';
+import type { FeedFetchResult } from '../security/ssrf-fetch.js';
+import type { PreviewResponse } from '../contracts/api.js';
+import { notFound } from './errors.js';
 import type { NormalizedItem } from '../domain/normalize/types.js';
+import { renderDiscordPayload } from '../dispatcher/render.js';
+import { buildPresetRenderContext } from '../dispatcher/render.js';
+import { validateDiscordPayload } from '../dispatcher/validate.js';
 import { applySourceWebhookOptions } from '../dispatcher/payload-options.js';
-import { buildPresetRenderContext, PresetRenderError, renderDiscordPayload } from '../dispatcher/render.js';
-import { DiscordPayloadValidationError, validateDiscordPayload } from '../dispatcher/validate.js';
-import type { SourceRepository, ItemRepository } from '../db/index.js';
-import { fetchFeed, type FetchFeedOptions, type FeedFetchResult } from '../security/index.js';
-import { notFound, validationError } from './errors.js';
-import { optionalString, requireObject } from './validation.js';
+import type { SampleItemResponse } from '../contracts/api.js';
+import { parseFeed } from '../domain/envelope/parser.js';
+import { detectProfile } from '../domain/normalize/profile.js';
+import { effectiveProfile } from '../domain/normalize/profile.js';
+import { normalize } from '../domain/normalize/index.js';
+import { nowIso } from '../db/time.js';
+import type { PreviewRequest } from '../contracts/api.js';
+import { requireObject } from './validation.js';
+import { validationError } from './errors.js';
+import { optionalString } from './validation.js';
+import type { PreviewError } from '../contracts/api.js';
+import { DiscordPayloadValidationError } from '../dispatcher/validate.js';
+import { PresetRenderError } from '../dispatcher/render.js';
+import type { ItemRecord } from '../db/item.repository.js';
 
 export interface PreviewServiceOptions {
   repositories: {

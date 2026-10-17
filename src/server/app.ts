@@ -1,18 +1,24 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { basename, extname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import Fastify, { type FastifyInstance } from 'fastify';
-import multipartPlugin from '@fastify/multipart';
+import type { FastifyInstance } from 'fastify';
+import type { Container } from './runtime/container.js';
+import Fastify from 'fastify';
+import { createContainer } from './runtime/container.js';
+import { registerAdminOrigin } from './middleware/admin-origin.js';
+import { registerApiRoutes } from './controllers/api/index.js';
+import { registerWebRoutes } from './controllers/web.js';
 import rateLimitPlugin from '@fastify/rate-limit';
+import { AppError } from './services/errors.js';
+import multipartPlugin from '@fastify/multipart';
+import { fileURLToPath } from 'node:url';
 import staticPlugin from '@fastify/static';
 import viewPlugin from '@fastify/view';
 import Handlebars from 'handlebars';
-import { registerApiRoutes } from './controllers/api/index.js';
-import { registerWebRoutes } from './controllers/web.js';
-import { registerAdminOrigin } from './middleware/index.js';
-import { SecurityError } from './security/index.js';
-import { AppError } from './services/errors.js';
-import { createContainer, type Container } from './runtime/container.js';
+import { join } from 'node:path';
+import { existsSync } from 'node:fs';
+import { readdirSync } from 'node:fs';
+import { extname } from 'node:path';
+import { basename } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { SecurityError } from './security/errors.js';
 
 export type AppInstance = FastifyInstance & {
   container: Container
@@ -63,7 +69,9 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
 const IMPORT_UPLOAD_LIMIT_BYTES = 1_048_576;
 
 const RATE_LIMIT_MAX = 120;
+
 const RATE_LIMIT_WINDOW_MS = 60_000;
+
 const RATE_LIMIT_ALLOW_LIST = ['/assets/', '/api/logs/stream', '/healthz', '/ready'] as const;
 
 async function registerRateLimit(app: FastifyInstance): Promise<void> {
@@ -147,7 +155,6 @@ function registerErrorHandlers(app: FastifyInstance): void {
     reply.status(500).send({ error: { code: 'internal_error', message: '서버 오류가 발생했습니다.' } });
   });
 }
-
 
 function isMultipartError(error: unknown): error is Error & {
   code?: string;

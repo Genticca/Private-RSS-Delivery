@@ -1,7 +1,10 @@
 import type { FastifyInstance } from 'fastify';
 import type { ServiceRegistry } from '../../runtime/container.js';
-import { importSummary, mutationReply, redirectMutation, requestBody } from './helpers.js';
-import { parseImportMode } from '../../services/export-import.service.js';
+import { mutationReply } from './helpers.js';
+import { requestBody } from './helpers.js';
+import { parseImportMode } from '../../services/export-import.document.js';
+import { importSummary } from './helpers.js';
+import { redirectMutation } from './helpers.js';
 import { validationError } from '../../services/errors.js';
 
 /** 설정 내보내기와 가져오기 미리보기·적용을 제공한다. 문서 검증과 DB 변경은 서비스에 맡긴다. */
@@ -45,7 +48,6 @@ export async function registerExportImportRoutes(app: FastifyInstance, services:
     await redirectMutation(reply, () => services.exportImport.commit(importPayload(body), parseImportMode(body.mode)), '/sources');
   });
 }
-
 
 const IMPORT_PAYLOAD_LIMIT_BYTES = 1_048_576;
 

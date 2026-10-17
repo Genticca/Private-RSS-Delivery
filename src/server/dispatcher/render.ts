@@ -1,11 +1,15 @@
 import Handlebars from 'handlebars';
-import type { DiscordWebhookPayload, PresetRenderContext, PresetRenderItem } from '../contracts/render-context.js';
-import type { ItemRecord, SourceRecord } from '../db/index.js';
+import type { ItemRecord } from '../db/item.repository.js';
 import type { NormalizedItem } from '../domain/normalize/types.js';
+import type { SourceRecord } from '../db/source.repository.js';
+import type { PresetRenderContext } from '../contracts/render-context.js';
 import { effectiveProfile } from '../domain/normalize/profile.js';
+import type { DiscordWebhookPayload } from '../contracts/render-context.js';
 import { validateDiscordPayload } from './validate.js';
+import type { PresetRenderItem } from '../contracts/render-context.js';
 
 const handlebars = Handlebars.create();
+
 let helpersRegistered = false;
 
 export class PresetRenderError extends Error {
@@ -81,7 +85,6 @@ export function formatKstTimestamp(value?: string | null): string | undefined {
   const parts = Object.fromEntries(formatter.formatToParts(date).map((part) => [part.type, part.value]));
   return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute} (KST)`;
 }
-
 
 function disambiguateJsonObjectClosers(templateBody: string): string {
   // 헬퍼의 닫는 중괄호와 JSON의 닫는 중괄호가 붙어 삼중 중괄호로 해석되는 것을 막는다.

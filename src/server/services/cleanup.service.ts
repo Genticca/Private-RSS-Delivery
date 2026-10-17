@@ -1,10 +1,11 @@
+import type { EventLogRepository } from '../db/event-log.repository.js';
 import type Database from 'better-sqlite3';
-import type { EventLogRepository } from '../db/index.js';
 import { subtractDaysIso } from '../db/time.js';
 
 export interface CleanupRunResult {
   events: number;
 }
+
 export interface CleanupRepositories {
   eventLog: Pick<EventLogRepository, 'pruneOlderThan'>;
 }

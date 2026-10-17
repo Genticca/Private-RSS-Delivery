@@ -1,7 +1,11 @@
-import { fetch as undiciFetch, type Response } from 'undici';
-import type { DiscordWebhookPayload } from '../contracts/render-context.js';
-import { assertSafeWebhookMessageUrl, assertSafeWebhookUrl, canonicalWebhookUrl, getSsrSafeAgent } from '../security/index.js';
 import type { DeliveryDestination } from './resolve-destinations.js';
+import type { DiscordWebhookPayload } from '../contracts/render-context.js';
+import { assertSafeWebhookUrl } from '../security/webhook-guard.js';
+import { canonicalWebhookUrl } from '../security/webhook-guard.js';
+import { assertSafeWebhookMessageUrl } from '../security/webhook-guard.js';
+import type { Response } from 'undici';
+import { fetch as undiciFetch } from 'undici';
+import { getSsrSafeAgent } from '../security/agent-cache.js';
 
 export interface WebhookPostRequest {
   destination: DeliveryDestination;
@@ -13,6 +17,7 @@ export interface WebhookPostRequest {
 export interface WebhookEditRequest extends WebhookPostRequest {
   messageId: string;
 }
+
 export interface WebhookPostResponse {
   statusCode: number;
   retryAfterMs?: number;
@@ -23,7 +28,9 @@ export interface WebhookPostResponse {
   channelId?: string;
   threadId?: string;
 }
+
 export type WebhookPostFunction = (request: WebhookPostRequest) => Promise<WebhookPostResponse>;
+
 export type WebhookEditFunction = (request: WebhookEditRequest) => Promise<WebhookPostResponse>;
 
 export async function postDiscordWebhook(request: WebhookPostRequest): Promise<WebhookPostResponse> {

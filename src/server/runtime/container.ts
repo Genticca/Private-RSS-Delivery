@@ -1,48 +1,52 @@
-import { dirname } from 'node:path';
-import { mkdirSync } from 'node:fs';
-import Database from 'better-sqlite3';
-import { loadConfig, type AppConfig } from '../config.js';
-import {
-  DeliveryBindingRepository,
-  DeliveryJobRepository,
-  ItemDeliveryRepository,
-  EventLogRepository,
-  GroupRepository,
-  ItemRepository,
-  SourceGroupRepository,
-  SourceRepository,
-  TemplateRepository,
-  TranslationCacheRepository
-} from '../db/index.js';
-import { seedBuiltinPresets } from '../dispatcher/presets.js';
-import type { WebhookEditFunction, WebhookPostFunction } from '../dispatcher/discord-client.js';
-import { closeSsrSafeAgents, type FeedFetchResult, type FeedFetchSource, type FetchFeedOptions } from '../security/index.js';
+import { SourceRepository } from '../db/source.repository.js';
+import { SourceGroupRepository } from '../db/source-group.repository.js';
+import { GroupRepository } from '../db/group.repository.js';
+import { TemplateRepository } from '../db/template.repository.js';
+import { ItemRepository } from '../db/item.repository.js';
+import { EventLogRepository } from '../db/event-log.repository.js';
+import { DeliveryBindingRepository } from '../db/delivery-binding.repository.js';
+import { ItemDeliveryRepository } from '../db/item-delivery.repository.js';
+import { DeliveryJobRepository } from '../db/delivery-job.repository.js';
+import { TranslationCacheRepository } from '../db/translation-cache.repository.js';
 import { CleanupWorker } from '../workers/cleanup-worker.js';
-import { PollWorker } from '../workers/poll-worker.js';
 import { DeliveryWorker } from '../workers/delivery-worker.js';
-import {
-  ExportImportService,
-  GroupService,
-  LogService,
-  ModelService,
-  PreviewService,
-  SchedulerService,
-  SourceService,
-  TemplateService,
-  TestSendService
-} from '../services/index.js';
+import { PollWorker } from '../workers/poll-worker.js';
+import { SourceService } from '../services/source.service.js';
+import { GroupService } from '../services/group.service.js';
+import { TemplateService } from '../services/template.service.js';
+import { PreviewService } from '../services/preview.service.js';
+import { ModelService } from '../services/model.service.js';
+import { LogService } from '../services/log.service.js';
+import { SchedulerService } from '../services/scheduler.service.js';
+import { ExportImportService } from '../services/export-import.service.js';
+import { TestSendService } from '../services/test-send.service.js';
 import { DeliveryBindingService } from '../services/delivery-binding.service.js';
 import { DeliveryPlanService } from '../services/delivery-plan.service.js';
 import { DeliveryService } from '../services/delivery.service.js';
-import { DeliveryManagementService } from '../services/delivery-management.service.js';
-import { TranslationCacheService } from '../translator/translation-cache.service.js';
 import { PollService } from '../services/poll.service.js';
-import { DispatchTranslationService, ModelTranslator, resolveModelName } from '../translator/index.js';
+import { DeliveryManagementService } from '../services/delivery-management.service.js';
+import type { AppConfig } from '../config.js';
+import Database from 'better-sqlite3';
+import type { RuntimeOptions } from './options.js';
+import type { FeedFetchSource } from '../security/ssrf-fetch.js';
+import type { FetchFeedOptions } from '../security/ssrf-fetch.js';
+import type { FeedFetchResult } from '../security/ssrf-fetch.js';
+import type { WebhookPostFunction } from '../dispatcher/discord-client.js';
+import type { WebhookEditFunction } from '../dispatcher/discord-client.js';
 import type { TranslationProvider } from '../translator/types.js';
-import { runMigrations } from './migrator.js';
 import { loadEnvironment } from './environment.js';
-import { loadRuntimeOptions, type RuntimeOptions } from './options.js';
+import { loadConfig } from '../config.js';
+import { loadRuntimeOptions } from './options.js';
+import { resolveModelName } from '../translator/keys.js';
+import { runMigrations } from './migrator.js';
+import { seedBuiltinPresets } from '../dispatcher/presets.js';
+import { ModelTranslator } from '../translator/translator.js';
+import { DispatchTranslationService } from '../translator/translator.js';
+import { TranslationCacheService } from '../translator/translation-cache.service.js';
 import { stopAndDrain } from './lifecycle.js';
+import { closeSsrSafeAgents } from '../security/agent-cache.js';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 
 export interface RepositoryRegistry {
   sources: SourceRepository;
@@ -56,11 +60,13 @@ export interface RepositoryRegistry {
   deliveryJobs: DeliveryJobRepository;
   translationCache: TranslationCacheRepository;
 }
+
 export interface WorkerRegistry {
   cleanup: CleanupWorker;
   dispatcher: DeliveryWorker;
   poller: PollWorker;
 }
+
 export interface ServiceRegistry {
   sources: SourceService;
   groups: GroupService;
@@ -77,23 +83,28 @@ export interface ServiceRegistry {
   poll: PollService;
   deliveryManagement: DeliveryManagementService;
 }
+
 export interface ContainerModules {
   repositories: RepositoryRegistry;
   services: ServiceRegistry;
   workers: WorkerRegistry;
 }
+
 export interface Container extends ContainerModules {
   config: AppConfig;
   db: Database.Database;
   close(): Promise<void>;
 }
+
 export interface UrlVerifierOptions {
   verifyFeedUrl?: (value: string) => Promise<unknown>;
   verifyWebhookUrl?: (value: string) => Promise<unknown>;
 }
+
 export interface WorkerErrorContext {
   worker: 'cleanup' | 'poller' | 'dispatcher';
 }
+
 export interface CreateContainerOptions {
   env?: NodeJS.ProcessEnv;
   envFilePath?: string;

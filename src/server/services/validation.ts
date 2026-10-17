@@ -1,8 +1,11 @@
-import type { SourceId } from '../contracts/api.js';
-import { PROFILES, SOURCE_PROFILE_OPTIONS, type SourceProfile } from '../domain/normalize/types.js';
-import type { FetchOptions } from '../security/types.js';
-import { assertSafeFeedUrl, assertSafeWebhookUrl, parseHttpUrl, SecurityError } from '../security/index.js';
 import { validationError } from './errors.js';
+import type { SourceProfile } from '../domain/normalize/types.js';
+import { SOURCE_PROFILE_OPTIONS } from '../domain/normalize/types.js';
+import { assertSafeFeedUrl } from '../security/ip.js';
+import { assertSafeWebhookUrl } from '../security/webhook-guard.js';
+import { parseHttpUrl } from '../security/ip.js';
+import { SecurityError } from '../security/errors.js';
+import type { FetchOptions } from '../security/types.js';
 
 export function requireObject(value: unknown): Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
@@ -25,8 +28,6 @@ export function requiredString(value: unknown, field: string, maxLength: number)
   if (!text) throw validationError('필수 값이 누락되었습니다.', { [field]: '필수 값입니다.' });
   return text;
 }
-
-export { blankToNull } from '../domain/text.js';
 
 export function optionalBoolean(value: unknown): boolean | undefined {
   if (value === undefined) return undefined;
@@ -53,12 +54,6 @@ export function parseIdParam(value: unknown, field = 'id'): number {
     throw validationError('id가 올바르지 않습니다.', { [field]: '양의 정수여야 합니다.' });
   }
   return parsed;
-}
-
-export function parseSourceId(value: unknown): SourceId {
-  const text = String(value ?? '').trim();
-  if (!text) throw validationError('source id가 올바르지 않습니다.', { id: '필수 값입니다.' });
-  return text;
 }
 
 export function parseSourceProfile(value: unknown): SourceProfile | undefined {
@@ -217,7 +212,6 @@ export function validateFetchOptions(value: unknown): FetchOptions | undefined {
   return output;
 }
 
-
 function validateHeaders(value: unknown): Record<string, string> | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   if (typeof value !== 'object' || Array.isArray(value)) {
@@ -239,10 +233,6 @@ function validateHeaders(value: unknown): Record<string, string> | undefined {
     output[name] = headerValue;
   }
   return Object.keys(output).length > 0 ? output : undefined;
-}
-
-export function knownProfiles(): string[] {
-  return [...PROFILES];
 }
 
 function mapSecurityValidation(error: unknown, field: string): Error {
