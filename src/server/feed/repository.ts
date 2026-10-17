@@ -85,6 +85,14 @@ const ITEM_COLUMNS = `
 `;
 
 export class ItemRepository {
+  pruneContent(before: string): void {
+    this.db.prepare(`UPDATE items SET summary = NULL, image = NULL, content_pruned = 1
+          WHERE content_pruned = 0 AND last_seen_at < ?
+          AND NOT EXISTS(SELECT 1 FROM delivery_jobs j WHERE j.item_id = items.id
+            AND j.state IN ('pending','running','held','unknown','failed','uneditable'))`)
+          .run(before);
+  }
+
   constructor(private readonly db: Database.Database) { }
 
   getById(id: number): ItemRecord | null {

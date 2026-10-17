@@ -3,8 +3,8 @@ import { afterEach } from 'vitest';
 import { describe } from 'vitest';
 import { it } from 'vitest';
 import { expect } from 'vitest';
-import { delayUntilNextKstMidnight } from '../../../src/server/workers/cleanup-worker.js';
-import { CleanupWorker } from '../../../src/server/workers/cleanup-worker.js';
+import { delayUntilNextKstMidnight } from '../../../src/server/cleanup/worker.js';
+import { CleanupWorker } from '../../../src/server/cleanup/worker.js';
 import Database from 'better-sqlite3';
 import { createContainer } from '../../../src/server/container.js';
 

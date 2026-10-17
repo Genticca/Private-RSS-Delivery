@@ -9,7 +9,7 @@ import { isHtmxRequest } from '../core/http.js';
 import { redirectMutation } from '../core/http.js';
 
 /** 보류되거나 결과 확인이 필요한 발송 작업을 조회하고 관리자의 검토 결정을 전달한다. */
-export async function registerDeliveryJobRoutes(app: FastifyInstance, services: DeliveryRouteServices): Promise<void> {
+export async function registerDeliveryJobRoutes(app: FastifyInstance, services: { deliveryManagement: DeliveryManagementService }): Promise<void> {
   app.get('/api/delivery-jobs', async (request) => services.deliveryManagement.list(request.query));
   app.post<{
     Params: IdParam
@@ -23,7 +23,7 @@ export async function registerDeliveryJobRoutes(app: FastifyInstance, services: 
 }
 
 /** 템플릿을 렌더링해 payload 또는 단계별 오류를 JSON으로 반환한다. Discord 발송은 수행하지 않는다. */
-export async function registerPreviewRoutes(app: FastifyInstance, services: DeliveryRouteServices): Promise<void> {
+export async function registerPreviewRoutes(app: FastifyInstance, services: { preview: PreviewService }): Promise<void> {
   // 샘플·실시간 피드 선택과 렌더링 검증은 PreviewService에서 처리한다.
   app.post('/api/preview', async (request) => services.preview.preview(requestBody(request)));
 }

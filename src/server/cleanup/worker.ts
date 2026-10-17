@@ -1,9 +1,44 @@
+import type { EventLogRepository } from '../logs/repository.js';
+import type { TranslationCacheRepository } from '../translation/cache.js';
+import type { ItemRepository } from '../feed/repository.js';
+import type { DeliveryJobRepository } from '../delivery/repository.js';
 import type Database from 'better-sqlite3';
-import type { CleanupRepositories } from '../services/cleanup.service.js';
+import { subtractDaysIso } from '../core/db.js';
 import { TaskTracker } from '../core/worker.js';
-import type { CleanupRunResult } from '../services/cleanup.service.js';
-import { CleanupService } from '../services/cleanup.service.js';
 import { nowIso } from '../core/db.js';
+
+export interface CleanupRunResult {
+  events: number;
+}
+
+export interface CleanupRepositories {
+  eventLog: Pick<EventLogRepository, 'pruneOlderThan'>;
+  translationCache: Pick<TranslationCacheRepository, 'pruneFailed'>;
+  items: Pick<ItemRepository, 'pruneContent'>;
+  deliveryJobs: Pick<DeliveryJobRepository, 'pruneCompletedSnapshots' | 'pruneCooldowns'>;
+}
+
+// 실패 캐시와 완료 작업의 내용은 로그 보존 기간과 별개로 90일간 보존한다.
+const CACHE_AND_SNAPSHOT_RETENTION_DAYS = 90;
+
+export class CleanupService {
+  constructor(private readonly db: Database.Database, private readonly repositories: CleanupRepositories) { }
+
+  run(now: string, logRetentionDays: number, itemRetentionDays?: number): CleanupRunResult {
+    return this.db.transaction(() => {
+      const result = { events: this.repositories.eventLog.pruneOlderThan(logRetentionDays, now) };
+      if (itemRetentionDays !== undefined) {
+        // 항목 식별자와 발송 이력은 유지하고 오래된 본문만 비운다.
+        // 미해결 발송 작업이 참조하는 항목은 이후 처리에 필요하므로 보존한다.
+        this.repositories.translationCache.pruneFailed(subtractDaysIso(now, CACHE_AND_SNAPSHOT_RETENTION_DAYS));
+        this.repositories.items.pruneContent(subtractDaysIso(now, itemRetentionDays));
+        this.repositories.deliveryJobs.pruneCompletedSnapshots(subtractDaysIso(now, CACHE_AND_SNAPSHOT_RETENTION_DAYS));
+        this.repositories.deliveryJobs.pruneCooldowns(now);
+      }
+      return result;
+    })();
+  }
+}
 
 export interface CleanupWorkerOptions {
   db: Database.Database;

@@ -9,11 +9,11 @@ import type { GroupDto } from '../../../src/server/groups/service.js';
 import type { LogsResponse } from '../../../src/server/logs/service.js';
 import type { ModelDiagnosticsResponse } from '../../../src/server/translation/service.js';
 import type { PreviewError } from '../../../src/server/delivery/preview.js';
-import type { DashboardViewModel } from '../../../src/server/contracts/view-models.js';
+import type { DashboardViewModel } from '../../../src/server/web/pages.js';
 import { SOURCE_PROFILE_OPTIONS } from '../../../src/server/feed/parse.js';
-import type { SourceFormViewModel } from '../../../src/server/contracts/view-models.js';
-import type { TemplateEditorViewModel } from '../../../src/server/contracts/view-models.js';
-import type { LogsViewModel } from '../../../src/server/contracts/view-models.js';
+import type { SourceFormViewModel } from '../../../src/server/web/pages.js';
+import type { TemplateEditorViewModel } from '../../../src/server/web/pages.js';
+import type { LogsViewModel } from '../../../src/server/web/pages.js';
 
 describe('Turn 0 frontend/backend contracts', () => {
   it('freezes preset render variables and helpers for Gemini templates', () => {

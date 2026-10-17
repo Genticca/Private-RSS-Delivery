@@ -20,23 +20,6 @@ export function flash(message: string): string {
   return renderPartial('flash', { message });
 }
 
-export function importSummary(plan: {
-  [key: string]: unknown
-}, mode = 'skip'): string {
-  const warnings = Array.isArray(plan.warnings) ? plan.warnings.map((warning) => String(warning)) : [];
-  const blockedFeedUrls = Array.isArray(plan.blockedFeedUrls) ? plan.blockedFeedUrls : [];
-  return renderPartial('import-preview', {
-    ...plan,
-    warnings,
-    blockedFeedUrls,
-    hasWarnings: warnings.length > 0,
-    hasBlockedFeedUrls: blockedFeedUrls.length > 0,
-    mode,
-    modeSkip: mode !== 'overwrite',
-    modeOverwrite: mode === 'overwrite'
-  });
-}
-
 /** htmx가 응답 헤더를 읽어 전체 페이지를 이동하도록 한다. 응답 본문은 비운다. */
 export function redirectNoContent(reply: FastifyReply, location: string): void {
   reply.header('HX-Redirect', location).status(204).send();

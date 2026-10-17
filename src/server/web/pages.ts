@@ -1,11 +1,75 @@
+import type { SourceService } from '../sources/service.js';
+import type { GroupService } from '../groups/service.js';
+import type { TemplateService } from '../templates/service.js';
+import type { ModelService } from '../translation/service.js';
+import type { LogService } from '../logs/service.js';
+import type { DeliveryManagementService } from '../delivery/review.js';
+import type { SourceDto } from '../sources/service.js';
+import type { SourceProfile } from '../feed/parse.js';
+import type { EventLogDto } from '../logs/service.js';
+import type { GroupDto } from '../groups/service.js';
+import type { TemplateDto } from '../templates/service.js';
+import type { PresetVariable } from '../templates/render.js';
 import type { FastifyInstance } from 'fastify';
-import type { ServiceRegistry } from '../container.js';
 import { parseIdParam } from '../core/input.js';
-import type { DashboardViewModel } from '../contracts/view-models.js';
 import { PRESET_VARIABLES } from '../templates/render.js';
 import type { FastifyReply } from 'fastify';
 
-export async function registerWebRoutes(app: FastifyInstance, services: ServiceRegistry): Promise<void> {
+export interface DashboardSourceSummary {
+  id: string;
+  name: string | null;
+  enabled: boolean;
+  lastOutcome: SourceDto['lastOutcome'];
+  profile: SourceProfile;
+  feedUrl: string;
+  hasError: boolean;
+  outcomeLabel: string;
+}
+
+export interface DashboardViewModel {
+  sources: DashboardSourceSummary[];
+  counts: {
+    sources: number;
+    enabled: number;
+    errors: number;
+    connectedGroups: number;
+  };
+  recentEvents: Array<EventLogDto & {
+    icon: string;
+    label: string;
+    failed: boolean;
+    timeLabel: string;
+  }>;
+}
+
+/** 소스 폼 그룹: 현재 배정 여부(selected) 체크박스 prefill용 — web.ts withGroupSelection. */
+export interface GroupWithSelection extends GroupDto {
+  selected: boolean;
+}
+
+export interface SourceFormViewModel {
+  // web.ts가 withDestinationStatus로 source.hasAnyDestination을, withGroupSelection으로 groups[].selected를 주입한다.
+  source: (SourceDto & {
+    hasAnyDestination: boolean
+  }) | null;
+  groups: GroupWithSelection[];
+  templates: TemplateDto[];
+  profiles: readonly SourceProfile[];
+}
+
+export interface TemplateEditorViewModel {
+  template: TemplateDto;
+  presetVars: readonly PresetVariable[];
+  sources: Array<{
+    id: string;
+    name: string
+  }>;
+  needsCodeMirror: boolean; // web.ts: CodeMirror 자산 로드 플래그(=true)
+}
+
+export type LogsViewModel = Record<string, never>;
+
+export async function registerWebRoutes(app: FastifyInstance, services: WebServices): Promise<void> {
   app.get('/', async (_request, reply) => render(reply, 'pages/dashboard.hbs', dashboardModel(services)));
 
   app.get('/sources', async (_request, reply) =>
@@ -108,7 +172,7 @@ function withGroupSelection<T extends {
   return groups.map((group) => ({ ...group, selected: selected.has(group.id) }));
 }
 
-function dashboardModel(services: ServiceRegistry): DashboardViewModel {
+function dashboardModel(services: WebServices): DashboardViewModel {
   const sources = services.sources.list();
   const outcomes: Record<string, string> = { ok: '수집 완료', not_modified: '변경 없음', error: '수집 오류' };
   const eventLabels: Record<string, string> = {
@@ -175,4 +239,13 @@ function modelStatusGuidance(status: string): string | null {
 
 function render(reply: FastifyReply, view: string, model: object): unknown {
   return reply.view(view, model);
+}
+
+interface WebServices {
+  sources: SourceService;
+  groups: GroupService;
+  templates: TemplateService;
+  model: ModelService;
+  logs: LogService;
+  deliveryManagement: DeliveryManagementService;
 }

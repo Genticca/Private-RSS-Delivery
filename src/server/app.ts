@@ -1,11 +1,17 @@
-import { registerCollectRoutes } from './collect/routes.js';
+import { registerSourceRoutes } from './sources/routes.js';
+import { registerGroupRoutes } from './groups/routes.js';
+import { registerTemplateRoutes } from './templates/routes.js';
+import { registerPreviewRoutes, registerDeliveryJobRoutes, registerSourceDeliveryRoutes } from './delivery/routes.js';
+import { registerModelRoutes } from './translation/routes.js';
+import { registerLogRoutes } from './logs/routes.js';
+import { registerExportImportRoutes } from './transfer/routes.js';
 import type { FastifyInstance } from 'fastify';
 import type { Container } from './container.js';
 import Fastify from 'fastify';
 import { createContainer } from './container.js';
 import { registerAdminOrigin } from './core/http.js';
-import { registerApiRoutes } from './controllers/api/index.js';
-import { registerWebRoutes } from './controllers/web.js';
+import { registerCollectRoutes } from './collect/routes.js';
+import { registerWebRoutes } from './web/pages.js';
 import rateLimitPlugin from '@fastify/rate-limit';
 import { AppError } from './core/errors.js';
 import multipartPlugin from '@fastify/multipart';
@@ -50,9 +56,21 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     await registerRateLimit(instance);
     await registerMultipart(instance);
     await registerViewAndStatic(instance);
-    await registerApiRoutes(instance, container.services);
+    const services = container.services;
+    await registerSourceRoutes(instance, { sources: services.sources });
+    await registerSourceDeliveryRoutes(instance, { deliveryManagement: services.deliveryManagement, testSend: services.testSend, preview: services.preview });
+    await registerGroupRoutes(instance, { groups: services.groups });
+    await registerTemplateRoutes(instance, { templates: services.templates });
+    await registerPreviewRoutes(instance, { preview: services.preview });
+    await registerModelRoutes(instance, { model: services.model });
+    await registerLogRoutes(instance, { logs: services.logs });
+    await registerExportImportRoutes(instance, { exportImport: services.exportImport });
+    await registerDeliveryJobRoutes(instance, { deliveryManagement: services.deliveryManagement });
     await registerCollectRoutes(instance, { sources: container.repositories.sources, poller: container.workers.poller });
-    await registerWebRoutes(instance, container.services);
+    await registerWebRoutes(instance, {
+      sources: services.sources, groups: services.groups, templates: services.templates,
+      model: services.model, logs: services.logs, deliveryManagement: services.deliveryManagement
+    });
   });
 
   app.get('/healthz', async () => ({ status: 'ok' }));

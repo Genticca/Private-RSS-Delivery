@@ -82,6 +82,15 @@ const deliveryJobRepositoryCOLUMNS = `j.id, j.item_id AS itemId, j.binding_id AS
   j.created_at AS createdAt, j.completed_at AS completedAt`;
 
 export class DeliveryJobRepository {
+  pruneCooldowns(now: string): void {
+    this.db.prepare('DELETE FROM destination_cooldowns WHERE until_at < ?').run(now);
+  }
+
+  pruneCompletedSnapshots(before: string): void {
+    this.db.prepare(`UPDATE delivery_jobs SET item_snapshot = '{}', source_snapshot = '{}', payload = NULL, template_body = ''
+          WHERE state IN ('succeeded','cancelled') AND completed_at < ?`).run(before);
+  }
+
   constructor(private readonly db: Database.Database) { }
 
   getById(id: number): DeliveryJobRecord | null {

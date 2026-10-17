@@ -1,14 +1,14 @@
+import type { ExportImportService } from './service.js';
 import type { FastifyInstance } from 'fastify';
-import type { ServiceRegistry } from '../../container.js';
-import { mutationReply } from '../../core/http.js';
-import { requestBody } from '../../core/http.js';
-import { parseImportMode } from '../../services/export-import.document.js';
-import { importSummary } from '../../core/http.js';
-import { redirectMutation } from '../../core/http.js';
-import { validationError } from '../../core/errors.js';
+import { mutationReply } from '../core/http.js';
+import { requestBody } from '../core/http.js';
+import { parseImportMode } from './document.js';
+import { redirectMutation } from '../core/http.js';
+import { validationError } from '../core/errors.js';
+import { renderPartial } from '../core/http.js';
 
 /** 설정 내보내기와 가져오기 미리보기·적용을 제공한다. 문서 검증과 DB 변경은 서비스에 맡긴다. */
-export async function registerExportImportRoutes(app: FastifyInstance, services: ServiceRegistry): Promise<void> {
+export async function registerExportImportRoutes(app: FastifyInstance, services: { exportImport: ExportImportService }): Promise<void> {
   app.get('/api/export', async (_request, reply) => {
     const document = services.exportImport.export();
     const date = document.exportedAt.slice(0, 10).replace(/-/g, '');
@@ -73,4 +73,21 @@ function fieldToString(value: unknown): string {
     }).value);
   }
   return String(value);
+}
+
+export function importSummary(plan: {
+  [key: string]: unknown
+}, mode = 'skip'): string {
+  const warnings = Array.isArray(plan.warnings) ? plan.warnings.map((warning) => String(warning)) : [];
+  const blockedFeedUrls = Array.isArray(plan.blockedFeedUrls) ? plan.blockedFeedUrls : [];
+  return renderPartial('import-preview', {
+    ...plan,
+    warnings,
+    blockedFeedUrls,
+    hasWarnings: warnings.length > 0,
+    hasBlockedFeedUrls: blockedFeedUrls.length > 0,
+    mode,
+    modeSkip: mode !== 'overwrite',
+    modeOverwrite: mode === 'overwrite'
+  });
 }

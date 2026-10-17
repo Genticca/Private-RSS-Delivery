@@ -20,6 +20,10 @@ export interface TranslationCacheRecord {
 
 /** 필드별 번역 성공값과 실패 대기 시각을 저장한다. 사용 기록은 event_log에 남긴다. */
 export class TranslationCacheRepository {
+  pruneFailed(before: string): void {
+    this.db.prepare("DELETE FROM translation_cache WHERE status = 'failed' AND updated_at < ?").run(before);
+  }
+
   constructor(private readonly db: Database.Database) { }
 
   get(cacheKey: string): TranslationCacheRecord | null {
