@@ -1,4 +1,4 @@
-import type { ModelConfigResponse, ModelProvider, ModelRole, ModelStatus, ModelStatusResponse, ModelUsageResponse } from '../contracts/api.js';
+import type { ModelConfigResponse, ModelRole, ModelStatus, ModelStatusResponse, ModelUsageResponse } from '../contracts/api.js';
 import { nowIso } from '../db/time.js';
 import type { ModelUsageRepository, TranslationCacheRepository, ModelConfigRepository } from '../db/index.js';
 import { resolveModelApiKey } from '../translator/keys.js';
@@ -18,36 +18,52 @@ export interface ModelServiceOptions {
   translation?: TranslationCacheService;
 }
 
-const ROLES: ModelRole[] = ['primary', 'fallback'];
+const ROLES: ModelRole[] = ['primary'];
 
+/** 번역 모델 설정과 사용 이력 기반 상태를 관리한다. API 키 자체는 응답에 담지 않는다. */
 export class ModelService {
-  constructor(private readonly options: ModelServiceOptions) {}
+  constructor(private readonly options: ModelServiceOptions) { }
 
   getDiagnostics() {
-    return { roles: ROLES.map((role) => {
-      const request = this.options.repositories.modelUsage.latestRequest(role);
-      return { role, keyStatus: this.statusFor(role), lastRequestAt: request?.createdAt ?? null,
-        lastRequestResult: request ? request.error ?? 'success' : '아직 호출하지 않음' };
-    }), requests: this.options.repositories.modelUsage.statistics(), cache: { cache_hit: 0, local_skip: 0, single_flight: 0,
-      failure_cooldown: 0, ...this.options.repositories.translationCache.statistics() } };
+    return {
+      roles: ROLES.map((role) => {
+        const request = this.options.repositories.modelUsage.latestRequest(role);
+        return {
+          role,
+          keyStatus: this.statusFor(role),
+          lastRequestAt: request?.createdAt ?? null,
+          lastRequestResult: request ? request.error ?? 'success' : '아직 호출하지 않음'
+        };
+      }), requests: this.options.repositories.modelUsage.statistics(), cache: {
+        cache_hit: 0,
+        local_skip: 0,
+        single_flight: 0,
+        failure_cooldown: 0,
+        ...this.options.repositories.translationCache.statistics()
+      }
+    };
   }
 
   async diagnose(value: unknown) {
+    // 진단은 실패 대기 시간을 무시한다. fresh를 요청한 경우에는 성공 캐시도 재사용하지 않는다.
     const body = requireObject(value);
     const title = optionalString(body.title, 'title', 1000) ?? '';
     const summary = optionalString(body.summary, 'summary', 3500) ?? '';
     if (!title && !summary) throw validationError('진단할 제목 또는 본문이 필요합니다.');
     if (!this.options.translation) throw validationError('번역 진단을 사용할 수 없습니다.');
-    return this.options.translation.translate({ title, summary }, { profileSetting: 'generic', detectedProfile: null,
-      threadId: null, threadName: null, appliedTags: [] }, { now: this.now(), ignoreCooldown: true, fresh: optionalBoolean(body.fresh) ?? false });
+    return this.options.translation.translate({ title, summary }, {
+      profileSetting: 'generic',
+      detectedProfile: null,
+      threadId: null,
+      threadName: null,
+      appliedTags: []
+    }, { now: this.now(), ignoreCooldown: true, fresh: optionalBoolean(body.fresh) ?? false });
   }
 
   getConfig(): ModelConfigResponse {
     const primary = this.requireConfig('primary');
-    const fallback = this.requireConfig('fallback');
     return {
       primary: toModelConfigEntryDto(primary),
-      fallback: toModelConfigEntryDto(fallback),
       targetLang: primary.targetLang,
       promptLogMaxBytes: primary.promptLogMaxBytes
     };
@@ -60,7 +76,7 @@ export class ModelService {
         const current = this.requireConfig(role);
         const patch = normalizeRolePatch(body[role]);
         if (Object.keys(patch).length > 0) {
-          validateProviderModel(patch.provider ?? current.provider, patch.model ?? current.model);
+          validateModel(patch.model ?? current.model);
           this.options.repositories.modelConfig.updateRole(role, { ...patch, targetLang: 'ko', updatedAt: this.now() });
         }
       }
@@ -76,12 +92,14 @@ export class ModelService {
 
   getStatus(): ModelStatusResponse {
     return {
-      primary: this.statusFor('primary'),
-      fallback: this.statusFor('fallback')
+      primary: this.statusFor('primary')
     };
   }
 
-  listUsage(options: { limit?: number; before?: number } = {}): ModelUsageResponse {
+  listUsage(options: {
+    limit?: number;
+    before?: number
+  } = {}): ModelUsageResponse {
     const limit = clampLimit(options.limit);
     const rows = this.options.repositories.modelUsage.list({ before: options.before, limit });
     return {
@@ -91,9 +109,10 @@ export class ModelService {
   }
 
   private statusFor(role: ModelRole): ModelStatus {
+    // 설정·키·최근 오류로 표시 상태를 계산한다. 이 조회 자체로 외부 API를 호출하지 않는다.
     const config = this.requireConfig(role);
     if (!config.enabled) return 'disabled';
-    if (!resolveModelApiKey(role, this.options.env)) return 'missing-key';
+    if (!resolveModelApiKey(this.options.env)) return 'missing-key';
     const latest = this.options.repositories.modelUsage.list({ role, limit: 1 })[0];
     if (latest?.error === 'invalid-key') return 'invalid-key';
     return 'ready';
@@ -115,19 +134,13 @@ function normalizeRolePatch(value: unknown) {
   const provider = validateProvider(body.provider);
   const model = optionalString(body.model, 'model', 200) ?? undefined;
   const enabled = optionalBoolean(body.enabled);
-  if (provider !== undefined && model !== undefined) validateProviderModel(provider, model);
+  if (model !== undefined) validateModel(model);
   return { provider, model, enabled };
 }
 
-function validateProviderModel(provider: ModelProvider, model: string): void {
-  if (provider === 'gemini') {
-    if (!/^gemini-[a-z0-9][a-z0-9._-]*$/i.test(model)) {
-      throw validationError('provider와 model 조합이 올바르지 않습니다.', { model: 'gemini provider는 gemini-* 모델만 허용됩니다.' });
-    }
-    return;
-  }
-  if (provider === 'nvidia-nim' && /^gemini-/i.test(model)) {
-    throw validationError('provider와 model 조합이 올바르지 않습니다.', { model: 'nvidia-nim provider에는 gemini-* 모델을 사용할 수 없습니다.' });
+function validateModel(model: string): void {
+  if (!/^gemini-[a-z0-9][a-z0-9._-]*$/i.test(model)) {
+    throw validationError('model 값이 올바르지 않습니다.', { model: 'gemini-* 모델만 허용됩니다.' });
   }
 }
 

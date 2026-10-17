@@ -1,14 +1,14 @@
 # DB 스키마 계약
 
 > 🔒 **보호 문서**: 수정 전 파일·항목 단위 사용자 승인이 필요하다.
-> 기준: 마이그레이션 `0001`~`0023` · 검증 커밋 `6e53b7f` · 작성 2026-10-16
+> 기준: 마이그레이션 `0001_init`(2026-10-17 통합, 이전 `0001`~`0023`과 결과 스키마 동일) · 검증 커밋 `6e53b7f` · 작성 2026-10-16
 > **진실원은 `src/resources/migrations/*.sql`이다.** 이 문서는 그 결과 스키마와 의미를 설명한다. 테이블·컬럼·인덱스·트리거 이름이 실제 스키마와 다르면 [db-schema-doc.test.ts](../test/integration/docs/db-schema-doc.test.ts)가 실패한다.
 
 ## 1. 공통 규칙
 
 - **엔진**: better-sqlite3, `journal_mode=WAL`, `foreign_keys=ON`, `busy_timeout=5000` (`runtime/container.ts`).
-- **마이그레이션**: `resources/migrations/NNNN_*.sql`을 파일명 순서로, 버전마다 트랜잭션 하나로 적용한다. 적용 이력은 `schema_migrations`. **기존 파일은 수정하지 않고 새 번호로 추가한다.** 일부 버전은 SQL 뒤에 코드 backfill이 붙는다(`runtime/migrator.ts`의 `runPostMigrationBackfill`).
-- **시각**: 모든 시각 컬럼은 ISO-8601 UTC 문자열(`YYYY-MM-DDTHH:MM:SS.sssZ`)이다. 비교는 TEXT 비교로 하고 SQLite datetime 산술을 쓰지 않는다. 일부 컬럼의 DEFAULT `datetime('now')`는 0001~0006 시절 값이며, 앱은 항상 ISO 값을 직접 넣는다(0010·0018에서 옛 행 보정).
+- **마이그레이션**: `resources/migrations/NNNN_*.sql`을 파일명 순서로, 버전마다 트랜잭션 하나로 적용한다. 적용 이력은 `schema_migrations`. **기존 파일은 수정하지 않고 새 번호로 추가한다.** 현재는 `0001_init` 하나다(§7).
+- **시각**: 모든 시각 컬럼은 ISO-8601 UTC 문자열(`YYYY-MM-DDTHH:MM:SS.sssZ`)이다. 비교는 TEXT 비교로 하고 SQLite datetime 산술을 쓰지 않는다. 일부 컬럼의 DEFAULT `datetime('now')`는 초기 설계의 흔적이며, 앱은 항상 ISO 값을 직접 넣는다.
 - **불리언**: `INTEGER` 0/1.
 - **JSON**: `sources.fetch_options`는 JSON 객체, `mention_role_ids`·`mention_user_ids`·`applied_tags`는 JSON 문자열 배열(TEXT, NULL 허용).
 - **비밀값**: API 키는 DB에 저장하지 않는다(환경 변수 전용). 웹훅 URL 원문은 `groups.webhook_url`에만 있고, 발송 기록·작업·로그에는 해시(`destination_key`·`bucket_key`)만 남긴다.
@@ -87,7 +87,7 @@ RSS 소스 하나. 수집 상태와 발송 옵션을 함께 가진다.
 
 인덱스: `idx_sources_feed_url_unique`(UNIQUE `feed_url`), `idx_sources_enabled_next_poll`(`enabled, next_poll_at`), `idx_sources_template_id`.
 
-트리거 `sources_config_revision`: `feed_url, profile, enabled, thread_id, thread_name, applied_tags, template_id, translate, silent, mention_role_ids, mention_user_ids, mention_everyone, mention_here, webhook_name, webhook_avatar_url, edit_in_place, fetch_options, poll_interval_seconds` 중 하나가 바뀌면 `config_revision + 1`(0023에서 마지막 두 컬럼 추가).
+트리거 `sources_config_revision`: `feed_url, profile, enabled, thread_id, thread_name, applied_tags, template_id, translate, silent, mention_role_ids, mention_user_ids, mention_everyone, mention_here, webhook_name, webhook_avatar_url, edit_in_place, fetch_options, poll_interval_seconds` 중 하나가 바뀌면 `config_revision + 1`.
 
 ### `groups`
 
@@ -212,8 +212,6 @@ poll 1회의 결과. 감사·화면용.
 
 새 세대가 생기는 경우: 웹훅 URL·스레드 변경, 연결 해제 후 재연결, 소스 비활성화 후 재활성화, feedUrl 변경. 그룹 이름·아바타 변경, 같은 웹훅을 가리키는 그룹 추가로는 생기지 않는다. 종료하면 그 세대의 `pending`·`held`·`failed` 작업을 취소한다.
 
-0021 이관 때 옛 성공 로그에서 만든 세대는 생성과 동시에 종료된 상태다(`bucket_key = destination_key`).
-
 ### `item_deliveries`
 
 항목 × 연결 세대별 **영속 발송 기록**. 로그가 정리되어도 남는다.
@@ -297,13 +295,13 @@ Discord rate limit 대기. `bucket_key = '__discord_global__'`은 전역 제한.
 
 ### `model_config`
 
-번역 모델 설정. 역할(`primary`·`fallback`)당 한 행. **API 키는 저장하지 않는다**(env `PRIMARY_MODEL_API_KEY`·`FALLBACK_MODEL_API_KEY`).
+번역 모델(Gemini) 설정. 코드가 쓰는 행은 `role = 'primary'` 하나다. **API 키는 저장하지 않는다**(env `PRIMARY_MODEL_API_KEY`).
 
 | 컬럼 | 타입 | 제약·기본값 | 의미 |
 | --- | --- | --- | --- |
 | `id` | INTEGER | PK AUTOINCREMENT | |
-| `role` | TEXT | NOT NULL, UNIQUE, `primary`·`fallback` | |
-| `provider` | TEXT | NOT NULL, `gemini`·`nvidia-nim` | |
+| `role` | TEXT | NOT NULL, UNIQUE, `primary`·`fallback` | 앱은 `primary`만 쓴다(`fallback`은 제약에만 남음) |
+| `provider` | TEXT | NOT NULL, `gemini`·`nvidia-nim` | 앱은 `gemini`만 쓴다(`nvidia-nim`은 제약에만 남음) |
 | `model` | TEXT | NOT NULL | 모델 이름 |
 | `enabled` | INTEGER | NOT NULL, 1 | |
 | `target_lang` | TEXT | NOT NULL, `'ko'` | |
@@ -311,7 +309,7 @@ Discord rate limit 대기. `bucket_key = '__discord_global__'`은 전역 제한.
 | `created_at` | TEXT | NOT NULL | |
 | `updated_at` | TEXT | NOT NULL | |
 
-시드: 0005, 0009(primary = Gemini `gemini-3.1-flash-lite`, fallback = NIM, 비활성).
+시드: `0001_init`(primary = Gemini `gemini-3.1-flash-lite`, 활성).
 
 ### `model_usage`
 
@@ -409,7 +407,7 @@ Discord rate limit 대기. `bucket_key = '__discord_global__'`은 전역 제한.
 | `cancelled` | 연결 종료, 새 revision으로 대체, 관리자 보관 | 끝 |
 | `held` | 대량 신규 보류 | 관리자 발송 → `pending` / 과거 항목 → `cancelled` |
 | `unknown` | POST 결과 불명 | 관리자 message ID 등록 → `succeeded` / 보관 → `cancelled` |
-| `legacy_unknown` | 0021 이관 시 원래 목적지를 증명할 수 없던 pending·failed | 관리자 보관 → `cancelled` |
+| `legacy_unknown` | 옛 DB 이관(통합 이전 0021) 때 원래 목적지를 증명할 수 없던 pending·failed. 새 DB에서는 생기지 않는다 | 관리자 보관 → `cancelled` |
 | `uneditable` | 수정 대상 메시지 없음(ID 미상, PATCH 404) | 관리자 보관 → `cancelled` |
 
 재시작 시 `running`은 POST가 시작됐으면 `unknown`, 아니면 `pending`으로 복구한다.
@@ -439,26 +437,6 @@ Discord rate limit 대기. `bucket_key = '__discord_global__'`은 전역 제한.
 
 | 버전 | 내용 |
 | --- | --- |
-| 0001_init | `sources`, `items`(`(source_id, atom_id)` UNIQUE) |
-| 0002_templates | `templates`, 소스 프리셋·주기·fetch 옵션·번역 컬럼 |
-| 0003_delivery_log | `delivery_log` |
-| 0004_fetch_log | `fetch_log` |
-| 0005_model | `model_config`, `model_usage`, 초기 모델 시드 |
-| 0006_groups | `groups`, `source_groups`, 소스 발송자 override |
-| 0007_sources_poll_state | `last_polled_at`, `next_poll_at`, due 인덱스 |
-| 0008_delivery_state | 항목 렌더 필드·발송 상태·번역 캐시 컬럼, 로그 목적지 키 |
-| 0009_reseed_model | 기본 모델 갱신 |
-| 0010_iso_timestamp_backfill | 모델·이력 시각 ISO 보정 |
-| 0011_webhook_features | 조용히 보내기·멘션·스레드·태그·수정 옵션, 로그 메시지 ID |
-| 0012_mention_here | @here |
-| 0013_merge_incident_presets | `incident-resolved` → `incident-active` 통합 |
-| 0014_generic_content_hash_title_link | (코드 backfill) generic 해시를 `title\nlink`로 재계산 |
-| 0015_source_destinations | D23 소스별 목적지 (0019에서 폐기) |
-| 0016_sources_feed_url_unique | feed URL 유일 |
-| 0017_source_destinations_canonical_unique | D23 목적지 유일 (0019에서 폐기) |
-| 0018_runtime_timestamp_iso_z_backfill | 런타임 시각 ISO 보정 |
-| 0019_drop_source_destinations | D24: 소스별 목적지 제거, 그룹이 채널 |
-| 0020_scrub_source_webhook_url | `sources.webhook_url` 비우기 |
-| 0021_delivery_jobs | D25: 연결 세대·영속 발송 기록·작업·cooldown, 설정 버전 트리거, 기존 pending·failed → `legacy_unknown`. (코드 backfill) 옛 성공 로그에서 종료된 세대와 `item_deliveries` 복원 |
-| 0022_translation_cache | 번역 캐시·이벤트, `model_usage` 요청 여부·항목·작업 연결 |
-| 0023_source_fetch_revision | 설정 버전 트리거에 `fetch_options`, `poll_interval_seconds` 추가 |
+| 0001_init | 전체 스키마와 기본 모델 설정. 2026-10-17에 이전 0001~0023을 하나로 합쳤다(결과 스키마 동일). 이전 파일과 옛 DB 이관 코드·테스트는 `Archive/2026-10-17/`에 있다 |
+
+통합 이전에 만든 DB는 `schema_migrations`에 파일에 없는 버전이 남아 있으므로 migrator가 기동을 거부한다. 새 DB로 시작한다.

@@ -4,7 +4,7 @@ import type { FetchOptions } from '../security/types.js';
 import { assertSafeFeedUrl, assertSafeWebhookUrl, parseHttpUrl, SecurityError } from '../security/index.js';
 import { validationError } from './errors.js';
 
-const MODEL_PROVIDERS = new Set<ModelProvider>(['gemini', 'nvidia-nim']);
+const MODEL_PROVIDERS = new Set<ModelProvider>(['gemini']);
 
 export function requireObject(value: unknown): Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
@@ -73,6 +73,7 @@ export function parseSourceProfile(value: unknown): SourceProfile | undefined {
 }
 
 export function parseDiscordId(value: unknown, field: string): string | null | undefined {
+  // Discord ID는 JavaScript의 안전한 정수 범위를 넘을 수 있어 문자열로 유지한다.
   const text = optionalString(value, field, 64);
   if (text === undefined || text === null) return text;
   if (!/^\d+$/.test(text)) {
@@ -111,6 +112,7 @@ interface StringListOptions {
 }
 
 function parseStringList(value: unknown, field: string, options: StringListOptions): string[] | undefined {
+  // JSON 배열, 쉼표 구분 문자열, 폼의 반복 필드를 동일한 목록으로 정규화한다.
   if (value === undefined) return undefined;
   if (value === null || value === '') return [];
   let raw: unknown[];
@@ -245,7 +247,7 @@ export function validateProvider(value: unknown): ModelProvider | undefined {
   if (value === undefined) return undefined;
   const provider = String(value).trim() as ModelProvider;
   if (!MODEL_PROVIDERS.has(provider)) {
-    throw validationError('provider 값이 올바르지 않습니다.', { provider: 'gemini 또는 nvidia-nim만 허용됩니다.' });
+    throw validationError('provider 값이 올바르지 않습니다.', { provider: 'gemini만 허용됩니다.' });
   }
   return provider;
 }
@@ -256,7 +258,9 @@ export function knownProfiles(): string[] {
 
 function mapSecurityValidation(error: unknown, field: string): Error {
   if (error instanceof SecurityError) {
-    const code = error.code === 'webhook_not_allowed' ? 'webhook_not_allowed' : error.code === 'ssrf_blocked' ? 'ssrf_blocked' : 'validation_error';
+    const code = error.code === 'webhook_not_allowed' || error.code === 'ssrf_blocked'
+      ? error.code
+      : 'validation_error';
     return validationError(error.message, { [field]: code });
   }
   return validationError('URL이 올바르지 않습니다.', { [field]: 'invalid_url' });

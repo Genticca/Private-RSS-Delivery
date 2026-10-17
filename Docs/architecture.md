@@ -18,7 +18,7 @@ flowchart LR
   end
   APP -->|"GET (SSRF 검사, 조건부 GET)"| FEED["RSS·Atom 피드"]
   APP -->|"POST · PATCH 웹훅"| DC["Discord"]
-  APP -->|"번역 요청"| AI["Gemini / NVIDIA NIM"]
+  APP -->|"번역 요청"| AI["Gemini"]
 ```
 
 - 들어오는 요청: 관리 화면(Handlebars + htmx)과 JSON API, 로그 SSE. Host·Origin 검증과 rate limit(분당 120회)을 적용한다.
@@ -41,7 +41,7 @@ flowchart TB
   SVC["services<br/>소스·그룹·템플릿·모델·import<br/>Poll · DeliveryPlan · DeliveryBinding · Delivery"]
   DOM["domain (순수)<br/>envelope · normalize · delivery · translation"]
   DSP["dispatcher<br/>render · validate · discord-client"]
-  TR["translator<br/>캐시 · Gemini · NIM"]
+  TR["translator<br/>캐시 · Gemini"]
   SEC["security<br/>SSRF-safe fetch · 웹훅 검증"]
   REPO["db (repositories)"]
   CTRL --> SVC
@@ -63,14 +63,14 @@ flowchart TB
 | `src/server/main.ts` | 부팅, listen, 워커 시작, 시그널 처리 | app |
 | `src/server/app.ts` | Fastify 구성: 파서·오류 처리·미들웨어·rate limit·뷰·라우트 등록, `/healthz`·`/ready` | runtime, controllers |
 | `src/server/config.ts` | HOST·PORT·DB 경로 검증 | runtime/environment |
-| `runtime/` | 환경 병합(`environment`), 실행 제한값(`options`), DI 조립(`container`), 마이그레이션(`migrator`, `delivery-backfill`), 종료 대기(`lifecycle`) | 전부 |
+| `runtime/` | 환경 병합(`environment`), 실행 제한값(`options`), DI 조립(`container`), 마이그레이션(`migrator`), 종료 대기(`lifecycle`) | 전부 |
 | `controllers/` | HTTP 어댑터. `web.ts`는 페이지, `api/*`는 JSON·htmx·SSE. 입력을 서비스에 넘기고 결과를 렌더 | services, contracts |
 | `middleware/` | 들어오는 요청의 Host·Origin 검증 | — |
 | `contracts/` | 프런트·백엔드 계약 타입: API DTO, view-model, 프리셋 render context | — |
 | `services/` | 유스케이스. 관리 기능과 수집·발송 오케스트레이션 | domain, db, dispatcher, translator, security |
 | `domain/` | **순수 함수**만. `envelope`(Stage 1), `normalize`(Stage 2·프로필), `delivery`(cutoff·보류·순서·재시도 간격), `translation`(필드 판정·캐시 키·로컬 처리), `text` | 없음 |
 | `dispatcher/` | 프리셋 렌더, payload 검증, 웹훅 옵션 적용, 목적지 해석, Discord HTTP(`discord-client`), 빌트인 프리셋 시드 | security, contracts |
-| `translator/` | 번역 캐시·single-flight(`translation-cache.service`), provider 순회·타임아웃(`translator`), 프롬프트, 키 해석, Gemini·NIM 어댑터 | domain, db |
+| `translator/` | 번역 캐시·single-flight(`translation-cache.service`), Gemini 호출·타임아웃(`translator`), 프롬프트, 키 해석, Gemini 어댑터 | domain, db |
 | `security/` | 나가는 요청 보안: SSRF-safe fetch(크기·시간 제한, TLS 재시도, 리다이렉트), IP 검사, Agent 캐시, 웹훅 URL 검증 | — |
 | `db/` | repository. SQL과 행 ↔ 레코드 매핑만, 비즈니스 규칙 없음 | — |
 | `workers/` | 주기 실행과 동시성·진행 중 작업 추적(`TaskTracker`). 실제 일은 서비스에 위임 | services |
@@ -126,6 +126,7 @@ flowchart TD
   D --> E["SQLite 열기<br/>WAL · foreign_keys · busy_timeout 5000"]
   E --> F["runMigrations()<br/>미적용 버전만, 버전마다 트랜잭션"]
   F --> G["repositories 생성 · 빌트인 프리셋 시드"]
+  F -.->|"파일에 없는 버전 기록(통합 이전 DB)"| X["부팅 중단"]
   G --> H["bindings.reconcileAll()<br/>현재 설정과 연결 세대 맞추기"]
   H --> I["중단된 작업 복구<br/>running → unknown 또는 pending"]
   I --> J["services · workers 조립"]
@@ -290,10 +291,8 @@ flowchart LR
   B -->|성공 캐시| C[캐시 사용]
   B -->|"실패 cooldown 중(5분)"| O[원문]
   B -->|같은 입력 요청 진행 중| SF[결과 공유]
-  B -->|miss| M["primary → fallback<br/>각 15초"]
-  M -->|"비활성 · 키 없음 · 오류 · 타임아웃"| M2[다음 역할]
-  M2 -->|둘 다 실패| O2["원문 + 실패 캐시"]
-  M -->|"출력 잘림 · JSON 파싱 실패"| O2
+  B -->|miss| M["Gemini 요청<br/>15초"]
+  M -->|"비활성 · 키 없음 · 오류 · 타임아웃 ·<br/>출력 잘림 · JSON 파싱 실패"| O2["원문 + 실패 캐시"]
   M -->|성공| S[성공 캐시]
 ```
 
@@ -354,7 +353,7 @@ flowchart LR
 | 로그 | `/logs` (`logs.hbs`, `log-entry`) | `GET /api/logs`, `GET /api/logs/stream`(SSE) | LogService | — | `delivery_log`, `fetch_log` | log-stream |
 | Export·Import | 소스 화면 | `GET /api/export`, `POST /api/import/dry-run`, `POST /api/import` | ExportImportService(`export-import.document`), DeliveryBindingService | — | `sources`, `groups`, `source_groups`, `templates` | api.routes |
 | 정리 | — | — | CleanupService | CleanupWorker | 로그·캐시·`items` 본문·`delivery_jobs` snapshot | cleanup-worker |
-| 런타임 | — | `/healthz`, `/ready` | — | 전체 | `schema_migrations` | environment, shutdown, migrator, delivery-migration, config, db-schema-doc |
+| 런타임 | — | `/healthz`, `/ready` | — | 전체 | `schema_migrations` | environment, shutdown, migrator, config, db-schema-doc |
 
 테스트 이름은 `test/{unit,integration}/**/<이름>.test.ts`를 줄여 적었다.
 
@@ -394,8 +393,7 @@ DeliveryWorker.runDueDeliveries → DeliveryService.processJob
 | `HOST` | `127.0.0.1` | production은 loopback만 | |
 | `PORT` | `8080` | 1–65535 | |
 | `DATABASE_PATH` | `./data/rss-discord-bridge.sqlite` | | 실행 위치 기준 상대 경로 |
-| `PRIMARY_MODEL_API_KEY` | — | | 비우면 primary 번역 비활성(`missing-key`) |
-| `FALLBACK_MODEL_API_KEY` | — | | 비우면 fallback 번역 비활성 |
+| `PRIMARY_MODEL_API_KEY` | — | | Gemini API 키. 비우면 번역 비활성(`missing-key`) |
 | `POLL_CONCURRENCY` | 2 | 1–16 | 동시에 수집할 소스 수 |
 | `DELIVERY_CONCURRENCY` | 2 | 1–16 | 동시에 처리할 웹훅 bucket 수 |
 | `SHUTDOWN_TIMEOUT_MS` | 30000 | 100–300000 | 종료 시 작업을 기다리는 시간 |
@@ -429,4 +427,4 @@ DeliveryWorker.runDueDeliveries → DeliveryService.processJob
 | §8 `held`·`unknown` | 건수 알림이 없어 `/delivery-jobs`에 들어가야 보인다 |
 | §6 정렬 | 같은 poll의 날짜 없는 신규 항목은 피드 순서(보통 최신 글 먼저)대로 발송된다 |
 | §5 항목별 처리 | poll마다 모든 항목의 `last_seen_at`을 개별 UPDATE한다 |
-| 정리 | 0021 이전 항목은 `last_seen_at`이 NULL이라 본문이 정리되지 않는다. 성공 번역 캐시는 정리하지 않는다 |
+| 정리 | 성공 번역 캐시는 정리하지 않는다 |

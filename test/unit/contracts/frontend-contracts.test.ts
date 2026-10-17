@@ -128,14 +128,6 @@ describe('Turn 0 frontend/backend contracts', () => {
         targetLang: 'ko',
         promptLogMaxBytes: 32768
       },
-      fallback: {
-        role: 'fallback',
-        provider: 'nvidia-nim',
-        model: 'qwen3-coder-480b-a35b-instruct',
-        enabled: false,
-        targetLang: 'ko',
-        promptLogMaxBytes: 32768
-      },
       targetLang: 'ko',
       promptLogMaxBytes: 32768
     } satisfies ModelConfigResponse;

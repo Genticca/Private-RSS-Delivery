@@ -480,7 +480,7 @@ describe('API controllers', () => {
     expect(response.body).toContain('validation_error');
   });
 
-  it('validates model provider compatibility and ignores targetLang writes', async () => {
+  it('accepts only gemini models and ignores targetLang writes', async () => {
     const { app, container } = await openApp();
 
     const ignoredTarget = await app.inject({
@@ -497,7 +497,15 @@ describe('API controllers', () => {
       payload: { primary: { provider: 'gemini', model: 'qwen3-coder-480b-a35b-instruct' } }
     });
     expect(mismatch.statusCode).toBe(400);
-    expect(mismatch.body).toContain('provider와 model 조합');
+    expect(mismatch.body).toContain('model 값이 올바르지 않습니다.');
+
+    const removedProvider = await app.inject({
+      method: 'PATCH',
+      url: '/api/model/config',
+      payload: { primary: { provider: 'nvidia-nim' } }
+    });
+    expect(removedProvider.statusCode).toBe(400);
+    expect(removedProvider.body).toContain('provider 값이 올바르지 않습니다.');
   });
 
   it('returns model usage/log pagination and excludes prompt logs from usage responses', async () => {

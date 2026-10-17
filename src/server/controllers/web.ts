@@ -23,7 +23,11 @@ export async function registerWebRoutes(app: FastifyInstance, services: ServiceR
     })
   );
 
-  app.get<{ Params: { id: string } }>('/sources/:id', async (request, reply) => {
+  app.get<{
+    Params: {
+      id: string
+    }
+  }>('/sources/:id', async (request, reply) => {
     const groups = services.groups.list();
     const source = withDestinationStatus(services.sources.get(request.params.id), groups);
     return render(reply, 'pages/source-form.hbs', {
@@ -41,7 +45,11 @@ export async function registerWebRoutes(app: FastifyInstance, services: ServiceR
     render(reply, 'pages/templates.hbs', { templates: services.templates.list() })
   );
 
-  app.get<{ Params: { id: string } }>('/templates/:id', async (request, reply) =>
+  app.get<{
+    Params: {
+      id: string
+    }
+  }>('/templates/:id', async (request, reply) =>
     render(reply, 'pages/template-editor.hbs', {
       template: services.templates.get(parseIdParam(request.params.id)),
       presetVars: presetVars(),
@@ -53,8 +61,16 @@ export async function registerWebRoutes(app: FastifyInstance, services: ServiceR
   app.get('/logs', async (_request, reply) => render(reply, 'pages/logs.hbs', {}));
   app.get('/delivery-jobs', async (request, reply) => {
     const jobs = services.deliveryManagement.list(request.query);
-    const query = request.query as { state?: string; sourceId?: string };
-    return render(reply, 'pages/delivery-jobs.hbs', { jobs, state: query.state ?? '', sourceId: query.sourceId ?? '', nextBefore: jobs.length === 200 ? jobs.at(-1)?.id : null });
+    const query = request.query as {
+      state?: string;
+      sourceId?: string
+    };
+    return render(reply, 'pages/delivery-jobs.hbs', {
+      jobs,
+      state: query.state ?? '',
+      sourceId: query.sourceId ?? '',
+      nextBefore: jobs.length === 200 ? jobs.at(-1)?.id : null
+    });
   });
 
   app.get('/model', async (_request, reply) => {
@@ -72,7 +88,14 @@ export async function registerWebRoutes(app: FastifyInstance, services: ServiceR
 const PROFILE_VIEW_OPTIONS = ['auto', 'incident-io', 'atlassian-statuspage', 'generic'] as const;
 
 
-function withDestinationStatus<T extends { groupIds: number[] }>(source: T, groups: Array<{ id: number; hasWebhook: boolean }>): T & { hasAnyDestination: boolean } {
+function withDestinationStatus<T extends {
+  groupIds: number[]
+}>(source: T, groups: Array<{
+  id: number;
+  hasWebhook: boolean
+}>): T & {
+  hasAnyDestination: boolean
+} {
   const groupWebhookIds = new Set(groups.filter((group) => group.hasWebhook).map((group) => group.id));
   return {
     ...source,
@@ -81,7 +104,11 @@ function withDestinationStatus<T extends { groupIds: number[] }>(source: T, grou
 }
 
 /** 그룹 목록에 현재 소스의 소속 여부(selected)를 주입해 체크박스를 서버에서 직접 렌더하게 한다. */
-function withGroupSelection<T extends { id: number }>(groups: readonly T[], selectedIds: readonly number[]): Array<T & { selected: boolean }> {
+function withGroupSelection<T extends {
+  id: number
+}>(groups: readonly T[], selectedIds: readonly number[]): Array<T & {
+  selected: boolean
+}> {
   const selected = new Set(selectedIds);
   return groups.map((group) => ({ ...group, selected: selected.has(group.id) }));
 }
@@ -104,7 +131,10 @@ function dashboardModel(services: ServiceRegistry) {
   };
 }
 
-function presetVars(): Array<{ name: string; description: string }> {
+function presetVars(): Array<{
+  name: string;
+  description: string
+}> {
   const descriptions: Record<string, string> = {
     'item.title': '정규화된 항목 제목',
     'item.link': '원문 링크',
@@ -121,15 +151,16 @@ function presetVars(): Array<{ name: string; description: string }> {
   return PRESET_VARIABLES.map((name) => ({ name, description: descriptions[name] ?? name }));
 }
 
-function modelStatusGuidance(status: { primary: string; fallback: string }): Array<{ role: string; message: string }> {
-  const rows: Array<{ role: string; message: string }> = [];
-  for (const role of ['primary', 'fallback'] as const) {
-    const envName = role === 'primary' ? 'PRIMARY_MODEL_API_KEY' : 'FALLBACK_MODEL_API_KEY';
-    const current = status[role];
-    if (current === 'missing-key') rows.push({ role, message: `${envName} 환경 변수를 설정해야 ${role} 모델을 사용할 수 있습니다.` });
-    if (current === 'invalid-key') rows.push({ role, message: `${envName} 값을 교체하거나 ${role} provider/model 설정을 확인하세요.` });
-  }
-  return rows;
+function modelStatusGuidance(status: {
+  primary: string
+}): Array<{
+  role: string;
+  message: string
+}> {
+  const role = 'primary';
+  if (status.primary === 'missing-key') return [{ role, message: 'PRIMARY_MODEL_API_KEY 환경 변수를 설정해야 Gemini 번역을 사용할 수 있습니다.' }];
+  if (status.primary === 'invalid-key') return [{ role, message: 'PRIMARY_MODEL_API_KEY 값을 교체하거나 model 설정을 확인하세요.' }];
+  return [];
 }
 
 function render(reply: FastifyReply, view: string, model: object): unknown {

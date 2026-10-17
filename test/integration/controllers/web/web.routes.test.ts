@@ -58,7 +58,7 @@ describe('web routes and inbound middleware', () => {
       ['/templates', ['data-page="templates"', 'id="template-table"', 'name="cloneFrom"', 'Duplicate']],
       [`/templates/${template?.id}`, ['data-page="template-editor"', 'id="template-form"', 'hx-patch="/api/templates/', '기본 제공 템플릿은 읽기 전용', 'id="template-body"', 'id="preview"', 'data-insert-var="item.title"']],
       ['/logs', ['data-page="logs"', 'id="log-stream" data-sse="/api/logs/stream"', 'id="model-usage"']],
-      ['/model', ['data-page="model"', 'id="model-config"', 'hx-patch="/api/model/config"', 'hx-swap="none"', 'PRIMARY_MODEL_API_KEY 환경 변수를 설정해야 primary 모델을 사용할 수 있습니다.']]
+      ['/model', ['data-page="model"', 'id="model-config"', 'hx-patch="/api/model/config"', 'hx-swap="none"', 'PRIMARY_MODEL_API_KEY 환경 변수를 설정해야 Gemini 번역을 사용할 수 있습니다.']]
     ];
 
     for (const [url, needles] of expectations) {

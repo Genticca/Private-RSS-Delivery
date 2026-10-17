@@ -9,7 +9,7 @@ describe('shared runtime environment', () => {
   it('passes .env-only model keys to status and translation without exposing them in config or DTOs', async () => {
     const directory = mkdtempSync(join(tmpdir(), 'rss-env-test-'));
     const file = join(directory, '.env');
-    writeFileSync(file, 'PRIMARY_MODEL_API_KEY=fixture-primary\nFALLBACK_MODEL_API_KEY=fixture-fallback\n');
+    writeFileSync(file, 'PRIMARY_MODEL_API_KEY=fixture-primary\n');
     try {
       const provider = { generate: vi.fn(async () => ({ text: '{"title":"제목","summary":"본문"}' })) };
       const h = await harness({ translate: true }, { envFilePath: file, translationProviders: { gemini: provider } });

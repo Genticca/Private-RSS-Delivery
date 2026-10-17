@@ -1,3 +1,4 @@
+/** HTTP API에서 주고받는 DTO다. DB 레코드의 내부 필드와 분리해 관리한다. */
 import type { NormalizedItem, Profile, SourceProfile } from '../domain/normalize/types.js';
 import type { FetchOptions } from '../security/types.js';
 import type { DiscordWebhookPayload } from './render-context.js';
@@ -14,9 +15,9 @@ export type ItemDeliveryStatus = 'pending' | 'delivered' | 'failed' | 'historica
 
 export type FetchOutcome = '200' | '304' | 'error';
 
-export type ModelProvider = 'gemini' | 'nvidia-nim';
+export type ModelProvider = 'gemini';
 
-export type ModelRole = 'primary' | 'fallback';
+export type ModelRole = 'primary';
 
 export type ModelStatus = 'ready' | 'disabled' | 'missing-key' | 'invalid-key';
 
@@ -144,8 +145,14 @@ export interface PreviewError {
 }
 
 export type PreviewResponse =
-  | { ok: true; payload: DiscordWebhookPayload }
-  | { ok: false; errors: PreviewError[] };
+  | {
+    ok: true;
+    payload: DiscordWebhookPayload
+  }
+  | {
+    ok: false;
+    errors: PreviewError[]
+  };
 
 export type SampleItemResponse = NormalizedItem;
 
@@ -160,14 +167,12 @@ export interface ModelConfigEntryDto {
 
 export interface ModelConfigResponse {
   primary: ModelConfigEntryDto;
-  fallback: ModelConfigEntryDto;
   targetLang: string;
   promptLogMaxBytes: number;
 }
 
 export interface ModelStatusResponse {
   primary: ModelStatus;
-  fallback: ModelStatus;
 }
 
 export interface ModelUsageDto {

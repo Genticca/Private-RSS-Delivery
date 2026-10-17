@@ -60,16 +60,27 @@ const MODEL_USAGE_COLUMNS = `
   id, role, provider, model, input_tokens, output_tokens, latency_ms, error, created_at
 `;
 
+/** 실제 번역 요청과 요청 전 건너뛰기를 함께 기록하되, 사용량 통계는 실제 요청만 집계한다. */
 export class ModelUsageRepository {
-  constructor(private readonly db: Database.Database) {}
+  constructor(private readonly db: Database.Database) { }
 
   latestRequest(role: ModelRole): ModelUsageRecord | null {
-    const row = this.db.prepare(`SELECT ${MODEL_USAGE_COLUMNS} FROM model_usage WHERE role = ? AND http_requested = 1 ORDER BY id DESC LIMIT 1`).get(role) as ModelUsageRow | undefined;
+    const row = this.db.prepare(`
+      SELECT ${MODEL_USAGE_COLUMNS} FROM model_usage
+      WHERE role = ? AND http_requested = 1
+      ORDER BY id DESC LIMIT 1
+    `).get(role) as ModelUsageRow | undefined;
     return row ? mapModelUsageRow(row) : null;
   }
 
-  statistics(): { requests: number; fallback: number; failed: number; truncated: number; inputTokens: number; outputTokens: number } {
-    return this.db.prepare(`SELECT COUNT(*) AS requests, COALESCE(SUM(role = 'fallback'),0) AS fallback,
+  statistics(): {
+    requests: number;
+    failed: number;
+    truncated: number;
+    inputTokens: number;
+    outputTokens: number
+  } {
+    return this.db.prepare(`SELECT COUNT(*) AS requests,
       COALESCE(SUM(error IS NOT NULL),0) AS failed, COALESCE(SUM(error = 'length'),0) AS truncated,
       COALESCE(SUM(input_tokens),0) AS inputTokens, COALESCE(SUM(output_tokens),0) AS outputTokens
       FROM model_usage WHERE http_requested = 1`).get() as ReturnType<ModelUsageRepository['statistics']>;

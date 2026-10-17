@@ -1,4 +1,4 @@
-# 결정 기록 (D1~D25)
+# 결정 기록 (D1~D26)
 
 > 정책이 바뀌면 기존 줄을 고치지 않고 새 결정을 추가하고, 대체된 결정에 표시한다. 결정 당시의 상세 논의는 보관본에 있다(D1~D24: [design-v1.md](../Archive/2026-10-17/Docs/history/design-v1.md), D25: [backend-spec.md](../Archive/2026-10-17/Docs/history/backend-spec.md)·[frontend-spec.md](../Archive/2026-10-17/Docs/history/frontend-spec.md) 머리말).
 
@@ -29,3 +29,4 @@
 | D23 | 소스가 목적지를 직접 소유(`source_destinations`) | **D24로 폐기** (0019 DROP) |
 | D24 | 그룹 = 재사용 전송 채널. 웹훅 URL은 그룹만 가진다. 소스는 그룹 1개 이상 필수, 목적지 0개면 수집 건너뜀 | 유효 |
 | D25 | 발송 단위를 항목 × 목적지 연결(세대)로 바꾼다. 새 연결의 첫 수집은 묵음 baseline, 결과 불명 POST·PATCH 404는 자동 재발송하지 않고 관리자 검토, 대량 신규 보류, 공유 번역 캐시, 수집·발송 워커 분리와 종료 drain (2026-10-16, 마이그레이션 0021~0023) | 유효 — 현재 동작은 [architecture.md](architecture.md) |
+| D26 | 번역 모델은 Gemini 하나만 쓴다. NVIDIA NIM 대체 모델과 `FALLBACK_MODEL_API_KEY`를 없앤다. 실패하면 원문으로 보낸다 (2026-10-17) | 유효 |

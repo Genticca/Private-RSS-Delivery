@@ -40,8 +40,9 @@ const MODEL_CONFIG_COLUMNS = `
   id, role, provider, model, enabled, target_lang, prompt_log_max_bytes, created_at, updated_at
 `;
 
+/** 번역 모델(Gemini) 설정을 저장한다. 행은 primary 하나다. API 키는 DB에 저장하지 않는다. */
 export class ModelConfigRepository {
-  constructor(private readonly db: Database.Database) {}
+  constructor(private readonly db: Database.Database) { }
 
   list(): ModelConfigRecord[] {
     return (this.db.prepare(`SELECT ${MODEL_CONFIG_COLUMNS} FROM model_config ORDER BY role`).all() as ModelConfigRow[]).map(

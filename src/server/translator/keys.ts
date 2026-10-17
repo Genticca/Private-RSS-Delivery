@@ -1,16 +1,9 @@
 import process from 'node:process';
-import type { ModelRole } from '../contracts/api.js';
 
-const KEY_ENV_BY_ROLE: Record<ModelRole, string> = {
-  primary: 'PRIMARY_MODEL_API_KEY',
-  fallback: 'FALLBACK_MODEL_API_KEY'
-};
+export const MODEL_API_KEY_ENV = 'PRIMARY_MODEL_API_KEY';
 
-export function modelApiKeyEnvName(role: ModelRole): string {
-  return KEY_ENV_BY_ROLE[role];
-}
-
-export function resolveModelApiKey(role: ModelRole, env: NodeJS.ProcessEnv = process.env): string | null {
-  const value = env[modelApiKeyEnvName(role)]?.trim();
+/** Gemini API 키를 환경 변수에서만 읽는다. 키 원문은 DB나 관리 화면 응답에 포함하지 않는다. */
+export function resolveModelApiKey(env: NodeJS.ProcessEnv = process.env): string | null {
+  const value = env[MODEL_API_KEY_ENV]?.trim();
   return value && value.length > 0 ? value : null;
 }

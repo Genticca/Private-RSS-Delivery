@@ -13,7 +13,7 @@ RSS 2.0 / Atom 피드를 폴링해 **Discord 웹훅으로 전달**하는 셀프�
 - **Discord 프리셋 4종** — `incident-active`·`news-article`·`link-discussion`·`minimal`. 서버 Handlebars 렌더이고 미리보기는 전송과 동일 경로.
 - **그룹 = 재사용 전송 채널** — 웹훅을 그룹이 보유하고 여러 소스가 공유한다.
 - **메시지 옵션** — 조용히 보내기·멘션·Forum 스레드/태그·수정(edit-in-place).
-- **번역(→ 한국어)** — 필요한 필드만 번역하고 항목·웹훅 사이에서 입력별 캐시를 공유. primary = Gemini, fallback = NVIDIA NIM. 별도 번역 진단 지원.
+- **번역(→ 한국어)** — 필요한 필드만 번역하고 항목·웹훅 사이에서 입력별 캐시를 공유. 모델은 Gemini 하나이고, 실패하면 원문으로 보낸다. 별도 번역 진단 지원.
 - **Export/Import** — 소스·그룹 설정을 JSON 1파일로 백업/이전(웹훅 URL 등 시크릿 제외).
 - **관리 UI** — 서버 렌더 Handlebars + htmx + CodeMirror + 라이브 로그 SSE. React/번들러 없음.
 
@@ -43,7 +43,7 @@ flowchart LR
 | 피드 | fast-xml-parser, undici(SSRF-safe Agent · 조건부 GET · TLS) |
 | 렌더 | Handlebars(프리셋·뷰), ajv(Discord payload 검증) |
 | UI | htmx, CodeMirror, SSE — React/Vite 없음 |
-| 번역 | @google/genai(Gemini) + NVIDIA NIM 폴백 |
+| 번역 | @google/genai(Gemini) |
 
 ## 빠른 시작
 
@@ -83,10 +83,9 @@ env는 프로젝트 루트의 `.env`(gitignore)에서 읽는다. 템플릿은 `d
 | `HOST` | `127.0.0.1` | 내부 도구 — loopback 고정 |
 | `PORT` | `8080` | 바인딩 포트 |
 | `DATABASE_PATH` | `./data/rss-discord-bridge.sqlite` | 실행 cwd 기준 상대경로 |
-| `PRIMARY_MODEL_API_KEY` | — | 번역 primary(Gemini). 비우면 번역 OFF |
-| `FALLBACK_MODEL_API_KEY` | — | 번역 fallback(NVIDIA NIM) |
+| `PRIMARY_MODEL_API_KEY` | — | 번역용 Gemini API 키. 비우면 번역 OFF |
 
-> 🔒 **API 키는 env 전용** — DB에 저장하지 않는다. 비워도 부팅은 정상이며, 해당 역할만 비활성화되어 번역 없이 원문이 전송된다.
+> 🔒 **API 키는 env 전용** — DB에 저장하지 않는다. 비워도 부팅은 정상이며, 번역 없이 원문이 전송된다.
 
 ## 프로젝트 구조
 

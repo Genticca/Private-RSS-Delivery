@@ -215,13 +215,8 @@ describe('repository foundation', () => {
       enabled: true,
       promptLogMaxBytes: 32768
     });
-    expect(modelConfig.getByRole('fallback')).toMatchObject({
-      provider: 'nvidia-nim',
-      model: 'qwen3-coder-480b-a35b-instruct',
-      enabled: false
-    });
-    const updatedFallback = modelConfig.updateRole('fallback', { enabled: true, updatedAt: base });
-    expect(updatedFallback.enabled).toBe(true);
+    const disabledPrimary = modelConfig.updateRole('primary', { enabled: false, updatedAt: base });
+    expect(disabledPrimary.enabled).toBe(false);
 
     const usage = modelUsage.append({
       role: 'primary',
@@ -234,9 +229,9 @@ describe('repository foundation', () => {
       createdAt: base
     });
     modelUsage.append({
-      role: 'fallback',
-      provider: 'nvidia-nim',
-      model: 'qwen3-coder-480b-a35b-instruct',
+      role: 'primary',
+      provider: 'gemini',
+      model: 'gemini-3.1-flash-lite',
       error: 'disabled',
       createdAt: old
     });

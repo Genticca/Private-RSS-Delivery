@@ -7,8 +7,7 @@ import { loadConfig } from '../../../src/server/config.js';
 describe('loadConfig', () => {
   it('returns loopback defaults without baking API keys into AppConfig', () => {
     const config = loadConfig({
-      PRIMARY_MODEL_API_KEY: 'primary-secret',
-      FALLBACK_MODEL_API_KEY: 'fallback-secret'
+      PRIMARY_MODEL_API_KEY: 'primary-secret'
     });
 
     expect(config).toEqual({
@@ -18,7 +17,6 @@ describe('loadConfig', () => {
       isProduction: false
     });
     expect(Object.keys(config)).not.toContain('primaryModelApiKey');
-    expect(Object.keys(config)).not.toContain('fallbackModelApiKey');
     expect(Object.keys(config)).not.toContain('modelTargetLang');
     expect(Object.keys(config)).not.toContain('modelPromptLogMaxBytes');
   });

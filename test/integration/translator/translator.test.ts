@@ -39,104 +39,89 @@ describe('ModelTranslator', () => {
     expect(Object.prototype.hasOwnProperty.call(container.repositories.modelUsage.list()[0], 'promptLog')).toBe(false);
   });
 
-  it('falls back after a primary invalid key error', async () => {
+  it('returns original text after an invalid key error', async () => {
     const container = openContainer();
-    container.repositories.modelConfig.updateRole('fallback', { enabled: true, updatedAt: base });
-    const primary = new FakeProvider([new TranslationProviderError('invalid key', 401)]);
-    const fallback = new FakeProvider([{ text: '{"title":"Fallback title","summary":"Fallback summary"}' }]);
+    const gemini = new FakeProvider([new TranslationProviderError('invalid key', 401)]);
     const translator = new ModelTranslator({
       repositories: container.repositories,
-      env: { PRIMARY_MODEL_API_KEY: 'bad-key', FALLBACK_MODEL_API_KEY: 'fallback-key' },
-      providers: { gemini: primary, 'nvidia-nim': fallback },
+      env: { PRIMARY_MODEL_API_KEY: 'bad-key' },
+      providers: { gemini },
       now: () => base
     });
 
     const result = await translator.translate({ title: 'Title', summary: 'Summary' });
 
-    expect(result).toEqual({ title: 'Fallback title', summary: 'Fallback summary', translated: true });
-    expect(primary.calls).toHaveLength(1);
-    expect(fallback.calls).toHaveLength(1);
+    expect(result).toEqual({ title: 'Title', summary: 'Summary', translated: false });
+    expect(gemini.calls).toHaveLength(1);
     expect(container.repositories.modelUsage.list().map((usage) => ({ role: usage.role, error: usage.error }))).toEqual([
-      { role: 'fallback', error: null },
       { role: 'primary', error: 'invalid-key' }
     ]);
   });
 
-  it('returns original text immediately when a provider returns length-truncated output', async () => {
+  it('returns original text when the provider returns length-truncated output', async () => {
     const container = openContainer();
-    container.repositories.modelConfig.updateRole('fallback', { enabled: true, updatedAt: base });
-    const primary = new FakeProvider([{ text: '{"title":"partial"', finishReason: 'MAX_TOKENS' }]);
-    const fallback = new FakeProvider([{ text: '{"title":"should-not-run","summary":"should-not-run"}' }]);
+    const gemini = new FakeProvider([{ text: '{"title":"partial"', finishReason: 'MAX_TOKENS' }]);
     const translator = new ModelTranslator({
       repositories: container.repositories,
-      env: { PRIMARY_MODEL_API_KEY: 'primary-key', FALLBACK_MODEL_API_KEY: 'fallback-key' },
-      providers: { gemini: primary, 'nvidia-nim': fallback },
+      env: { PRIMARY_MODEL_API_KEY: 'primary-key' },
+      providers: { gemini },
       now: () => base
     });
 
     const result = await translator.translate({ title: 'Original title', summary: 'Original summary' });
 
     expect(result).toEqual({ title: 'Original title', summary: 'Original summary', translated: false });
-    expect(fallback.calls).toHaveLength(0);
     expect(container.repositories.modelUsage.list().map((usage) => ({ role: usage.role, error: usage.error }))).toEqual([
       { role: 'primary', error: 'length' }
     ]);
   });
 
-  it('returns original text immediately when a provider returns unparsable JSON', async () => {
+  it('returns original text when the provider returns unparsable JSON', async () => {
     const container = openContainer();
-    container.repositories.modelConfig.updateRole('fallback', { enabled: true, updatedAt: base });
-    const primary = new FakeProvider([{ text: 'not-json' }]);
-    const fallback = new FakeProvider([{ text: '{"title":"should-not-run","summary":"should-not-run"}' }]);
+    const gemini = new FakeProvider([{ text: 'not-json' }]);
     const translator = new ModelTranslator({
       repositories: container.repositories,
-      env: { PRIMARY_MODEL_API_KEY: 'primary-key', FALLBACK_MODEL_API_KEY: 'fallback-key' },
-      providers: { gemini: primary, 'nvidia-nim': fallback },
+      env: { PRIMARY_MODEL_API_KEY: 'primary-key' },
+      providers: { gemini },
       now: () => base
     });
 
     const result = await translator.translate({ title: 'Original title', summary: 'Original summary' });
 
     expect(result).toEqual({ title: 'Original title', summary: 'Original summary', translated: false });
-    expect(fallback.calls).toHaveLength(0);
     expect(container.repositories.modelUsage.list().map((usage) => ({ role: usage.role, error: usage.error }))).toEqual([
       { role: 'primary', error: 'parse' }
     ]);
   });
 
-  it('falls back when the primary provider times out', async () => {
+  it('aborts and returns original text when the provider times out', async () => {
     const container = openContainer();
-    container.repositories.modelConfig.updateRole('fallback', { enabled: true, updatedAt: base });
-    const primary = new HangingProvider();
-    const fallback = new FakeProvider([{ text: '{"title":"Fallback title","summary":"Fallback summary"}' }]);
+    const gemini = new HangingProvider();
     const translator = new ModelTranslator({
       repositories: container.repositories,
-      env: { PRIMARY_MODEL_API_KEY: 'primary-key', FALLBACK_MODEL_API_KEY: 'fallback-key' },
-      providers: { gemini: primary, 'nvidia-nim': fallback },
+      env: { PRIMARY_MODEL_API_KEY: 'primary-key' },
+      providers: { gemini },
       now: () => base,
       providerTimeoutMs: 5
     });
 
     const result = await translator.translate({ title: 'Original title', summary: 'Original summary' });
 
-    expect(result).toEqual({ title: 'Fallback title', summary: 'Fallback summary', translated: true });
-    expect(primary.calls).toHaveLength(1);
-    expect(primary.calls[0]?.signal?.aborted).toBe(true);
+    expect(result).toEqual({ title: 'Original title', summary: 'Original summary', translated: false });
+    expect(gemini.calls).toHaveLength(1);
+    expect(gemini.calls[0]?.signal?.aborted).toBe(true);
     expect(container.repositories.modelUsage.list().map((usage) => ({ role: usage.role, error: usage.error }))).toEqual([
-      { role: 'fallback', error: null },
       { role: 'primary', error: 'timeout' }
     ]);
   });
 
-  it('logs missing keys without calling providers', async () => {
+  it('logs a missing key without calling the provider', async () => {
     const container = openContainer();
-    container.repositories.modelConfig.updateRole('fallback', { enabled: true, updatedAt: base });
     const gemini = new FakeProvider([]);
-    const nim = new FakeProvider([]);
     const translator = new ModelTranslator({
       repositories: container.repositories,
       env: {},
-      providers: { gemini, 'nvidia-nim': nim },
+      providers: { gemini },
       now: () => base
     });
 
@@ -144,9 +129,7 @@ describe('ModelTranslator', () => {
 
     expect(result).toEqual({ title: 'Title', summary: 'Summary', translated: false });
     expect(gemini.calls).toEqual([]);
-    expect(nim.calls).toEqual([]);
     expect(container.repositories.modelUsage.list().map((usage) => ({ role: usage.role, error: usage.error }))).toEqual([
-      { role: 'fallback', error: 'missing-key' },
       { role: 'primary', error: 'missing-key' }
     ]);
   });
