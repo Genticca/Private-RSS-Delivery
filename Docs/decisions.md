@@ -1,6 +1,6 @@
 # 결정 기록 (D1~D25)
 
-> 정책이 바뀌면 기존 줄을 고치지 않고 새 결정을 추가하고, 대체된 결정에 표시한다. 결정 당시의 상세 논의는 [history/](history/)에 있다(D1~D24: [design-v1.md](history/design-v1.md), D25: [backend-spec.md](history/backend-spec.md)·[frontend-spec.md](history/frontend-spec.md) 머리말).
+> 정책이 바뀌면 기존 줄을 고치지 않고 새 결정을 추가하고, 대체된 결정에 표시한다. 결정 당시의 상세 논의는 보관본에 있다(D1~D24: [design-v1.md](../Archive/2026-10-17/Docs/history/design-v1.md), D25: [backend-spec.md](../Archive/2026-10-17/Docs/history/backend-spec.md)·[frontend-spec.md](../Archive/2026-10-17/Docs/history/frontend-spec.md) 머리말).
 
 | # | 결정 | 상태 |
 | --- | --- | --- |
