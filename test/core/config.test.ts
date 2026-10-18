@@ -69,4 +69,44 @@ describe('loadConfig', () => {
       'HOST must be loopback-only in production.'
     );
   });
+
+  it.each(['0.0.0.0', '::', '[::]'])('allows production bind to %s only with the container flag', (host) => {
+    const config = loadConfig({ NODE_ENV: 'production', HOST: host, ALLOW_NON_LOOPBACK_HOST: 'true' });
+
+    expect(config.host).toBe(host);
+    expect(config).not.toHaveProperty('allowNonLoopbackHost');
+  });
+
+  it('keeps empty and false container flags disabled', () => {
+    for (const value of ['', '   ', 'false', ' false ']) {
+      expect(loadConfig({ NODE_ENV: 'production', ALLOW_NON_LOOPBACK_HOST: value }).host).toBe('127.0.0.1');
+      expect(() => loadConfig({ NODE_ENV: 'production', HOST: '0.0.0.0', ALLOW_NON_LOOPBACK_HOST: value })).toThrow(
+        'HOST must be loopback-only in production.'
+      );
+    }
+  });
+
+  it('trims the true container flag before validating it', () => {
+    expect(loadConfig({ NODE_ENV: 'production', HOST: '0.0.0.0', ALLOW_NON_LOOPBACK_HOST: ' true ' }).host).toBe('0.0.0.0');
+  });
+
+  it('rejects a specific non-loopback production address even with the container flag', () => {
+    expect(() => loadConfig({ NODE_ENV: 'production', HOST: '10.0.0.5', ALLOW_NON_LOOPBACK_HOST: 'true' })).toThrow(
+      'HOST must be loopback-only in production.'
+    );
+  });
+
+  it.each(['production', 'development'])('rejects invalid container flags in %s', (mode) => {
+    for (const value of ['yes', 'TRUE', '1']) {
+      expect(() => loadConfig({ NODE_ENV: mode, ALLOW_NON_LOOPBACK_HOST: value })).toThrow(
+        'ALLOW_NON_LOOPBACK_HOST must be true or false.'
+      );
+    }
+  });
+
+  it('preserves development host handling for all valid container flags', () => {
+    for (const value of [undefined, '', 'false', 'true']) {
+      expect(loadConfig({ NODE_ENV: 'development', HOST: '10.0.0.5', ALLOW_NON_LOOPBACK_HOST: value }).host).toBe('10.0.0.5');
+    }
+  });
 });
