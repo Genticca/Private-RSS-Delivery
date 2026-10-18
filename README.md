@@ -86,9 +86,12 @@ flowchart LR
 
 ## 배포
 
-관리 화면은 로그인 없이 `127.0.0.1`에서만 열립니다. Docker Compose(`docker compose up -d --build`)나 systemd 직접 설치 중 하나를 고를 수 있습니다. 서버에서는 systemd로 실행하고 SSH 터널로 접속합니다. 자세한 절차는 [배포 문서](Docs/배포.md)를 참고하세요.
+관리 화면은 로그인 없이 서버의 `127.0.0.1`에서만 열리고, SSH 터널로 접속합니다. 배포 방법은 두 가지입니다. 자세한 절차는 [배포 문서](Docs/배포.md)를 참고하세요.
 
-> `better-sqlite3`는 OS별로 빌드되므로 배포 서버에서 직접 `npm ci`를 실행해야 합니다.
+| 방법 | 명령 | 특징 |
+| --- | --- | --- |
+| **Docker Compose** | `docker compose up -d --build` | 서버에 Node.js가 필요 없습니다 |
+| **systemd 직접 설치** | `npm ci && npm run build` 후 서비스 등록 | 배포 서버에서 직접 빌드해야 합니다(`better-sqlite3`가 OS별로 빌드됨) |
 
 ---
 

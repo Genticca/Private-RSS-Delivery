@@ -1,13 +1,14 @@
-name: Docker Build
+name: CI
 
+# 비공개 단일 저장소라 모든 브랜치 Push에서 한 번만 실행한다(PR 이벤트로 중복 실행하지 않음).
+# 문서만 바뀐 Push는 건너뛰고, 필요하면 Actions 화면에서 직접 실행한다.
 on:
   push:
     branches:
-      - main
-      - 'codex/**'
-  pull_request:
-    branches:
-      - main
+      - '**'
+    paths-ignore:
+      - 'Docs/**'
+      - '**/*.md'
   workflow_dispatch:
 
 permissions:
