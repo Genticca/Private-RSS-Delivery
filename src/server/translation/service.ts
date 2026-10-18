@@ -1,3 +1,6 @@
+/**
+ * 번역 상태·수동 진단. 키 원문 없이 사용 가능 상태를 보여주고 발송과 같은 캐시로 진단한다.
+ */
 import type { TranslationEventStatus, EventLogRepository } from '../logs/repository.js';
 import { requireObject, optionalString, optionalBoolean } from '../core/input.js';
 import { validationError } from '../core/errors.js';
@@ -35,6 +38,7 @@ export interface ModelServiceOptions {
 export class ModelService {
   constructor(private readonly options: ModelServiceOptions) { }
 
+  /** 최신 실제 요청·상태별 집계·키 슬롯 상태를 합쳐 비밀값이 없는 진단 응답을 만든다. */
   getDiagnostics(): ModelDiagnosticsResponse {
     const eventLog = this.options.repositories.eventLog;
     const request = eventLog.latestTranslationRequest();
@@ -42,8 +46,14 @@ export class ModelService {
     const credentials = resolveModelCredentials(this.options.env);
     const keys: ModelKeyDiagnostics = this.options.translator?.getKeyStatus() ?? {
       activeKey: credentials[0]?.slot ?? null,
-      primary: { state: credentials.some((key) => key.slot === 'primary') ? 'ready' : 'missing', retryAt: null },
-      fallback: { state: credentials.some((key) => key.slot === 'fallback') ? 'ready' : 'missing', retryAt: null }
+      primary: {
+        state: credentials.some((key) => key.slot === 'primary') ? 'ready' : 'missing',
+        retryAt: null
+      },
+      fallback: {
+        state: credentials.some((key) => key.slot === 'fallback') ? 'ready' : 'missing',
+        retryAt: null
+      }
     };
     return {
       model: this.options.model ?? DEFAULT_MODEL,
@@ -60,6 +70,7 @@ export class ModelService {
     };
   }
 
+  /** 발송 작업을 만들지 않고 공유 캐시로 입력을 진단한다. fresh도 키 자체의 대기 상태는 우회하지 않는다. */
   async diagnose(value: unknown) {
     // 진단은 실패 대기 시간을 무시한다. fresh를 요청한 경우에는 성공 캐시도 재사용하지 않는다.
     const body = requireObject(value);
@@ -76,6 +87,7 @@ export class ModelService {
     }, { now: this.now(), ignoreCooldown: true, fresh: optionalBoolean(body.fresh) ?? false });
   }
 
+  /** 키 존재 여부와 즉시 사용 가능 여부를 먼저 보고 최신 인증 실패를 표시 상태에 반영한다. */
   private status(keys: ModelKeyDiagnostics, latestFailure: string | null): ModelStatus {
     // 키 설정과 최근 실패로 표시 상태를 계산한다. 이 조회 자체로 외부 API를 호출하지 않는다.
     if (keys.primary.state === 'missing' && keys.fallback.state === 'missing') return 'missing-key';

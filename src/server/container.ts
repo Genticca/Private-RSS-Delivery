@@ -1,3 +1,6 @@
+/**
+ * 의존성 조립 루트. 설정·DB·저장소·서비스·워커를 연결하고 공유 자원의 종료 순서를 관리한다.
+ */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import Database from 'better-sqlite3';
@@ -102,6 +105,7 @@ export interface CreateContainerOptions {
   translationProvider?: TranslationProvider;
 }
 
+/** 한 번 병합한 환경을 모든 구성 요소에 전달하고, 상위 기능의 동작은 콜백으로 주입한다. */
 export function createContainer(options: CreateContainerOptions = {}): Container {
   // 조립 순서: 환경 설정 → DB 준비 → 저장소 → 업무 서비스 → 주기 실행 워커.
   const env = loadEnvironment(options.env, { envFilePath: options.envFilePath });
@@ -181,6 +185,7 @@ export function createContainer(options: CreateContainerOptions = {}): Container
     })
   };
   const preview = new PreviewService({ repositories });
+  // 낮은 tier의 서비스가 발송 계층을 직접 import하지 않도록 연결 갱신 동작을 콜백으로 넘긴다.
   const services: ServiceRegistry = {
     sources: new SourceService({
       db,
@@ -196,7 +201,13 @@ export function createContainer(options: CreateContainerOptions = {}): Container
     }),
     templates: new TemplateService({ repositories }),
     preview,
-    model: new ModelService({ repositories, env, model, translator, translation: new TranslationCacheService({ repositories, translator }) }),
+    model: new ModelService({
+      repositories,
+      env,
+      model,
+      translator,
+      translation: new TranslationCacheService({ repositories, translator })
+    }),
     logs: new LogService({ repositories }),
     exportImport: new ExportImportService({
       db,
@@ -222,6 +233,7 @@ export function createContainer(options: CreateContainerOptions = {}): Container
     workers,
     close() {
       if (closed) return Promise.resolve();
+      // HTTP 종료와 프로세스 신호가 겹쳐도 같은 종료 작업을 함께 기다린다.
       if (closePromise) return closePromise;
       closePromise = (async () => {
         // 워커가 DB를 더 이상 사용하지 않는 것을 확인한 뒤 연결을 닫는다.
@@ -233,6 +245,7 @@ export function createContainer(options: CreateContainerOptions = {}): Container
         db.close();
         closed = true;
       })();
+      // drain 실패 시 DB를 열어 둔 채 종료를 다시 시도할 수 있도록 실패한 Promise만 해제한다.
       void closePromise.catch(() => {
         closePromise = null;
       });
@@ -241,6 +254,7 @@ export function createContainer(options: CreateContainerOptions = {}): Container
   };
 }
 
+/** 파일형 SQLite의 상위 디렉터리를 준비하고 연결한다. 메모리 DB에는 디렉터리를 만들지 않는다. */
 function openDatabase(databasePath: string): Database.Database {
   if (databasePath !== ':memory:' && !databasePath.startsWith('file:')) mkdirSync(dirname(databasePath), { recursive: true });
   return new Database(databasePath);

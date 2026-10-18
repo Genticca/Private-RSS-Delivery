@@ -1,3 +1,6 @@
+/**
+ * 템플릿 미리보기와 테스트 전송. 미리보기는 외부 발송 없이 렌더링하고 테스트 전송에는 별도 간격 제한을 적용한다.
+ */
 import type { SourceId } from '../sources/service.js';
 import {
   renderDiscordPayload,
@@ -65,6 +68,7 @@ export interface PreviewServiceOptions {
 export class PreviewService {
   constructor(private readonly options: PreviewServiceOptions) { }
 
+  /** 샘플 또는 실제 피드를 공통 렌더러로 처리하고 오류를 fetch·render·validate 단계로 구분한다. */
   async preview(value: unknown): Promise<PreviewResponse> {
     const input = normalizePreviewRequest(value);
     const source = input.sourceId ? this.options.repositories.sources.getById(input.sourceId) : null;
@@ -93,12 +97,14 @@ export class PreviewService {
     }
   }
 
+  /** 저장 항목이 있으면 사용하고 없으면 결정된 샘플 항목으로 편집기 초기 상태를 제공한다. */
   sampleItem(sourceId: string): SampleItemResponse {
     if (!this.options.repositories.sources.getById(sourceId)) throw notFound('소스를 찾을 수 없습니다.');
     const latest = this.options.repositories.items.latestForSource(sourceId);
     return latest ? itemRecordToNormalizedItem(latest) : syntheticItem(this.now());
   }
 
+  /** 서버를 통해 실제 피드를 읽고 정규화한다. 미리보기에서는 번역·발송 작업을 만들지 않는다. */
   private async fetchLiveItem(sourceId: string): Promise<{
     item?: NormalizedItem;
     error: string
@@ -180,6 +186,7 @@ function normalizePreviewRequest(value: unknown): PreviewRequest {
   };
 }
 
+/** 보안·렌더·payload 예외를 편집기가 표시할 단계별 오류 목록으로 바꾼다. */
 function previewErrors(error: unknown): PreviewError[] {
   if (error instanceof DiscordPayloadValidationError) {
     return error.issues.map((issue) => ({ stage: 'validate', message: issue.message, path: issue.path }));
@@ -209,6 +216,7 @@ function itemRecordToNormalizedItem(item: ItemRecord): NormalizedItem {
   };
 }
 
+/** 실제 저장 항목이 없을 때도 프리셋을 확인할 수 있는 샘플을 만든다. */
 function syntheticItem(now: string): NormalizedItem {
   return {
     atomId: 'sample-item',
@@ -257,6 +265,7 @@ export class TestSendService {
 
   constructor(private readonly options: TestSendServiceOptions) { }
 
+  /** 테스트 표시를 붙인 실제 Discord 메시지를 보낸다. 입력·payload 검증 뒤에 발송 간격을 소비한다. */
   async testSource(id: SourceId): Promise<TestSendResult> {
     const source = this.options.repositories.sources.getById(id);
     if (!source) throw notFound('소스를 찾을 수 없습니다.');
@@ -346,6 +355,7 @@ export class TestSendService {
     throw validationError(`테스트 전송이 거부되었습니다 (HTTP ${statusCode}).${error ? ` ${error.slice(0, 200)}` : ''}`);
   }
 
+  /** 소스·목적지별로 테스트 발송 간격을 제한해 실수로 연속 전송하는 것을 막는다. */
   private enforceRate(key: string): void {
     const now = this.options.now?.() ?? Date.now();
     const last = this.lastTestAt.get(key);

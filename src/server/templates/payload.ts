@@ -1,3 +1,6 @@
+/**
+ * Discord payload 규칙. 소스의 멘션·스레드 옵션을 적용하고 필드·본문 길이 제한을 검사한다.
+ */
 import Ajv, { type ErrorObject } from 'ajv';
 import type { DiscordWebhookPayload, DiscordEmbed } from './render.js';
 
@@ -16,6 +19,7 @@ interface MentionOptions {
   mentionUserIds: readonly string[];
 }
 
+/** 원본 payload를 복사한 뒤 소스의 조용한 발송·멘션·포럼 옵션을 적용한다. */
 export function applySourceWebhookOptions(
   payload: DiscordWebhookPayload,
   source: MessageOptions,
@@ -75,6 +79,7 @@ function clampThreadName(value: string | null | undefined): string | null {
   return trimmed.length > MAX_THREAD_NAME_LENGTH ? trimmed.slice(0, MAX_THREAD_NAME_LENGTH) : trimmed;
 }
 
+/** 허용된 멘션 설정에 맞춰 본문 앞 멘션 문자열을 조립한다. */
 function buildMentionPrefix(options: MentionOptions): string {
   const parts = [
     options.mentionEveryone ? '@everyone' : null,
@@ -177,6 +182,7 @@ const validatePayloadShape = ajv.compile(payloadSchema);
 
 const MAX_EMBED_TEXT_LENGTH = 6000;
 
+/** AJV 구조 검사와 Discord의 본문·embed 길이 검사를 함께 수행한다. */
 export function validateDiscordPayload(payload: unknown): DiscordWebhookPayload {
   const issues: DiscordPayloadValidationIssue[] = [];
   if (!validatePayloadShape(payload)) {
@@ -195,6 +201,7 @@ export function validateDiscordPayload(payload: unknown): DiscordWebhookPayload 
   return payload as DiscordWebhookPayload;
 }
 
+/** embed별 길이를 합산해 메시지 전체의 텍스트 제한을 검사할 수 있게 한다. */
 function getEmbedTextLength(payload: DiscordWebhookPayload): number {
   return (payload.embeds ?? []).reduce((total, embed) => total + getSingleEmbedTextLength(embed), 0);
 }
@@ -216,6 +223,7 @@ function textLength(value: string | undefined): number {
   return value?.length ?? 0;
 }
 
+/** 검증 라이브러리의 내부 표현을 관리 화면이 표시할 필드 경로·문구로 바꾼다. */
 function formatAjvErrors(errors: ErrorObject[]): DiscordPayloadValidationIssue[] {
   return errors.map((error) => ({
     path: error.instancePath || '/',

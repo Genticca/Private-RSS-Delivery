@@ -1,3 +1,6 @@
+/**
+ * 외부 주소 검증. URL·DNS·실제 연결의 IP를 검사해 내부망 접근과 DNS 재바인딩을 방어한다.
+ */
 import net, { type LookupFunction } from 'node:net';
 import dns from 'node:dns';
 import { SecurityError } from '../core/errors.js';
@@ -55,6 +58,7 @@ const IPV6_BLOCKS: Array<[bigint, number]> = [
   [ipv6ToBigInt('64:ff9b::'), 96]
 ];
 
+/** URL 구문과 리터럴 IP를 먼저 검사한다. 호스트명의 실제 주소 검증은 DNS 단계에서 수행한다. */
 export function assertSafeFeedUrl(value: string): URL {
   const url = parseHttpUrl(value);
   if (url.username || url.password) {
@@ -65,12 +69,14 @@ export function assertSafeFeedUrl(value: string): URL {
   return url;
 }
 
+/** 피드 등록·리다이렉트 처리 시 DNS 결과까지 확인한다. */
 export async function verifyFeedUrlSafe(value: string, options: SsrSafeLookupOptions = {}): Promise<URL> {
   const url = assertSafeFeedUrl(value);
   await resolveSafeHostname(url.hostname, options);
   return url;
 }
 
+/** 조회된 주소 중 내부망·예약 대역이 있으면 연결 대상으로 허용하지 않는다. */
 export async function resolveSafeHostname(hostname: string, options: SsrSafeLookupOptions = {}): Promise<LookupAddress[]> {
   const normalized = normalizeHostname(hostname);
   assertHostnameSyntax(normalized);
@@ -103,6 +109,7 @@ export async function resolveSafeHostname(hostname: string, options: SsrSafeLook
   return addresses;
 }
 
+/** 실제 소켓이 사용할 DNS 결과에도 같은 검사를 적용해 사전 검증 후 주소가 바뀌는 경우를 막는다. */
 export function createSsrSafeLookup(options: SsrSafeLookupOptions = {}): SsrSafeLookup {
   // 사전 검사에 더해 실제 소켓 연결 시점의 DNS 조회에도 동일한 검증을 적용한다.
   return (hostname, lookupOptions, callback) => {
@@ -125,6 +132,7 @@ export function createSsrSafeLookup(options: SsrSafeLookupOptions = {}): SsrSafe
   };
 }
 
+/** IPv4·IPv6와 IPv4 매핑 IPv6를 함께 검사해 표기 차이로 금지 대역을 우회하지 못하게 한다. */
 export function assertAddressAllowed(address: string): void {
   const normalized = normalizeHostname(address);
   if (normalized.includes('%')) {
@@ -150,6 +158,7 @@ export function assertAddressAllowed(address: string): void {
   }
 }
 
+/** 피드와 웹훅 검증이 공유하는 http/https URL 구문 경계다. */
 export function parseHttpUrl(value: string): URL {
   if (value.length > 2048) {
     throw new SecurityError('invalid_url', 'URL must be 2048 characters or shorter.');
@@ -205,6 +214,7 @@ function isRestrictedIpv6(address: string): boolean {
   return IPV6_BLOCKS.some(([network, prefix]) => ipv6InCidr(value, network, prefix));
 }
 
+/** IPv6의 ::ffff:0:0/96 영역에서 IPv4 부분을 추출해 IPv4 차단 규칙도 적용한다. */
 function extractIpv4MappedAddress(address: string): string | undefined {
   const value = ipv6ToBigInt(address);
   const mappedPrefix = ipv6ToBigInt('::ffff:0:0');
@@ -214,11 +224,13 @@ function extractIpv4MappedAddress(address: string): string | undefined {
   return [24, 16, 8, 0].map((shift) => String((last32 >>> shift) & 0xff)).join('.');
 }
 
+/** 32비트 마스크로 IPv4가 차단 네트워크 안에 있는지 판별한다. */
 function ipv4InCidr(value: number, network: number, prefix: number): boolean {
   const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
   return (value & mask) === (network & mask);
 }
 
+/** 128비트 주소는 BigInt 마스크로 비교해 정밀도 손실을 피한다. */
 function ipv6InCidr(value: bigint, network: bigint, prefix: number): boolean {
   const mask = ipv6Mask(prefix);
   return (value & mask) === (network & mask);

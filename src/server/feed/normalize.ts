@@ -1,3 +1,6 @@
+/**
+ * 피드 해석 2단계. 본문 정제·공급자 프로필·변경 해시를 같은 입력에 같은 결과가 나오도록 계산한다.
+ */
 import { createHash } from 'node:crypto';
 import {
   INCIDENT_STAGES,
@@ -12,6 +15,7 @@ export function sha256Hex(value: string): string {
   return createHash('sha256').update(value, 'utf8').digest('hex');
 }
 
+/** 일반 피드의 변경 감지에 사용할 내용을 해시한다. 항목 식별자는 별도로 관리한다. */
 export function computeGenericContentHash(input: {
   title: string;
   link: string
@@ -20,6 +24,7 @@ export function computeGenericContentHash(input: {
   return sha256Hex(`${input.title}\n${input.link}`);
 }
 
+/** 장애 피드는 최신 단계·요약을 기준으로 해시해 누적 과거 이력의 변화에 흔들리지 않게 한다. */
 export function computeIncidentContentHash(input: {
   stage: string;
   summary: string
@@ -64,10 +69,12 @@ const ENTITY_MAP: Record<string, string> = {
 
 export const DEFAULT_SUMMARY_MAX_CHARS = 4000;
 
+/** 제목의 HTML·엔티티·공백을 정리해 한 줄 텍스트로 만든다. */
 export function cleanTitle(value: string): string {
   return htmlToText(value, { singleLine: true, maxChars: undefined });
 }
 
+/** 본문의 텍스트와 단락을 정리하고 표시 가능한 길이로 제한한다. */
 export function cleanSummary(value: string): string {
   return htmlToText(value, { singleLine: false, maxChars: DEFAULT_SUMMARY_MAX_CHARS });
 }
@@ -97,6 +104,7 @@ export function htmlToText(
   return options.maxChars === undefined ? normalized : truncateAtWordBoundary(normalized, options.maxChars);
 }
 
+/** 이름·숫자 엔티티를 복원하되 유효하지 않은 코드 포인트는 문자를 훼손하지 않게 처리한다. */
 export function decodeHtmlEntities(value: string): string {
   // 해석할 수 없는 엔티티는 원문으로 남겨 임의로 정보를 버리지 않는다.
   return value.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]+);/g, (match, entity: string) => {
@@ -125,6 +133,7 @@ export function normalizeMultiline(value: string): string {
   return lines.join('\n').trim();
 }
 
+/** 길이 제한에 걸린 본문은 가능한 단어 경계를 이용해 잘라낸다. */
 export function truncateAtWordBoundary(value: string, maxChars: number): string {
   // 마지막 단어 경계가 너무 앞에 있으면 글자 수 기준으로 잘라 표시 공간을 확보한다.
   if (value.length <= maxChars) return value;
@@ -158,6 +167,7 @@ const PARAGRAPH_RE = /<p\b[^>]*>[\s\S]*?<\/p>/i;
 
 const STRONG_STAGE_RE = /<strong\b[^>]*>\s*([^<]+?)\s*<\/strong>/i;
 
+/** 공급자별 최신 업데이트를 추출하고 해석할 수 없으면 일반 피드 방식으로 처리한다. */
 export function normalizeIncident(profile: IncidentProfile, env: FeedEnvelope): NormalizedItem {
   const extracted = profile === 'incident-io' ? extractIncidentIo(env.rawBody) : extractAtlassianStatuspage(env.rawBody);
   // 공급자 형식이 바뀌어 단계 추출에 실패해도 일반 피드로 처리해 항목을 보존한다.
@@ -177,6 +187,7 @@ export function normalizeIncident(profile: IncidentProfile, env: FeedEnvelope): 
   return item;
 }
 
+/** Status 표식 뒤의 최신 장애 요약을 추출한다. */
 function extractIncidentIo(rawBody: string): IncidentUpdate | undefined {
   const match = INCIDENT_IO_STATUS_RE.exec(rawBody);
   if (!match?.[1]) return undefined;
@@ -190,6 +201,7 @@ function extractIncidentIo(rawBody: string): IncidentUpdate | undefined {
   return { stage, summary };
 }
 
+/** 누적 공지에서 맨 앞 문단의 상태·요약만 최신 업데이트로 사용한다. */
 function extractAtlassianStatuspage(rawBody: string): IncidentUpdate | undefined {
   // 누적 이력 전체가 아니라 맨 앞의 최신 문단만 변경 감지에 사용한다.
   const paragraph = PARAGRAPH_RE.exec(rawBody)?.[0];
@@ -204,6 +216,7 @@ function extractAtlassianStatuspage(rawBody: string): IncidentUpdate | undefined
   return { stage, summary };
 }
 
+/** 알려진 단계의 대소문자를 맞추고 알 수 없는 공급자 표기는 보존한다. */
 function normalizeIncidentStage(value: string): IncidentStage | undefined {
   const normalized = htmlToText(value, { singleLine: true, maxChars: undefined });
   if (!normalized) return undefined;
@@ -212,6 +225,7 @@ function normalizeIncidentStage(value: string): IncidentStage | undefined {
   return known ?? normalized;
 }
 
+/** 프로필에 맞는 정규화 경로를 선택한다. 공급자별 해석 실패는 일반 피드 경로로 복구한다. */
 export function normalize(profile: Profile, env: FeedEnvelope): NormalizedItem {
   // 공급자별 처리가 실패하면 일반 정규화를 시도한다. 일반 처리의 실패까지 숨기지는 않는다.
   try {
@@ -249,12 +263,14 @@ const INCIDENT_IO_STATUS_MARKER_RE = /<(?:b|strong)\b[^>]*>\s*Status:\s*[^<]+<\/
 
 const ATLASSIAN_SEGMENT_MARKER_RE = /<p\b[^>]*>[\s\S]*?<strong\b[^>]*>\s*(?:Investigating|Identified|Monitoring|Resolved|Update)\s*<\/strong>[\s\S]*?<\/p>/i;
 
+/** 수동 설정을 우선하고 auto일 때만 저장된 감지 결과 또는 generic을 사용한다. */
 export function effectiveProfile(profileSetting: SourceProfile, detectedProfile?: Profile | null): Profile {
   // 관리자가 지정한 프로필은 자동 감지 결과보다 우선한다.
   if (profileSetting !== 'auto') return profileSetting;
   return detectedProfile ?? 'generic';
 }
 
+/** 공급자 표식과 제한된 본문 표본으로 프로필을 감지한다. 전체 대용량 본문을 반복 탐색하지 않는다. */
 export function detectProfile(rawXml: string, envelopes: readonly FeedEnvelope[] = []): Profile {
   if (INCIDENT_IO_GENERATOR_RE.test(rawXml)) return 'incident-io';
   if (ATLASSIAN_STATUSPAGE_MARKERS.some((marker) => marker.test(rawXml))) return 'atlassian-statuspage';

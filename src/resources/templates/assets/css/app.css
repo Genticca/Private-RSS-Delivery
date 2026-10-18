@@ -1,9 +1,11 @@
+/* 관리 화면의 공통 스타일. 기본 요소 → 화면 구성 → 기능별 컴포넌트 → 반응형 보정 순서로 배치한다. */
 @font-face {
   font-family: Inter;
   src: url('../fonts/Inter.woff2') format('woff2');
   font-weight: 100 900;
   font-display: swap;
 }
+/* 공통 색상·간격·서체 토큰. 화면 전반의 톤은 이 값에서 조정한다. */
 :root {
   color-scheme: light;
   --bg-app: #f7f9f9;
@@ -31,7 +33,8 @@ body {
   background: var(--bg-app);
   -webkit-font-smoothing: antialiased;
 }
-button,input,select,textarea {
+button,/* 폼 입력과 라벨. 체크박스·파일 입력 등 브라우저 기본 동작이 필요한 항목은 아래에서 보정한다. */
+input,select,textarea {
   font: inherit;
 }
 button,a,summary {
@@ -44,6 +47,7 @@ a {
 a:hover {
   text-decoration: underline;
 }
+/* 버튼의 기본·강조·위험·비활성 상태와 키보드 포커스 표시. */
 button,.button {
   min-height: 38px;
   display: inline-flex;
@@ -169,6 +173,7 @@ code {
 [hidden] {
   display: none!important;
 }
+/* SVG 아이콘과 보조 접근성 요소. 화면 낭독 전용 텍스트와 건너뛰기 링크를 포함한다. */
 .icon {
   display: inline-block;
   fill: none;
@@ -220,6 +225,7 @@ button .icon,.button .icon {
 .skip-link:focus {
   top: 12px;
 }
+/* 사이드바 탐색과 서버 연결 상태. 좁은 화면에서의 열고 닫기는 반응형 규칙과 app.js가 함께 제어한다. */
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -351,6 +357,7 @@ button .icon,.button .icon {
 .tiny-dot.gray {
   background: #acb8b1;
 }
+/* 작업 영역의 공통 골격. 상단 경로·페이지 제목·본문·공통 액션을 배치한다. */
 .main-workspace {
   min-height: 100vh;
   margin-left: var(--sidebar-width);
@@ -432,6 +439,7 @@ button .icon,.button .icon {
 .required {
   color: var(--primary);
 }
+/* 운영 개요의 지표 카드. 카드 안 아이콘과 보조 수치는 같은 크기 규칙을 공유한다. */
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4,minmax(0,1fr));
@@ -508,6 +516,7 @@ button .icon,.button .icon {
   flex-direction: column;
   gap: 22px;
 }
+/* 대시보드와 기능 화면이 공유하는 패널·제목 영역. */
 .panel {
   background: #fff;
   border: 1px solid var(--border-color);
@@ -561,6 +570,7 @@ button .icon,.button .icon {
   width: 13px;
   height: 13px;
 }
+/* 소스·그룹·템플릿 목록. 넘치는 표의 스크롤과 항목 식별·URL 표시를 함께 다룬다. */
 .table-scroll {
   width: 100%;
   overflow: auto;
@@ -643,6 +653,7 @@ tbody tr:hover {
   text-overflow: ellipsis;
   margin-top: 2px;
 }
+/* 작업·번역 상태 배지와 빈 목록 안내. 같은 상태 의미는 화면마다 동일한 색을 사용한다. */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -770,6 +781,7 @@ tbody tr:hover {
   width: 11px;
   height: 11px;
 }
+/* 운영 개요의 최근 활동 목록. 아이콘·설명·발생 시각을 한 행으로 표시한다. */
 .activity-list {
   padding: 0 23px 6px;
 }
@@ -819,6 +831,7 @@ tbody tr:hover {
   color: #9caaa0;
   font-variant-numeric: tabular-nums;
 }
+/* 목록 검색·필터와 행 메뉴. 메뉴 위치는 app.js가 화면 경계에 맞춰 계산한다. */
 .table-tools {
   display: flex;
   align-items: center;
@@ -891,6 +904,7 @@ tbody tr:hover {
   background: #f1f7f2;
   text-decoration: none;
 }
+/* 설정 가져오기·미리보기와 공통 안내문. 실제 적용 전 변경 내용을 확인하는 영역이다. */
 .import-panel {
   padding: 0;
 }
@@ -983,6 +997,7 @@ tbody tr:hover {
   height: 27px;
   border-radius: 50%;
 }
+/* 발신 그룹 목록과 웹훅 설정 보조 표시. */
 .group-table {
   min-width: 700px;
 }
@@ -1074,6 +1089,7 @@ tbody tr:hover {
 .clone-form {
   flex-wrap: nowrap;
 }
+/* 공통 팝업 구조. 제목·스크롤 본문·하단 액션을 나누고 소스 폼의 채널·그룹 선택을 배치한다. */
 .app-dialog {
   color: var(--text-main);
   width: 560px;
@@ -1275,6 +1291,7 @@ input[role=switch]:checked:before {
 .form-details .switch-row {
   padding-top: 0;
 }
+/* 템플릿 편집과 변수 참조. CodeMirror 전용 규칙은 이 화면의 크기·색상만 조정한다. */
 .editor-layout {
   display: grid;
   grid-template-columns: minmax(0,1.1fr) minmax(0,1fr);
@@ -1339,6 +1356,7 @@ input[role=switch]:checked:before {
 .variable-reference p {
   font-size: 10px;
 }
+/* 미리보기 입력 모드와 Discord 메시지 모양. 실제 payload 생성·검증은 서버가 담당한다. */
 .preview-controls {
   padding: 0 22px 20px;
   display: grid;
@@ -1479,6 +1497,7 @@ input[role=switch]:checked:before {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* 시스템 로그의 종류 선택·실시간 상태·행 표시와 이전 기록 탐색. */
 .log-toolbar {
   display: flex;
   align-items: center;
@@ -1601,6 +1620,7 @@ input[role=switch]:checked:before {
 .log-footer .muted {
   font-size: 9px;
 }
+/* 번역 진단의 지표·키 상태·수동 진단 폼. */
 .translation-metrics {
   display: grid;
   grid-template-columns: repeat(4,1fr);
@@ -1676,6 +1696,7 @@ input[role=switch]:checked:before {
   color: #8b9b8f;
   line-height: 2.5;
 }
+/* 발송 작업 검토. 긴 제목·오류와 관리자 확인 입력을 표 안에 배치한다. */
 .delivery-table {
   min-width: 850px;
 }
@@ -1726,6 +1747,7 @@ input[role=switch]:checked:before {
   padding: 15px 22px;
   border-top: 1px solid var(--border-color);
 }
+/* 공통 하단 안내·요청 결과·폼 오류·로딩 상태. */
 .workspace-footer {
   display: flex;
   justify-content: space-between;
@@ -1802,6 +1824,7 @@ input[role=switch]:checked:before {
     transform: rotate(360deg);
   }
 }
+/* 화면 너비별 배치 보정. 넓은 화면에서 시작해 노트북·태블릿·모바일 순서로 조정한다. */
 @media(min-width:1600px) {
   .page-content {
     padding-top: 44px;
@@ -2201,6 +2224,7 @@ body:has(dialog[open]),body.nav-open {
     padding-bottom: 24px;
   }
 }
+/* 동작 줄이기 설정을 존중해 반복 애니메이션과 전환을 최소화한다. */
 @media(prefers-reduced-motion:reduce) {
   *,*:before,*:after {
     animation: none!important;

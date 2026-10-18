@@ -1,3 +1,6 @@
+/**
+ * items 저장소. 항목 식별자·내용 버전을 보존하며 발송 상태는 발송 패키지에 맡긴다.
+ */
 import type Database from 'better-sqlite3';
 import { nullable, requireNonEmpty, toSqliteBoolean, nowIso, fromSqliteBoolean } from '../core/db.js';
 
@@ -16,8 +19,11 @@ export interface ItemRecord {
   author: string | null;
   commentsUrl: string | null;
   image: string | null;
+  /** 내용 해시 변화에 따라 증가하는 버전으로 발송 작업·영수증의 적용 버전과 비교한다. */
   contentRevision: number;
+  /** 첫 수집·cutoff로 과거 처리한 항목이다. 본문이 갱신되어도 자동 재발송하지 않는다. */
   historical: boolean;
+  /** 오래된 본문을 비운 상태다. 같은 해시가 다시 수집되어도 표시 내용을 복원할 수 있다. */
   contentPruned: boolean;
   lastSeenAt: string | null;
   createdAt: string;
@@ -80,13 +86,15 @@ const ITEM_COLUMNS = `
   content_revision, historical, content_pruned, last_seen_at, created_at
 `;
 
+/** 항목의 현재 내용과 버전을 관리한다. 목적지별 발송 여부는 이 레코드에 중복 저장하지 않는다. */
 export class ItemRepository {
+  /** 미해결 발송 작업이 없는 오래된 항목만 본문을 비운다. 식별자·버전·발송 계보는 유지한다. */
   pruneContent(before: string): void {
     this.db.prepare(`UPDATE items SET summary = NULL, image = NULL, content_pruned = 1
           WHERE content_pruned = 0 AND last_seen_at < ?
           AND NOT EXISTS(SELECT 1 FROM delivery_jobs j WHERE j.item_id = items.id
             AND j.state IN ('pending','running','held','unknown','failed','uneditable'))`)
-          .run(before);
+      .run(before);
   }
 
   constructor(private readonly db: Database.Database) { }
@@ -96,6 +104,7 @@ export class ItemRepository {
     return row ? mapItemRow(row) : null;
   }
 
+  /** 소스별 atomId를 항목의 안정적인 식별자로 사용한다. */
   findByAtomId(sourceId: string, atomId: string): ItemRecord | null {
     const row = this.db
       .prepare(`SELECT ${ITEM_COLUMNS} FROM items WHERE source_id = ? AND atom_id = ?`)
@@ -130,6 +139,7 @@ export class ItemRepository {
     return this.requireById(Number(result.lastInsertRowid));
   }
 
+  /** 내용·표시 필드를 갱신하고 실제 해시 변화에 맞춰 내용 버전을 관리한다. */
   updateContentHash(id: number, input: UpdateContentHashInput): ItemRecord {
     // 내용 해시가 달라진 경우만 revision을 올린다. 본문 복원은 발송할 새 버전이 아니다.
     const result = this.db
@@ -163,6 +173,7 @@ export class ItemRepository {
     return this.db.prepare('DELETE FROM items WHERE source_id = ?').run(sourceId).changes;
   }
 
+  /** 미리보기와 샘플 선택에 사용할 최근 저장 항목을 조회한다. */
   latestForSource(sourceId: string): ItemRecord | null {
     const row = this.db
       .prepare(
@@ -183,6 +194,7 @@ export class ItemRepository {
   }
 }
 
+/** SQLite의 null·정수 불리언 표현을 저장소 밖에서 사용할 레코드로 변환한다. */
 function mapItemRow(row: ItemRow): ItemRecord {
   return {
     id: row.id,

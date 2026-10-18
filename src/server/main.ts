@@ -1,7 +1,11 @@
+/**
+ * 실행 진입점. HTTP listen 성공 후 워커를 시작하고 종료 신호를 한 번만 처리한다.
+ */
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp, type AppInstance, type CreateAppOptions } from './app.js';
 
+/** HTTP 기동이 성공한 뒤에만 예약 작업을 시작한다. 종료 실패는 프로세스 종료 코드에 남긴다. */
 export async function startServer(options: CreateAppOptions = {}): Promise<AppInstance> {
   const app = createApp(options);
   let closing = false;

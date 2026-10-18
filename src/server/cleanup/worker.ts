@@ -1,3 +1,6 @@
+/**
+ * 보존 기간 정리. 부팅 직후와 KST 자정에 소유 저장소의 정리 메서드를 같은 트랜잭션으로 실행한다.
+ */
 import type Database from 'better-sqlite3';
 import type { EventLogRepository } from '../logs/repository.js';
 import type { TranslationCacheRepository } from '../translation/cache.js';
@@ -20,9 +23,11 @@ export interface CleanupRepositories {
 // 실패 캐시와 완료 작업의 내용은 로그 보존 기간과 별개로 90일간 보존한다.
 const CACHE_AND_SNAPSHOT_RETENTION_DAYS = 90;
 
+/** 각 저장소의 보존 정책을 정해진 순서로 실행한다. 부분 정리가 남지 않도록 트랜잭션을 공유한다. */
 export class CleanupService {
   constructor(private readonly db: Database.Database, private readonly repositories: CleanupRepositories) { }
 
+  /** 로그를 먼저 정리하고 항목 보존 옵션이 있으면 실패 캐시·본문·완료 스냅샷·만료 대기를 정리한다. */
   run(now: string, logRetentionDays: number, itemRetentionDays?: number): CleanupRunResult {
     return this.db.transaction(() => {
       const result = { events: this.repositories.eventLog.pruneOlderThan(logRetentionDays, now) };
@@ -61,12 +66,14 @@ export class CleanupWorker {
 
   constructor(private readonly options: CleanupWorkerOptions) { }
 
+  /** 중복 시작과 종료 후 재시작을 막고 예약 실행을 등록한다. */
   start(): void {
     if (this.timer || this.tracker.stopped) return;
     this.runOnce().catch((error: unknown) => this.reportError(error));
     this.scheduleNext();
   }
 
+  /** 예약 타이머와 새 작업 접수를 중단한다. 이미 시작한 작업은 drain에서 기다린다. */
   stop(): void {
     this.tracker.stop();
     if (!this.timer) return;
@@ -74,10 +81,12 @@ export class CleanupWorker {
     this.timer = null;
   }
 
+  /** 현재 추적 중인 작업이 끝날 때까지 기다려 DB가 처리 도중 닫히지 않게 한다. */
   drain(): Promise<void> {
     return this.tracker.drain();
   }
 
+  /** 예약 실행과 수동 호출이 겹쳐도 정리를 한 번만 실행하며 종료 대기 목록에도 등록한다. */
   async runOnce(baseIso = this.now()): Promise<CleanupRunResult> {
     if (this.running || this.tracker.stopped) return { events: 0 };
     this.running = true;
@@ -92,6 +101,7 @@ export class CleanupWorker {
     }
   }
 
+  /** 고정 24시간 반복 대신 현재 시각에서 다음 KST 자정까지의 지연을 다시 계산한다. */
   private scheduleNext(): void {
     if (this.tracker.stopped) return;
     const delay = delayUntilNextKstMidnight(this.now());
@@ -112,6 +122,7 @@ export class CleanupWorker {
     return this.options.now?.() ?? nowIso();
   }
 
+  /** 오류 보고 콜백의 실패가 다음 예약 실행까지 중단시키지 않도록 격리한다. */
   private reportError(error: unknown): void {
     try {
       this.options.onError?.(error);
@@ -121,6 +132,7 @@ export class CleanupWorker {
   }
 }
 
+/** UTC와 KST의 고정 시차를 이용해 호스트 시간대와 무관한 다음 자정 시각을 계산한다. */
 export function delayUntilNextKstMidnight(baseIso: string): number {
   const base = new Date(baseIso);
   if (Number.isNaN(base.getTime())) return DAY_MS;

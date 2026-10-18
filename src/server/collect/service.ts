@@ -1,3 +1,6 @@
+/**
+ * 수집 한 번의 실행. HTTP 요청을 DB 트랜잭션 밖에서 수행하고 설정 버전 확인 후 항목·발송 계획을 반영한다.
+ */
 import type Database from 'better-sqlite3';
 import type { SourceRecord, SourceRepository, SourceGroupRepository } from '../sources/repository.js';
 import { parseFeed, type NormalizedItem, type Profile } from '../feed/parse.js';
@@ -12,6 +15,7 @@ import { nowIso } from '../core/db.js';
 import { SecurityError } from '../core/errors.js';
 import { detectProfile, effectiveProfile, normalize } from '../feed/normalize.js';
 
+/** 소스 초기화와 cutoff를 적용해 첫 수집·과거 공지를 발송 후보에서 제외한다. */
 export function shouldQueueNewItem(source: SourceRecord, item: NormalizedItem): boolean {
   // 첫 수집은 과거 항목의 기준점만 만든다. 기존 공지가 한꺼번에 발송되는 것을 막는다.
   if (!source.initialized) return false;
@@ -58,9 +62,11 @@ export interface PollServiceOptions {
   isStopping?: () => boolean;
 }
 
+/** 네트워크 요청과 DB 반영을 분리하고 수집 중 설정이 바뀐 응답은 버린다. */
 export class PollService {
   constructor(private readonly options: PollServiceOptions) { }
 
+  /** 활성 목적지와 초기 수집 필요 여부를 확인해 요청하고, 현재 설정 버전이 같을 때만 결과를 반영한다. */
   async poll(sourceId: string, polledAt = nowIso()): Promise<PollSourceResult> {
     const { db, repositories, bindings } = this.options;
     if (this.options.isStopping?.()) return emptyResult(sourceId);
@@ -116,7 +122,12 @@ export class PollService {
         const failures = current.consecutiveFailures + 1;
         const delay = Math.min(86_400_000, current.pollIntervalSeconds * 1000 * 2 ** Math.min(failures - 1, 8));
         db.prepare('UPDATE sources SET consecutive_failures = ?, last_polled_at = ?, next_poll_at = ? WHERE id = ?')
-          .run(failures, polledAt, new Date(Date.parse(polledAt) + delay).toISOString(), sourceId);
+          .run(
+            failures,
+            polledAt,
+            new Date(Date.parse(polledAt) + delay).toISOString(),
+            sourceId
+          );
         repositories.eventLog.append({
           kind: 'fetch',
           status: 'error',
@@ -136,6 +147,7 @@ export class PollService {
     }
   }
 
+  /** 해시 변경과 표시 필드 변경을 구분한다. 발송 계획을 만든 뒤 새 연결의 과거 항목 기준을 확정한다. */
   private commitSnapshot(source: SourceRecord, result: Extract<FeedFetchResult, {
     kind: 'ok'
   }>, now: string, durationMs: number): PollSourceResult {
@@ -150,6 +162,7 @@ export class PollService {
       itemsChanged: 0,
       itemsSkipped: 0
     };
+    // 소스가 초기화됐어도 새 연결만 있다면 이번 수집은 해당 연결의 과거 항목 기준을 만드는 데 쓴다.
     const hasReadyBinding = repositories.deliveryBindings.listActive(source.id).some((binding) => binding.baselineAt !== null);
     const canQueueItem = (item: NormalizedItem): boolean =>
       source.initialized && hasReadyBinding && shouldQueueNewItem(source, item);
@@ -224,6 +237,7 @@ export class PollService {
   }
 }
 
+/** Envelope 전용 필드와 항목 식별자를 제외하고 저장·표시 갱신에 쓰는 내용 필드만 고른다. */
 function contentFields(item: NormalizedItem) {
   return {
     title: item.title,
@@ -239,6 +253,7 @@ function contentFields(item: NormalizedItem) {
   };
 }
 
+/** 종료·중복·비활성 등 실제 수집을 수행하지 않은 경우에 공통 skipped 결과를 반환한다. */
 export function emptyResult(sourceId: string): PollSourceResult {
   return {
     sourceId,

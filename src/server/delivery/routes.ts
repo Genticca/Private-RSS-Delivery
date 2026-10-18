@@ -1,3 +1,6 @@
+/**
+ * 발송·미리보기 라우트. 검토, 테스트 전송, 실패 재시도와 샘플 조회를 각각의 서비스에 연결한다.
+ */
 import type { FastifyInstance } from 'fastify';
 import { mutationReply, flash, requestBody, isHtmxRequest, redirectMutation, type IdParam } from '../core/http.js';
 import { parseIdParam } from '../core/input.js';
@@ -5,7 +8,10 @@ import type { DeliveryManagementService } from './review.js';
 import type { PreviewService, TestSendService } from './preview.js';
 
 /** 보류되거나 결과 확인이 필요한 발송 작업을 조회하고 관리자의 검토 결정을 전달한다. */
-export async function registerDeliveryJobRoutes(app: FastifyInstance, services: { deliveryManagement: DeliveryManagementService }): Promise<void> {
+export async function registerDeliveryJobRoutes(
+  app: FastifyInstance,
+  services: { deliveryManagement: DeliveryManagementService }
+): Promise<void> {
   app.get('/api/delivery-jobs', async (request) => services.deliveryManagement.list(request.query));
   app.post<{
     Params: IdParam
@@ -45,11 +51,18 @@ export async function registerSourceDeliveryRoutes(app: FastifyInstance, service
   app.post<{
     Params: IdParam
   }>('/api/sources/:id/retry-failed', async (request, reply) =>
-    mutationReply(reply, () => services.deliveryManagement.retryFailed(request.params.id), (count) => flash(`재시도 대기열에 추가했습니다: ${String(count)}건`))
+    mutationReply(
+      reply,
+      () => services.deliveryManagement.retryFailed(request.params.id),
+      (count) => flash(`재시도 대기열에 추가했습니다: ${String(count)}건`)
+    )
   );
 
 
   app.get<{
     Params: IdParam
-  }>('/api/sources/:id/sample-item', async (request) => services.preview.sampleItem(request.params.id));
+  }>(
+    '/api/sources/:id/sample-item',
+    async (request) => services.preview.sampleItem(request.params.id)
+  );
 }

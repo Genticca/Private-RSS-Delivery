@@ -1,3 +1,6 @@
+/**
+ * 설정 Export/Import. 비밀값을 제외해 내보내고 URL 검증을 마친 입력만 한 트랜잭션으로 반영한다.
+ */
 import type Database from 'better-sqlite3';
 import type { DeliveryBindingService } from '../delivery/bindings.js';
 import type { GroupRepository } from '../groups/repository.js';
@@ -33,9 +36,11 @@ export interface ExportImportServiceOptions {
   verifyWebhookUrl?: (value: string) => Promise<unknown>;
 }
 
+/** 같은 검증·계획 경로를 미리보기와 실제 적용에 사용한다. 새 소스는 초기 수집부터 시작한다. */
 export class ExportImportService {
   constructor(private readonly options: ExportImportServiceOptions) { }
 
+  /** 웹훅 원문·API 키·항목·발송 이력을 제외하고 소스와 그룹 설정만 내보낸다. */
   export(): ExportDocumentV1 {
     const groups = this.options.repositories.groups.list();
     const groupNameById = new Map(groups.map((group) => [group.id, group.name]));
@@ -79,11 +84,13 @@ export class ExportImportService {
     };
   }
 
+  /** DB를 변경하지 않고 현재 상태와 입력 문서의 적용 계획을 계산한다. */
   async dryRun(payload: string, mode: ImportMode = 'skip'): Promise<ImportPlan> {
     const { document, blockedFeedUrls } = await this.prepareImport(payload);
     return this.plan(document, mode, blockedFeedUrls);
   }
 
+  /** URL 검증을 다시 수행한 뒤 그룹·소스·배정·연결 갱신을 한 번에 반영한다. */
   async commit(payload: string, mode: ImportMode = 'skip'): Promise<ImportPlan> {
     // DNS 등 외부 검증은 쓰기 트랜잭션 전에 끝내 DB 잠금을 오래 잡지 않는다.
     const { document, blockedFeedUrls } = await this.prepareImport(payload);
@@ -173,6 +180,7 @@ export class ExportImportService {
     return plan;
   }
 
+  /** 문서 검증과 외부 URL 확인 후 차단된 소스는 사유와 함께 적용 대상에서 제외한다. */
   private async prepareImport(payload: string): Promise<{
     document: ExportDocumentV1;
     blockedFeedUrls: ImportBlockedSource[]
@@ -202,6 +210,7 @@ export class ExportImportService {
     return { document: { ...document, sources }, blockedFeedUrls };
   }
 
+  /** 옛 그룹 웹훅의 호환 입력만 검증한다. 차단된 웹훅은 제거하고 참조하는 소스에도 사유를 전달한다. */
   private async normalizeAndVerifyGroupWebhooks(groups: readonly ExportGroup[]): Promise<Map<string, string>> {
     const blocked = new Map<string, string>();
     for (const group of groups) {
@@ -234,6 +243,7 @@ export class ExportImportService {
       .filter((id): id is number => id !== undefined);
   }
 
+  /** skip·overwrite 규칙과 참조 가능 여부를 기준으로 적용 전 건수·경고를 만든다. */
   private plan(document: ExportDocumentV1, mode: ImportMode, blockedFeedUrls: ImportBlockedSource[]): ImportPlan {
     const warnings: string[] = [];
     const plan: ImportPlan = {
@@ -276,7 +286,8 @@ export class ExportImportService {
         }
       }
       for (const groupRef of source.groupRefs) {
-        if (!document.groups.some((group) => group.name.toLowerCase() === groupRef.toLowerCase()) && !this.options.repositories.groups.findByNameNocase(groupRef)) {
+        if (!document.groups.some((group) => group.name.toLowerCase() === groupRef.toLowerCase())
+          && !this.options.repositories.groups.findByNameNocase(groupRef)) {
           plan.unresolvedGroups += 1;
           warnings.push(`그룹을 찾을 수 없어 멤버십에서 제외합니다: ${groupRef}`);
         }

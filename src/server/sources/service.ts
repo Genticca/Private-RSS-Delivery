@@ -1,3 +1,6 @@
+/**
+ * 수집 소스 관리. 소스·그룹 배정·연결 갱신을 묶고 피드 변경 시 과거 데이터의 혼용을 막는다.
+ */
 import type Database from 'better-sqlite3';
 import type { SourceProfile, Profile } from '../feed/parse.js';
 import type { TemplateId } from '../templates/service.js';
@@ -67,7 +70,13 @@ export interface CreateSourceRequest {
 
 export type UpdateSourceRequest = Partial<CreateSourceRequest>;
 
-export function toSourceDto(source: SourceRecord, groupIds: number[], groupNames: string[], lastOutcome: FetchEventStatus | null): SourceDto {
+/** 저장소 레코드에 그룹 이름과 최근 수집 결과를 결합해 화면·API가 쓰는 공개 형태를 만든다. */
+export function toSourceDto(
+  source: SourceRecord,
+  groupIds: number[],
+  groupNames: string[],
+  lastOutcome: FetchEventStatus | null
+): SourceDto {
   return {
     consecutiveFailures: source.consecutiveFailures,
     id: source.id,
@@ -135,6 +144,7 @@ export class SourceService {
     return this.toDto(id);
   }
 
+  /** 소스와 필수 그룹 배정을 함께 저장하고 새 연결이 과거 항목을 발송하지 않도록 기준을 초기화한다. */
   async create(value: unknown): Promise<SourceDto> {
     const input = normalizeSourceCreate(value);
     const timestamp = this.now();
@@ -176,6 +186,7 @@ export class SourceService {
     return this.toDto(source.id);
   }
 
+  /** 피드 URL 변경은 다른 피드로 취급한다. 조건부 GET·감지 프로필·과거 항목과 연결 기준을 함께 갱신한다. */
   async update(id: string, value: unknown): Promise<SourceDto> {
     const current = this.requireSource(id);
     const input = normalizeSourceUpdate(value);
@@ -239,6 +250,7 @@ export class SourceService {
     }
   }
 
+  /** 활성 상태와 발송 목적지 갱신을 한 트랜잭션에 묶는다. */
   setEnabled(id: string, value: unknown): SourceDto {
     const body = requireObject(value);
     const enabled = optionalBoolean(body.enabled);
@@ -275,6 +287,7 @@ export class SourceService {
     }
   }
 
+  /** 저장 가능한 소스는 적어도 하나의 존재하는 발신 그룹을 가져야 한다. */
   private assertRequiredGroups(groupIds: number[] | undefined): void {
     if (!groupIds || groupIds.length === 0) {
       throw validationError('전송할 그룹을 최소 1개 선택해야 합니다.', { groupIds: '최소 1개 이상 선택하세요.' });
@@ -298,6 +311,7 @@ export class SourceService {
     return this.options.db.transaction(fn)();
   }
 
+  /** 동시 등록으로 DB UNIQUE 제약에 걸린 경우에도 사용자에게 같은 중복 URL 오류를 보여준다. */
   private writeSource<T>(fn: () => T): T {
     try {
       return fn();

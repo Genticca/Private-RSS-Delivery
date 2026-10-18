@@ -1,3 +1,6 @@
+/**
+ * 발신 그룹 저장소. 웹훅 원문은 이 내부 레코드에만 보관하고 공개 DTO에서는 제외한다.
+ */
 import type Database from 'better-sqlite3';
 import { nowIso, nullable } from '../core/db.js';
 

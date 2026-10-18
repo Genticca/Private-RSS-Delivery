@@ -1,3 +1,6 @@
+/**
+ * 설정 이전 문서의 계약·검증. 외부 JSON을 내부 입력으로 정규화하고 내보내면 안 되는 요청 헤더를 걸러낸다.
+ */
 import type { FetchOptions } from '../net/fetch.js';
 import { validationError } from '../core/errors.js';
 import { requiredString } from '../core/input.js';
@@ -75,6 +78,7 @@ export function parseImportMode(value: unknown): ImportMode {
   throw validationError('import mode 값이 올바르지 않습니다.', { mode: 'skip 또는 overwrite만 허용됩니다.' });
 }
 
+/** 지원하는 문서 kind·version을 먼저 확인해 임의 JSON을 설정 문서로 해석하지 않게 한다. */
 export function parseDocument(payload: string): ExportDocumentV1 {
   try {
     const document = JSON.parse(payload) as ExportDocumentV1;
@@ -88,6 +92,7 @@ export function parseDocument(payload: string): ExportDocumentV1 {
   }
 }
 
+/** 그룹·소스 필드와 중복 이름·URL을 검증하고 내부 서비스가 읽을 형태로 정규화한다. */
 export function validateDocument(document: ExportDocumentV1): void {
   if (!Array.isArray(document.groups) || !Array.isArray(document.sources)) {
     throw validationError('import 파일 구조가 올바르지 않습니다.');
@@ -100,7 +105,11 @@ export function validateDocument(document: ExportDocumentV1): void {
     groupNames.add(key);
     group.webhookName = group.webhookName ?? null;
     group.webhookAvatarUrl = group.webhookAvatarUrl ?? null;
-    group.legacyWebhookUrl = validateOptionalString((group as ImportGroupWithLegacyWebhook).webhookUrl ?? group.legacyWebhookUrl, 'groups.webhookUrl', 2048);
+    group.legacyWebhookUrl = validateOptionalString(
+      (group as ImportGroupWithLegacyWebhook).webhookUrl ?? group.legacyWebhookUrl,
+      'groups.webhookUrl',
+      2048
+    );
   }
   const feedUrls = new Set<string>();
   for (const source of document.sources) {
@@ -191,6 +200,7 @@ function validateGroupRefs(value: unknown): string[] {
   return refs;
 }
 
+/** 이전 파일에 인증·쿠키 같은 민감 헤더를 실어 보내지 않도록 내보내기용 옵션을 제한한다. */
 export function sanitizeFetchOptions(input: FetchOptions): FetchOptions {
   const output: FetchOptions = {};
   if (input.charset) output.charset = input.charset;

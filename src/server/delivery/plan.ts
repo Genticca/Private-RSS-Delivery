@@ -1,3 +1,6 @@
+/**
+ * 발송 계획 정책. 초기 발송과 내용 갱신을 구분하고 원본 발송 이력이 있는 연결에만 수정 작업을 만든다.
+ */
 import type { SourceRecord } from '../sources/repository.js';
 import type { TemplateRepository } from '../templates/repository.js';
 import type { ItemRecord } from '../feed/repository.js';
@@ -8,10 +11,12 @@ import type {
   ItemDeliveryRepository
 } from './repository.js';
 
+/** 소스의 메시지 수정 설정에 따라 PATCH 작업과 별도 갱신 POST를 고른다. */
 export function updateOperation(source: Pick<SourceRecord, 'editInPlace'>): DeliveryOperation {
   return source.editInPlace ? 'edit' : 'update_post';
 }
 
+/** 신규 건수 또는 전체 대비 비율이 임계값에 도달하면 대량 발송을 관리자 검토로 보류한다. */
 export function shouldHoldNewItems(newCount: number, totalCount: number, limits: {
   holdCount: number;
   holdMinItems: number;
@@ -25,6 +30,7 @@ export function shouldHoldNewItems(newCount: number, totalCount: number, limits:
   return exceedsCountLimit || (hasEnoughItems && newItemRatio >= limits.holdRatio);
 }
 
+/** 실패 횟수에 따른 지수 대기와 외부 Retry-After 중 긴 시간을 적용한다. */
 export function retryAt(now: string, failures: number, retryAfterMs?: number): string {
   const failureExponent = Math.max(0, failures - 1);
   const backoffMs = Math.min(480_000, 60_000 * 2 ** failureExponent);
@@ -40,9 +46,11 @@ export interface DeliveryPlanRepositories {
   templates: TemplateRepository;
 }
 
+/** 새 항목·갱신 항목을 현재 연결과 원본 발송 이력에 맞춰 작업으로 계획한다. */
 export class DeliveryPlanService {
   constructor(private readonly repositories: DeliveryPlanRepositories) { }
 
+  /** 연결의 초기 수집 기준이 확정됐고 항목 ID가 그 기준 이후일 때만 최초 발송을 계획한다. */
   planNew(item: ItemRecord, source: SourceRecord, now: string, held = false): void {
     const templateBody = this.resolveTemplateBody(source);
     for (const binding of this.repositories.deliveryBindings.listActive(source.id)) {
@@ -54,6 +62,7 @@ export class DeliveryPlanService {
     }
   }
 
+  /** historical 항목은 재발송하지 않는다. 아직 첫 발송 전이면 최초 작업을 갱신하고 발송 이력이 있으면 갱신 작업을 만든다. */
   planUpdate(item: ItemRecord, source: SourceRecord, now: string): void {
     if (item.historical) return;
     const templateBody = this.resolveTemplateBody(source);

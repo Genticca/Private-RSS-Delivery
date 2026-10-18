@@ -1,3 +1,6 @@
+/**
+ * HTTP 조립. 플러그인·보안·뷰·기능 라우트를 등록하고 공통 오류를 HTTP 응답으로 변환한다.
+ */
 import { fileURLToPath } from 'node:url';
 import { join, extname, basename } from 'node:path';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
@@ -29,6 +32,7 @@ export interface CreateAppOptions {
   logger?: boolean;
 }
 
+/** 주입받은 컨테이너의 소유권은 호출자에게 둔다. 직접 생성한 컨테이너만 앱 종료 때 함께 닫는다. */
 export function createApp(options: CreateAppOptions = {}): AppInstance {
   const app = Fastify({ logger: options.logger ?? true }) as unknown as AppInstance;
   const container =
@@ -51,7 +55,14 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     await registerViewAndStatic(instance);
     const services = container.services;
     await registerSourceRoutes(instance, { sources: services.sources });
-    await registerSourceDeliveryRoutes(instance, { deliveryManagement: services.deliveryManagement, testSend: services.testSend, preview: services.preview });
+    await registerSourceDeliveryRoutes(
+      instance,
+      {
+        deliveryManagement: services.deliveryManagement,
+        testSend: services.testSend,
+        preview: services.preview
+      }
+    );
     await registerGroupRoutes(instance, { groups: services.groups });
     await registerTemplateRoutes(instance, { templates: services.templates });
     await registerPreviewRoutes(instance, { preview: services.preview });
@@ -87,6 +98,7 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 
 const RATE_LIMIT_ALLOW_LIST = ['/assets/', '/api/logs/stream', '/healthz', '/ready'] as const;
 
+/** 상태 점검·정적 자산·SSE를 제외한 관리 요청에 공통 호출 제한을 적용한다. */
 async function registerRateLimit(app: FastifyInstance): Promise<void> {
   await app.register(rateLimitPlugin, {
     max: RATE_LIMIT_MAX,
@@ -96,6 +108,7 @@ async function registerRateLimit(app: FastifyInstance): Promise<void> {
   });
 }
 
+/** Import 파일 하나와 소수의 옵션 필드만 허용해 업로드 크기와 파트 수를 제한한다. */
 async function registerMultipart(app: FastifyInstance): Promise<void> {
   await app.register(multipartPlugin, {
     attachFieldsToBody: 'keyValues',
@@ -108,6 +121,7 @@ async function registerMultipart(app: FastifyInstance): Promise<void> {
   });
 }
 
+/** 실행 파일 위치를 기준으로 뷰와 정적 자산을 찾아 작업 디렉터리 차이의 영향을 피한다. */
 async function registerViewAndStatic(app: FastifyInstance): Promise<void> {
   const templatesRoot = fileURLToPath(new URL('../resources/templates', import.meta.url));
   const assetsRoot = fileURLToPath(new URL('../resources/templates/assets', import.meta.url));
@@ -120,6 +134,7 @@ async function registerViewAndStatic(app: FastifyInstance): Promise<void> {
   });
 }
 
+/** 같은 Handlebars 엔진에 화면 조각을 등록해 페이지와 변경 응답이 공통 조각을 사용하게 한다. */
 function registerHandlebarsPartials(templatesRoot: string): void {
   const partialsRoot = join(templatesRoot, 'partials');
   if (!existsSync(partialsRoot)) return;
@@ -129,6 +144,7 @@ function registerHandlebarsPartials(templatesRoot: string): void {
   }
 }
 
+/** 반복된 폼 필드는 배열로 보존한다. 그룹·태그처럼 여러 값을 받는 입력을 잃지 않기 위해서다. */
 function registerBodyParsers(app: FastifyInstance): void {
   app.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, (_request, body, done) => {
     const params = new URLSearchParams(String(body));
@@ -143,6 +159,7 @@ function registerBodyParsers(app: FastifyInstance): void {
   });
 }
 
+/** 예상 오류는 지정된 상태 코드로 반환하고, 예상하지 못한 오류의 상세 내용은 서버 로그에만 남긴다. */
 function registerErrorHandlers(app: FastifyInstance): void {
   app.setNotFoundHandler((_request, reply) => {
     reply.status(404).send({ error: { code: 'not_found', message: '요청한 경로를 찾을 수 없습니다.' } });

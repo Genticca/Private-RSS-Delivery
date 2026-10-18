@@ -1,3 +1,6 @@
+/**
+ * 수집 소스·그룹 배정 저장소. 수집 예약, 초기화 기준, 설정 버전과 피드 메타데이터를 저장한다.
+ */
 import { randomUUID } from 'node:crypto';
 import type Database from 'better-sqlite3';
 import type { SourceProfile, Profile } from '../feed/parse.js';
@@ -14,6 +17,7 @@ import {
   parseJsonStringArray
 } from '../core/db.js';
 
+/** 소스와 재사용 발신 그룹의 배정 관계를 관리한다. 웹훅 자체는 그룹에만 속한다. */
 export class SourceGroupRepository {
   constructor(private readonly db: Database.Database) { }
 
@@ -54,6 +58,7 @@ export class SourceGroupRepository {
       }).source_id);
   }
 
+  /** 중복 없는 그룹 ID 집합으로 배정을 교체한다. 호출자가 소스 변경과 같은 트랜잭션에 묶는다. */
   setGroups(sourceId: string, groupIds: readonly number[]): void {
     // 전체 교체를 한 트랜잭션으로 묶어 삭제만 반영된 중간 상태가 남지 않게 한다.
     const uniqueGroupIds = [...new Set(groupIds)];
@@ -77,6 +82,7 @@ export class SourceGroupRepository {
 }
 
 export interface SourceRecord {
+  /** 요청 도중 설정이 바뀌었는지 확인할 버전이다. 수집기는 요청 전후의 값을 비교한다. */
   configRevision: number;
   consecutiveFailures: number;
   id: string;
@@ -85,7 +91,9 @@ export interface SourceRecord {
   enabled: boolean;
   profileSetting: SourceProfile;
   detectedProfile: Profile | null;
+  /** 첫 성공 수집으로 과거 항목 기준을 만든 상태인지 나타낸다. */
   initialized: boolean;
+  /** 이 시각보다 오래된 공지는 새 항목이어도 발송 후보에서 제외한다. */
   deliveryCutoffAt: string | null;
   etag: string | null;
   lastModified: string | null;
@@ -212,6 +220,7 @@ const SOURCE_COLUMNS = `
   edit_in_place, created_at
 `;
 
+/** 소스 설정·예약·수집 메타데이터를 저장한다. 설정 버전은 비동기 수집 결과의 유효성 확인에 사용한다. */
 export class SourceRepository {
   constructor(private readonly db: Database.Database) { }
 
@@ -233,6 +242,7 @@ export class SourceRepository {
     return row ? mapSourceRow(row) : null;
   }
 
+  /** 활성 소스 중 다음 수집 시각에 도달한 행만 제한된 개수로 선택한다. */
   findDuePoll(now: string, limit = 50): SourceRecord[] {
     return (this.db
       .prepare(
@@ -243,7 +253,10 @@ export class SourceRepository {
          ORDER BY next_poll_at IS NOT NULL, next_poll_at, created_at, id
          LIMIT ?`
       )
-      .all(now, limit) as SourceRow[]).map(mapSourceRow);
+      .all(
+        now,
+        limit
+      ) as SourceRow[]).map(mapSourceRow);
   }
 
   create(input: CreateSourceInput): SourceRecord {
@@ -293,6 +306,7 @@ export class SourceRepository {
     return this.requireById(id);
   }
 
+  /** undefined 필드는 유지하고 명시된 값만 UPDATE에 넣어 PATCH 의미를 보존한다. */
   update(id: string, input: UpdateSourceInput): SourceRecord {
     // undefined 필드는 유지하고 null은 그대로 저장한다. 부분 수정의 의미를 보존한다.
     const assignments: string[] = [];
@@ -337,10 +351,12 @@ export class SourceRepository {
     return this.requireById(id);
   }
 
+  /** 네트워크 요청 전에 수집 시작 시각·다음 예약을 기록하고 당시 소스 상태를 돌려준다. */
   claimPollStarted(id: string, startedAt = nowIso()): SourceRecord {
     return this.update(id, { lastPolledAt: startedAt });
   }
 
+  /** 성공한 수집의 예약과 조건부 GET 메타데이터·초기화 상태를 갱신한다. */
   markPolled(
     id: string,
     polledAt = nowIso(),
@@ -354,6 +370,7 @@ export class SourceRepository {
     });
   }
 
+  /** 활성 상태 변경과 수집 예약의 기존 규칙을 저장한다. */
   setEnabled(id: string, enabled: boolean, changedAt = nowIso()): SourceRecord {
     // 재활성화 시 이전 비활성 기간의 항목이 재발송되지 않도록 기준 시각도 갱신한다.
     return this.update(id, enabled ? { enabled, deliveryCutoffAt: changedAt, nextPollAt: null } : { enabled });
@@ -378,6 +395,7 @@ export class SourceRepository {
   }
 }
 
+/** JSON 목록·요청 옵션·정수 불리언을 읽어 내부 소스 레코드로 복원한다. */
 function mapSourceRow(row: SourceRow): SourceRecord {
   return {
     configRevision: row.config_revision,

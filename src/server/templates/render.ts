@@ -1,3 +1,6 @@
+/**
+ * Discord 템플릿 렌더. 저장 항목·정규화 항목을 공통 문맥으로 바꾸고 JSON 렌더 결과를 검증한다.
+ */
 import Handlebars from 'handlebars';
 import type { SourceProfile, NormalizedItem, Profile } from '../feed/parse.js';
 import type { ItemRecord } from '../feed/repository.js';
@@ -110,6 +113,7 @@ export type TranslatedItem = ItemRecord & {
   translatedSummary?: string | null;
 };
 
+/** 발송 항목과 미리보기 항목을 같은 템플릿 입력으로 만든다. 번역값 적용 여부는 호출자가 정한다. */
 export function buildPresetRenderContext(
   item: TranslatedItem | NormalizedItem,
   source: RenderSource,
@@ -129,6 +133,7 @@ export function buildPresetRenderContext(
   };
 }
 
+/** 격리된 Handlebars 엔진의 공통 헬퍼로 렌더링하고 템플릿 예외를 렌더 오류로 감싼다. */
 export function renderTemplate(templateBody: string, context: PresetRenderContext): string {
   registerHelpers();
   try {
@@ -138,6 +143,7 @@ export function renderTemplate(templateBody: string, context: PresetRenderContex
   }
 }
 
+/** 렌더된 문자열을 JSON으로 읽은 뒤 Discord 자료형·크기 제한까지 확인한다. */
 export function renderDiscordPayload(templateBody: string, context: PresetRenderContext): DiscordWebhookPayload {
   const rendered = renderTemplate(templateBody, context);
   let payload: unknown;
@@ -149,6 +155,7 @@ export function renderDiscordPayload(templateBody: string, context: PresetRender
   return validateDiscordPayload(payload);
 }
 
+/** 서버 운영체제의 시간대와 관계없이 화면용 KST 시각을 만든다. */
 export function formatKstTimestamp(value?: string | null): string | undefined {
   if (!value) return undefined;
   const date = new Date(value);
@@ -172,12 +179,16 @@ function disambiguateJsonObjectClosers(templateBody: string): string {
   return templateBody.replace(/({{\s*(?:json|stageColor|stageLabel|truncate|eq)\b[^{}]*}})(?=})/g, '$1 ');
 }
 
+/** 헬퍼를 한 번만 등록한다. JSON 값은 이스케이프된 HTML이 아닌 JSON 문법으로 출력한다. */
 function registerHelpers(): void {
   if (helpersRegistered) return;
   helpersRegistered = true;
   handlebars.registerHelper('truncate', (value: unknown, maxLength: unknown) => truncateText(toText(value), Number(maxLength)));
   handlebars.registerHelper('stageColor', (stage: unknown) => stageColor(toText(stage)));
-  handlebars.registerHelper('stageLabel', (stage: unknown) => new handlebars.SafeString(JSON.stringify(stageLabel(toText(stage)))));
+  handlebars.registerHelper(
+    'stageLabel',
+    (stage: unknown) => new handlebars.SafeString(JSON.stringify(stageLabel(toText(stage))))
+  );
   handlebars.registerHelper('eq', (left: unknown, right: unknown) => left === right);
   handlebars.registerHelper('json', (value: unknown) => new handlebars.SafeString(JSON.stringify(value ?? '')));
 }
@@ -214,6 +225,7 @@ function stageColor(stage: string): number {
   return 9807270;
 }
 
+/** 번역 결과가 없는 필드는 원문을 사용하고 DB 전용 필드를 템플릿 문맥에서 제외한다. */
 function itemRecordToPresetItem(item: TranslatedItem, useTranslationCache: boolean): PresetRenderItem {
   const publishedAtFormatted = formatKstTimestamp(item.publishedAt ?? item.updatedAt);
   const title = useTranslationCache ? item.translatedTitle ?? item.title ?? '' : item.title ?? '';
@@ -234,6 +246,7 @@ function itemRecordToPresetItem(item: TranslatedItem, useTranslationCache: boole
   };
 }
 
+/** 저장 전 미리보기 항목에도 발송과 같은 표시 시각을 덧붙인다. */
 function normalizedItemToPresetItem(item: NormalizedItem): PresetRenderItem {
   return {
     ...item,

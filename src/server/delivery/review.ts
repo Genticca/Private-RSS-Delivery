@@ -1,3 +1,6 @@
+/**
+ * 관리자 발송 검토. 현재 작업 상태에 허용된 결정만 적용하고 실제 발송 이력과 검토 상태를 맞춘다.
+ */
 import type Database from 'better-sqlite3';
 import type { ItemRepository } from '../feed/repository.js';
 import type { SourceRepository } from '../sources/repository.js';
@@ -35,11 +38,13 @@ export class DeliveryManagementService {
     private readonly planner: DeliveryPlanService
   ) { }
 
+  /** 실패 작업을 다시 대기시킨 건수를 반환한다. 즉시 전송된 메시지 수를 뜻하지 않는다. */
   retryFailed(sourceId: string): number {
     if (!this.repositories.sources.getById(sourceId)) throw notFound('소스를 찾을 수 없습니다.');
     return this.repositories.deliveryJobs.retryFailed(sourceId, nowIso());
   }
 
+  /** 입력 필터를 검증한 뒤 작업에 항목·소스·목적지 표시 정보를 결합한다. */
   list(value: unknown = {}) {
     const query = requireObject(value);
     const sourceId = optionalString(query.sourceId, 'sourceId', 200) ?? undefined;
@@ -82,6 +87,7 @@ export class DeliveryManagementService {
     };
   }
 
+  /** 현재 상태에 맞는 결정만 허용하고 영수증 보완·작업 보관·후속 계획을 함께 반영한다. */
   review(id: number, value: unknown) {
     const body = requireObject(value);
     const decision = optionalString(body.decision, 'decision', 32);
@@ -93,7 +99,10 @@ export class DeliveryManagementService {
       if (job.state === 'held' && (decision === 'send' || decision === 'historical')) {
         if (!repositories.deliveryJobs.reviewHeld(id, decision, now)) throw validationError('종료된 연결에는 발송할 수 없습니다.');
       } else if (decision === 'historical' && UNRESOLVED_STATES.includes(job.state)) {
-        this.db.prepare("UPDATE delivery_jobs SET state = 'cancelled', error = 'Archived after administrator review', completed_at = ? WHERE id = ?").run(now, id);
+        this.db.prepare("UPDATE delivery_jobs SET state = 'cancelled', error = 'Archived after administrator review', completed_at = ? WHERE id = ?").run(
+          now,
+          id
+        );
       } else if (decision === 'confirm_delivered' && job.state === 'unknown') {
         // 결과가 불명확한 POST는 다시 전송하지 않고, 관리자가 확인한 원본 메시지 ID를 등록한다.
         const messageId = parseDiscordId(body.messageId, 'messageId');
@@ -109,7 +118,10 @@ export class DeliveryManagementService {
           appliedRevision: job.revision,
           firstDeliveredAt: job.requestStartedAt ?? now
         });
-        this.db.prepare("UPDATE delivery_jobs SET state = 'succeeded', error = 'Delivery confirmed by administrator', completed_at = ? WHERE id = ?").run(now, id);
+        this.db.prepare("UPDATE delivery_jobs SET state = 'succeeded', error = 'Delivery confirmed by administrator', completed_at = ? WHERE id = ?").run(
+          now,
+          id
+        );
         const item = repositories.items.getById(job.itemId);
         const source = item ? repositories.sources.getById(item.sourceId) : null;
         if (item && source) this.planner.planUpdate(item, source, now);

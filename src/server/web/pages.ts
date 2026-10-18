@@ -1,3 +1,6 @@
+/**
+ * 관리 페이지와 화면 모델. 서비스 결과에 표시용 상태를 얹고 Handlebars 레이아웃으로 렌더링한다.
+ */
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { SourceService, SourceDto } from '../sources/service.js';
 import type { GroupService, GroupDto } from '../groups/service.js';
@@ -63,6 +66,7 @@ export interface TemplateEditorViewModel {
 
 export type LogsViewModel = Record<string, never>;
 
+/** 각 관리 페이지에 필요한 서비스 결과를 조회하고 공통 레이아웃으로 전달한다. */
 export async function registerWebRoutes(app: FastifyInstance, services: WebServices): Promise<void> {
   app.get('/', async (_request, reply) => render(reply, 'pages/dashboard.hbs', dashboardModel(services)));
 
@@ -141,6 +145,7 @@ export async function registerWebRoutes(app: FastifyInstance, services: WebServi
 
 const PROFILE_VIEW_OPTIONS = ['auto', 'incident-io', 'atlassian-statuspage', 'generic'] as const;
 
+/** 그룹의 실제 웹훅 설정 여부를 화면 상태에 덧붙인다. 소스 활성 여부와는 별개다. */
 function withDestinationStatus<T extends {
   groupIds: number[]
 }>(source: T, groups: Array<{
@@ -166,6 +171,7 @@ function withGroupSelection<T extends {
   return groups.map((group) => ({ ...group, selected: selected.has(group.id) }));
 }
 
+/** 현재 설정과 최근 운영 로그를 대시보드 집계·표시 문구로 조합한다. */
 function dashboardModel(services: WebServices): DashboardViewModel {
   const sources = services.sources.list();
   const outcomes: Record<string, string> = { ok: '수집 완료', not_modified: '변경 없음', error: '수집 오류' };
@@ -224,8 +230,10 @@ function presetVars(): Array<{
   return PRESET_VARIABLES.map((name) => ({ name, description: descriptions[name] ?? name }));
 }
 
+/** 진단 상태별 안내만 생성하고 모델·키 설정 변경 기능은 제공하지 않는다. */
 function modelStatusGuidance(status: string): string | null {
-  if (status === 'missing-key') return 'PRIMARY_MODEL_API_KEY 환경 변수를 설정해야 Gemini 번역을 사용할 수 있습니다. FALLBACK_MODEL_API_KEY만 설정한 경우에는 대체 키로 동작합니다.';
+  if (status === 'missing-key')
+    return 'PRIMARY_MODEL_API_KEY 환경 변수를 설정해야 Gemini 번역을 사용할 수 있습니다. FALLBACK_MODEL_API_KEY만 설정한 경우에는 대체 키로 동작합니다.';
   if (status === 'invalid-key') return '설정한 Gemini API 키의 값과 접근 권한을 확인하세요. 대체 키는 FALLBACK_MODEL_API_KEY로 등록합니다.';
   if (status === 'cooldown') return '설정한 번역 키가 모두 일시 대기 중입니다. 대기 종료 후 자동으로 다시 시도하며, 그동안은 원문으로 발송합니다.';
   return null;

@@ -1,3 +1,6 @@
+/**
+ * 번역 실행과 키 전환. Gemini 응답을 검증하고 실패한 키를 잠시 제외하며 최종 실패 시 원문을 반환한다.
+ */
 import type { EventLogRepository } from '../logs/repository.js';
 import { nowIso } from '../core/db.js';
 import type { ItemRecord } from '../feed/repository.js';
@@ -27,6 +30,7 @@ export interface ParsedTranslation {
   summary: string;
 }
 
+/** 제목과 본문을 서로 독립된 입력으로 번역하도록 요청하고 URL·식별자 보존 규칙을 함께 전달한다. */
 export function buildTranslationPrompt(input: TranslationPromptInput): string {
   return JSON.stringify({
     instruction: `Translate title and summary to ${input.targetLang}. Translate each field independently without using the other field as context. Preserve URLs, CVE IDs, product names, versions, and incident stage labels.`,
@@ -35,6 +39,7 @@ export function buildTranslationPrompt(input: TranslationPromptInput): string {
   });
 }
 
+/** 공급자가 반환한 JSON에 title·summary 문자열이 모두 있는지 확인한다. */
 export function parseTranslationResponse(value: string): ParsedTranslation {
   const parsed = JSON.parse(extractJsonObject(value)) as unknown;
   if (!parsed || typeof parsed !== 'object') {
@@ -86,6 +91,7 @@ const DEFAULT_PROVIDER_TIMEOUT_MS = 15_000;
 
 const DEFAULT_KEY_COOLDOWN_MS = 300_000;
 
+/** 키별 대기 상태를 메모리에서 관리한다. 같은 요청은 사용 가능한 기본 키부터 대체 키 순서로 시도한다. */
 export class ModelTranslator {
   private readonly provider: TranslationProvider;
   private readonly keyCooldowns = new Map<ModelCredential['slot'], number>();
@@ -94,6 +100,7 @@ export class ModelTranslator {
     this.provider = options.provider ?? new GeminiTranslationProvider();
   }
 
+  /** 통신·인증·한도 오류만 키 전환 대상으로 삼고 형식·길이 오류는 원문으로 종료한다. */
   async translate(input: TranslationInput): Promise<TranslationResult> {
     const credentials = resolveModelCredentials(this.options.env);
     if (credentials.length === 0) {
@@ -103,6 +110,7 @@ export class ModelTranslator {
 
     const prompt = buildTranslationPrompt({ ...input, targetLang: TARGET_LANG });
     let attempted = false;
+    // 호출마다 기본 키부터 확인하되, 실패 후 대기 중인 슬롯은 건너뛴다. 대기가 끝나면 기본 키를 다시 시도한다.
     for (const { slot, apiKey } of credentials) {
       if ((this.keyCooldowns.get(slot) ?? 0) > Date.parse(this.now())) continue;
       attempted = true;
@@ -128,6 +136,7 @@ export class ModelTranslator {
         continue;
       }
 
+      // 응답 길이·JSON 형식 문제는 키를 바꿔도 해결되지 않으므로 대체 키를 소모하지 않는다.
       if (isLengthFinish(response.finishReason)) {
         this.record(input, 'failed', 'length', startedMs, slot);
         return originalTextResult(input);
@@ -157,10 +166,21 @@ export class ModelTranslator {
     };
     const primary = state('primary');
     const fallback = state('fallback');
-    return { primary, fallback, activeKey: primary.state === 'ready' ? 'primary' : fallback.state === 'ready' ? 'fallback' : null };
+    return {
+      primary,
+      fallback,
+      activeKey: primary.state === 'ready' ? 'primary' : fallback.state === 'ready' ? 'fallback' : null
+    };
   }
 
-  private record(input: TranslationInput, status: 'success' | 'failed' | 'skipped', detail: string | null, startedMs?: number, slot: ModelCredential['slot'] = 'primary'): void {
+  /** 공급자 오류 원문이나 API 키 대신 분류된 실패 사유와 키 슬롯만 기록한다. */
+  private record(
+    input: TranslationInput,
+    status: 'success' | 'failed' | 'skipped',
+    detail: string | null,
+    startedMs?: number,
+    slot: ModelCredential['slot'] = 'primary'
+  ): void {
     this.options.repositories.eventLog.append({
       kind: 'translation',
       status,
@@ -177,6 +197,7 @@ export class ModelTranslator {
   }
 }
 
+/** 발송 전 공유 번역 캐시를 적용해 저장 항목을 바꾸지 않고 전송용 번역 필드만 덧붙인다. */
 export class DispatchTranslationService {
   private readonly cache: TranslationCacheService;
   constructor(private readonly options: DispatchTranslationServiceOptions) {
@@ -206,6 +227,7 @@ export class DispatchTranslationService {
   }
 }
 
+/** 번역 실패·건너뜀에서도 호출자는 원래 제목·본문과 translated=false를 받는다. */
 function originalTextResult(input: TranslationInput): TranslationResult {
   return { title: input.title, summary: input.summary, translated: false };
 }
@@ -217,6 +239,7 @@ class TranslationTimeoutError extends Error {
   }
 }
 
+/** 취소 신호와 타이머를 공급자 호출에 연결하고, 늦은 실패의 미처리 Promise 거부도 정리한다. */
 async function withTimeout<T>(operationFactory: (signal: AbortSignal) => Promise<T>, timeoutMs: number): Promise<T> {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -242,10 +265,13 @@ function isLengthFinish(value: string | null | undefined): boolean {
   return reason === 'length' || reason === 'max_tokens';
 }
 
+/** 외부 오류를 공개 로그·대체 키 판단에 사용할 안정된 사유 코드로 분류한다. */
 function classifyError(error: unknown): string {
   if (error instanceof TranslationTimeoutError) return 'timeout';
   const status = statusFromError(error);
-  if (status === 401 || status === 403 || (status === 400 && error instanceof Error && /API_KEY_INVALID|API key not valid/i.test(error.message))) return 'invalid-key';
+  if (status === 401 || status === 403
+    || (status === 400 && error instanceof Error && /API_KEY_INVALID|API key not valid/i.test(error.message)))
+    return 'invalid-key';
   if (status === 408) return 'timeout';
   if (status === 429) return 'rate-limited';
   if (status !== null && status >= 500) return 'provider-error';
@@ -254,12 +280,14 @@ function classifyError(error: unknown): string {
   return 'provider-error';
 }
 
+/** 키를 바꾸면 해결될 수 있는 오류만 허용한다. 잘못된 요청·응답은 다른 키로 반복하지 않는다. */
 function canSwitchKey(error: unknown, failure: string): boolean {
   if (failure === 'invalid-key' || failure === 'timeout' || failure === 'rate-limited') return true;
   const status = statusFromError(error);
   return failure === 'provider-error' && (status === null || status === 408 || status >= 500);
 }
 
+/** SDK와 주입된 공급자가 표현하는 HTTP 상태 필드 차이를 흡수한다. */
 function statusFromError(error: unknown): number | null {
   if (error instanceof TranslationProviderError && error.statusCode !== undefined) return error.statusCode;
   if (error && typeof error === 'object') {

@@ -1,3 +1,6 @@
+/**
+ * 발신 그룹 관리. 웹훅 검증과 마스킹을 수행하고 설정 변경에 맞춰 발송 연결을 갱신한다.
+ */
 import type Database from 'better-sqlite3';
 import { conflict, validationError, notFound } from '../core/errors.js';
 import { verifyWebhookUrlSafe, assertSafeWebhookUrl } from '../net/webhook-url.js';
@@ -57,6 +60,7 @@ export class GroupService {
     return toGroupDto(this.requireGroup(id));
   }
 
+  /** 그룹 이름 중복과 웹훅 주소를 확인한 뒤 재사용 가능한 발신 채널을 만든다. */
   async create(value: unknown): Promise<GroupDto> {
     const input = normalizeGroupCreate(value);
     if (this.options.repositories.groups.findByNameNocase(input.name)) {
@@ -76,6 +80,7 @@ export class GroupService {
     );
   }
 
+  /** 빈 웹훅 입력은 유지하고 clearWebhook만 삭제로 처리한다. 연결 갱신도 같은 트랜잭션에서 수행한다. */
   async update(id: number, value: unknown): Promise<GroupDto> {
     const current = this.requireGroup(id);
     const input = normalizeGroupUpdate(value);
@@ -103,6 +108,7 @@ export class GroupService {
     })();
   }
 
+  /** 그룹 삭제 후 현재 목적지 집합과 연결 세대를 다시 맞춘다. */
   remove(id: number): void {
     this.requireGroup(id);
     this.options.db.transaction(() => {
@@ -147,6 +153,7 @@ function normalizeGroupUpdate(value: unknown): UpdateGroupRequest {
   };
 }
 
+/** 웹훅 원문을 제외하고 연결 유무·마스킹 주소만 관리 응답에 포함한다. */
 export function toGroupDto(group: GroupRecord): GroupDto {
   // 웹훅 토큰 원문 대신 설정 여부와 마스킹한 주소만 관리 화면에 전달한다.
   return {
@@ -161,6 +168,7 @@ export function toGroupDto(group: GroupRecord): GroupDto {
   };
 }
 
+/** 주소의 토큰 대부분과 부가 정보를 숨겨 관리 화면에 필요한 식별 정보만 남긴다. */
 export function maskWebhookUrl(value: string | null): string | null {
   if (!value) return null;
   try {
@@ -180,6 +188,7 @@ export function maskWebhookUrl(value: string | null): string | null {
   }
 }
 
+/** 웹훅 미입력·비우기 의미를 보존하면서 입력된 URL만 Discord 주소 규칙으로 검증한다. */
 export function validateOptionalWebhookUrl(value: unknown): string | null | undefined {
   const webhookUrl = optionalString(value, 'webhookUrl', 2048);
   if (webhookUrl === undefined || webhookUrl === null) return webhookUrl;

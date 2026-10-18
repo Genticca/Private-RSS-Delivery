@@ -1,3 +1,6 @@
+/**
+ * 로그 HTTP·SSE 라우트. 재연결 커서, 연결 수 제한, heartbeat와 종료 시 스트림 해제를 관리한다.
+ */
 import type { FastifyInstance } from 'fastify';
 import { queryInt } from '../core/http.js';
 import { validationError } from '../core/errors.js';
@@ -14,7 +17,11 @@ const STREAM_POLL_INTERVAL_MS = 1000;
 const HEARTBEAT_EVERY_TICKS = 15;
 
 /** 로그 목록은 JSON으로 조회하고, 실시간 추가 로그는 SSE 연결을 유지하며 전달한다. */
-export async function registerLogRoutes(app: FastifyInstance, services: { logs: LogService }, options: LogRouteOptions = {}): Promise<void> {
+export async function registerLogRoutes(
+  app: FastifyInstance,
+  services: { logs: LogService },
+  options: LogRouteOptions = {}
+): Promise<void> {
   const sseConnections = createSseConnectionLimiter(options.maxSseConnections ?? DEFAULT_MAX_SSE_CONNECTIONS);
   const streams = new Set<import('node:http').ServerResponse>();
   app.addHook('preClose', async () => {
@@ -88,6 +95,7 @@ export async function registerLogRoutes(app: FastifyInstance, services: { logs: 
   });
 }
 
+/** 잘못되거나 안전 정수 범위를 벗어난 커서는 초기 연결로 취급한다. */
 export function parseSseCursor(value: string | string[] | undefined): number | null {
   if (typeof value !== 'string' || !/^\d+$/.test(value)) return null;
   const id = Number(value);
@@ -99,6 +107,7 @@ export interface SseConnectionLimiter {
   tryAcquire(): (() => void) | null;
 }
 
+/** 연결 슬롯 해제 함수를 돌려준다. close 이벤트가 중복되어도 한 슬롯은 한 번만 반환한다. */
 export function createSseConnectionLimiter(maxConnections: number): SseConnectionLimiter {
   let activeConnections = 0;
   return {

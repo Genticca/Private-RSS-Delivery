@@ -1,3 +1,6 @@
+/**
+ * 설정 경계. 외부 환경 변수와 .env를 병합하고 부팅 전에 주소·범위·실행 제한값을 검증한다.
+ */
 import process from 'node:process';
 import { resolve } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
@@ -20,6 +23,7 @@ export interface LoadConfigOptions {
   envFilePath?: string;
 }
 
+/** 네트워크 노출과 저장 경로를 부팅 시 검증한다. production은 loopback 주소만 허용한다. */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env, options: LoadConfigOptions = {}): AppConfig {
   const effectiveEnv = loadEnvironment(env, options);
   const isProduction = effectiveEnv.NODE_ENV === 'production';
@@ -37,6 +41,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, options: LoadCo
   };
 }
 
+/** 공백 입력과 누락을 구분해 설정별 기본값·필수값 규칙을 적용한다. */
 function readString(value: string | undefined, fallback: string, name: string): string {
   const candidate = value?.trim() ?? fallback;
   if (candidate.length === 0) {
@@ -45,6 +50,7 @@ function readString(value: string | undefined, fallback: string, name: string): 
   return candidate;
 }
 
+/** 기본 설정의 정수 범위를 검증한다. 실행 제한값 검증과 오류 문구가 달라 별도로 유지한다. */
 function readInt(
   value: string | undefined,
   fallback: number,
@@ -73,6 +79,7 @@ function readInt(
   return parsed;
 }
 
+/** 관리 화면을 외부 인터페이스에 직접 노출하지 않도록 허용 주소를 명시한다. */
 function isLoopbackHost(host: string): boolean {
   return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
 }
@@ -102,6 +109,7 @@ export function loadEnvironment(
   return merged;
 }
 
+/** .env의 따옴표·이스케이프·행 끝 주석 규칙만 해석하며 임의 코드를 실행하지 않는다. */
 function parseValue(value: string): string {
   const trimmed = value.trim();
   if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
@@ -129,6 +137,7 @@ export interface RuntimeOptions {
   itemContentRetentionDays: number;
 }
 
+/** 동시성·수집 크기·보존 기간을 읽고 허용 범위를 벗어난 값은 실행 전에 거부한다. */
 export function loadRuntimeOptions(env: NodeJS.ProcessEnv): RuntimeOptions {
   // 잘못된 제한값으로 실행을 시작하지 않도록 부팅 단계에서 범위까지 검증한다.
   return {
@@ -143,6 +152,7 @@ export function loadRuntimeOptions(env: NodeJS.ProcessEnv): RuntimeOptions {
   };
 }
 
+/** 실행 제한값은 숫자 문자열이면서 안전한 정수이고 지정 범위 안에 있어야 한다. */
 function integer(env: NodeJS.ProcessEnv, name: string, fallback: number, min: number, max: number): number {
   const raw = env[name];
   if (raw === undefined || raw.trim() === '') return fallback;
@@ -153,6 +163,7 @@ function integer(env: NodeJS.ProcessEnv, name: string, fallback: number, min: nu
   return value;
 }
 
+/** 보류 비율은 0 초과 1 이하로 제한해 분모 대비 판단을 일정하게 유지한다. */
 function ratio(raw: string): number {
   const value = Number(raw);
   if (raw.trim() === '' || !Number.isFinite(value) || value <= 0 || value > 1) {

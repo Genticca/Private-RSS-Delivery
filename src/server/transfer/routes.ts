@@ -1,3 +1,6 @@
+/**
+ * 설정 이전 HTTP 라우트. 업로드·문자열 입력을 읽고 미리보기와 실제 적용의 응답 형식을 연결한다.
+ */
 import type { FastifyInstance } from 'fastify';
 import { mutationReply, requestBody, redirectMutation, renderPartial } from '../core/http.js';
 import { validationError } from '../core/errors.js';
@@ -5,7 +8,10 @@ import type { ExportImportService } from './service.js';
 import { parseImportMode } from './document.js';
 
 /** 설정 내보내기와 가져오기 미리보기·적용을 제공한다. 문서 검증과 DB 변경은 서비스에 맡긴다. */
-export async function registerExportImportRoutes(app: FastifyInstance, services: { exportImport: ExportImportService }): Promise<void> {
+export async function registerExportImportRoutes(
+  app: FastifyInstance,
+  services: { exportImport: ExportImportService }
+): Promise<void> {
   app.get('/api/export', async (_request, reply) => {
     const document = services.exportImport.export();
     const date = document.exportedAt.slice(0, 10).replace(/-/g, '');
@@ -48,6 +54,7 @@ export async function registerExportImportRoutes(app: FastifyInstance, services:
 
 const IMPORT_PAYLOAD_LIMIT_BYTES = 1_048_576;
 
+/** multipart 파일과 직접 전달된 content를 같은 JSON 문자열 입력으로 변환한다. */
 function importPayload(body: {
   file?: unknown;
   content?: unknown
@@ -72,6 +79,7 @@ function fieldToString(value: unknown): string {
   return String(value);
 }
 
+/** 미리보기 경고와 적용 모드를 화면 조각이 사용하는 표시용 값으로 바꾼다. */
 export function importSummary(plan: {
   [key: string]: unknown
 }, mode = 'skip'): string {

@@ -1,4 +1,6 @@
-
+/**
+ * 비동기 작업 수명 관리. 새 작업 접수 중단, 진행 중 작업 대기, 제한된 병렬 실행을 제공한다.
+ */
 
 export interface DrainableWorker {
   stop(): void;
@@ -32,10 +34,12 @@ export class TaskTracker {
     return !this.accepting;
   }
 
+  /** 이미 시작한 작업은 유지하고 이후 작업 접수만 중단한다. */
   stop(): void {
     this.accepting = false;
   }
 
+  /** 추적 목록에 등록한 Promise를 그대로 반환해 호출자가 원래 성공·실패를 관찰하게 한다. */
   track<T>(operation: () => Promise<T>): Promise<T> {
     if (!this.accepting) return Promise.reject(new Error('Worker is shutting down.'));
     const task = Promise.resolve().then(operation);
@@ -45,6 +49,7 @@ export class TaskTracker {
     return task;
   }
 
+  /** 실패한 작업도 대기 완료로 처리한다. 대기 중 추적 목록이 바뀔 수 있어 빌 때까지 확인한다. */
   async drain(): Promise<void> {
     while (this.tasks.size > 0) {
       await Promise.allSettled([...this.tasks]);
@@ -52,7 +57,12 @@ export class TaskTracker {
   }
 }
 
-export async function mapConcurrent<T, R>(values: readonly T[], concurrency: number, action: (value: T) => Promise<R>): Promise<R[]> {
+/** 동시에 실행할 슬롯 수만 제한하고 결과 배열의 순서는 입력 순서와 같게 유지한다. */
+export async function mapConcurrent<T, R>(
+  values: readonly T[],
+  concurrency: number,
+  action: (value: T) => Promise<R>
+): Promise<R[]> {
   const results = new Array<R>(values.length);
   let nextIndex = 0;
   const workerCount = Math.min(Math.max(1, concurrency), values.length);

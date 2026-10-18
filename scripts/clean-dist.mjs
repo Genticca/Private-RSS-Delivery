@@ -1,3 +1,6 @@
+/**
+ * 빌드 출력 정리. 실제 경로가 이 프로젝트의 dist인지 확인한 뒤 이전 산출물을 제거한다.
+ */
 import { existsSync, realpathSync, rmSync } from 'node:fs';
 import { basename, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -1,3 +1,6 @@
+/**
+ * 번역 상태·진단 라우트. 모델·키 설정은 환경 변수에 두고 이 화면은 조회와 진단만 제공한다.
+ */
 import type { FastifyInstance } from 'fastify';
 import { requestBody, isHtmxRequest, mutationReply, renderPartial } from '../core/http.js';
 import type { ModelService } from './service.js';
@@ -8,8 +11,9 @@ export async function registerModelRoutes(app: FastifyInstance, services: { mode
   app.post('/api/model/diagnose', async (request, reply) => {
     const diagnose = () => services.model.diagnose(requestBody(request));
     // htmx에는 진단 HTML과 상태 갱신 조각을 함께, 일반 요청에는 진단 결과 JSON을 반환한다.
-    if (isHtmxRequest(request)) return mutationReply(reply, diagnose,
-      (result) => translationDiagnostic(result) + modelDiagnostics(services.model.getDiagnostics()));
+    if (isHtmxRequest(request))
+      return mutationReply(reply, diagnose,
+        (result) => translationDiagnostic(result) + modelDiagnostics(services.model.getDiagnostics()));
     return diagnose();
   });
 }

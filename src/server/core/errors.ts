@@ -1,4 +1,6 @@
-
+/**
+ * 공통 오류 계약. 예상 가능한 입력 오류와 외부 통신·보안 오류를 구분해 상위 계층에 전달한다.
+ */
 
 export type SecurityErrorCode =
   | 'invalid_url'

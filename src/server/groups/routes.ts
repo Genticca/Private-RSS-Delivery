@@ -1,3 +1,6 @@
+/**
+ * 발신 그룹 관리 라우트. JSON 조회와 htmx 행 갱신을 연결하며 웹훅 원문을 응답하지 않는다.
+ */
 import type { FastifyInstance } from 'fastify';
 import { mutationReply, requestBody, renderPartial, type IdParam } from '../core/http.js';
 import { parseIdParam } from '../core/input.js';

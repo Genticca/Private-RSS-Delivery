@@ -1,3 +1,6 @@
+/**
+ * 수집 소스 CRUD 라우트. htmx 폼의 이동·오류 처리와 일반 변경 요청의 행 응답을 구분한다.
+ */
 import type { FastifyInstance } from 'fastify';
 import {
   isHtmxRequest,

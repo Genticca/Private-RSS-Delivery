@@ -1,3 +1,6 @@
+/**
+ * 피드 해석 1단계. RSS·Atom의 구조 차이를 FeedEnvelope로 흡수하며 본문 HTML은 다음 단계로 넘긴다.
+ */
 import { XMLParser, XMLValidator } from 'fast-xml-parser';
 
 type XmlNode = Record<string, unknown>;
@@ -16,6 +19,7 @@ const parser = new XMLParser({
   htmlEntities: true
 });
 
+/** XML을 검증한 뒤 RSS·Atom별 매핑을 선택한다. 반환 시 같은 atomId는 첫 항목만 남긴다. */
 export function parseFeed(rawXml: string): FeedEnvelope[] {
   // 이 단계는 RSS·Atom의 구조 차이만 흡수한다. HTML 정제는 normalize에서 수행한다.
   const validation = XMLValidator.validate(rawXml);
@@ -38,6 +42,7 @@ export function parseFeed(rawXml: string): FeedEnvelope[] {
   throw new Error('Unsupported feed root. Expected <rss> or <feed>.');
 }
 
+/** RSS item의 필드·본문·첨부 정보를 공통 Envelope로 옮긴다. */
 function mapRssFeed(rss: XmlNode): FeedEnvelope[] {
   const channel = firstNode(rss.channel);
   if (!channel) return [];
@@ -67,6 +72,7 @@ function mapRssFeed(rss: XmlNode): FeedEnvelope[] {
   });
 }
 
+/** Atom entry의 링크 관계와 본문 표현 차이를 공통 Envelope로 옮긴다. */
 function mapAtomFeed(feed: XmlNode): FeedEnvelope[] {
   const feedAuthor = authorName(feed.author);
 
@@ -94,6 +100,7 @@ function mapAtomFeed(feed: XmlNode): FeedEnvelope[] {
   });
 }
 
+/** 같은 ID가 반복되면 앞선 항목을 유지해 공급자가 제시한 첫 번째 내용을 사용한다. */
 function dedupeFirstWins(items: FeedEnvelope[]): FeedEnvelope[] {
   // 같은 ID가 반복되면 문서에 먼저 나온 항목을 유지한다.
   const seen = new Set<string>();
@@ -118,6 +125,7 @@ function categoriesFromAtom(entry: XmlNode): string[] {
   );
 }
 
+/** RSS의 이미지·첨부·media 표현에서 사용할 이미지 URL을 찾는다. */
 function imageFromRss(entry: XmlNode): string | undefined {
   return (
     mediaUrl(entry['media:thumbnail']) ??
@@ -127,6 +135,7 @@ function imageFromRss(entry: XmlNode): string | undefined {
   );
 }
 
+/** Atom 링크와 media 확장에 실린 이미지 후보를 공통 필드로 옮긴다. */
 function imageFromAtom(entry: XmlNode): string | undefined {
   return mediaUrl(entry['media:thumbnail']) ?? mediaUrl(entry['media:content']) ?? imageEnclosureUrl(entry.link);
 }
@@ -148,6 +157,7 @@ function mediaUrl(value: unknown): string | undefined {
     .find(isNonEmptyString);
 }
 
+/** Atom link의 rel·자료형을 고려해 사용자에게 보여줄 링크를 선택한다. */
 function atomLink(value: unknown, rel?: string): string | undefined {
   const links = asArray(value);
   const normalizedRel = rel?.toLowerCase();
@@ -196,12 +206,14 @@ function firstNode(value: unknown): XmlNode | undefined {
   return first;
 }
 
+/** XML 파서가 단일 노드와 반복 노드를 다르게 반환해도 아래 매핑은 배열만 다루게 한다. */
 function asArray(value: unknown): unknown[] {
   // XML 파서가 단일 노드와 반복 노드를 서로 다른 모양으로 반환하는 차이를 숨긴다.
   if (value === undefined || value === null) return [];
   return Array.isArray(value) ? value : [value];
 }
 
+/** 해석 가능한 날짜만 UTC ISO 문자열로 바꾸고 알 수 없는 값은 비워 둔다. */
 function isoDate(value: string | undefined): string | undefined {
   if (!value) return undefined;
   const timestamp = Date.parse(value);

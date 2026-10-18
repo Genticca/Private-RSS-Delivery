@@ -1,3 +1,6 @@
+/**
+ * 입력 검증 기본 함수. 미입력(undefined)과 명시적 비우기(null/빈 목록)의 의미를 구분한다.
+ */
 import { validationError, SecurityError } from './errors.js';
 
 /** 공백뿐이거나 값이 없으면 null을 반환하고, 내용이 있는 문자열은 원문을 유지한다. */
@@ -12,6 +15,7 @@ export function requireObject(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+/** undefined는 기존 값 유지, null·빈 문자열은 비우기를 뜻한다. 유효 문자열만 길이를 검사한다. */
 export function optionalString(value: unknown, field: string, maxLength: number): string | null | undefined {
   if (value === undefined) return undefined;
   if (value === null) return null;
@@ -21,12 +25,14 @@ export function optionalString(value: unknown, field: string, maxLength: number)
   return text;
 }
 
+/** 선택 문자열의 정규화 결과가 비어 있으면 필드별 필수 입력 오류로 바꾼다. */
 export function requiredString(value: unknown, field: string, maxLength: number): string {
   const text = optionalString(value, field, maxLength);
   if (!text) throw validationError('필수 값이 누락되었습니다.', { [field]: '필수 값입니다.' });
   return text;
 }
 
+/** JSON 값과 HTML 폼의 on/off 표현을 같은 boolean 계약으로 해석한다. */
 export function optionalBoolean(value: unknown): boolean | undefined {
   if (value === undefined) return undefined;
   if (typeof value === 'boolean') return value;
@@ -37,6 +43,7 @@ export function optionalBoolean(value: unknown): boolean | undefined {
   throw validationError('boolean 값이 필요합니다.');
 }
 
+/** 입력이 있을 때만 정수·범위를 검사해 PATCH의 미입력 유지 의미를 보존한다. */
 export function optionalInteger(value: unknown, field: string, min: number, max: number): number | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   const parsed = typeof value === 'number' ? value : Number(String(value));
@@ -54,6 +61,7 @@ export function parseIdParam(value: unknown, field = 'id'): number {
   return parsed;
 }
 
+/** Discord snowflake는 안전 정수 범위를 넘을 수 있으므로 숫자로 변환하지 않는다. */
 export function parseDiscordId(value: unknown, field: string): string | null | undefined {
   // Discord ID는 JavaScript의 안전한 정수 범위를 넘을 수 있어 문자열로 유지한다.
   const text = optionalString(value, field, 64);
@@ -77,6 +85,7 @@ interface StringListOptions {
   numericOnly: boolean;
 }
 
+/** 배열·쉼표 문자열·JSON 배열을 한 목록으로 만들고 중복 제거 전후의 개수 제한을 검사한다. */
 function parseStringList(value: unknown, field: string, options: StringListOptions): string[] | undefined {
   // JSON 배열, 쉼표 구분 문자열, 폼의 반복 필드를 동일한 목록으로 정규화한다.
   if (value === undefined) return undefined;
@@ -121,6 +130,7 @@ function parseStringList(value: unknown, field: string, options: StringListOptio
   return output;
 }
 
+/** 외부 주소 검증 오류를 폼이 표시할 필드 오류로 바꾸되 보안 차단 코드는 유지한다. */
 export function securityValidationError(error: unknown, field: string): Error {
   if (error instanceof SecurityError) {
     const code = error.code === 'webhook_not_allowed' || error.code === 'ssrf_blocked'

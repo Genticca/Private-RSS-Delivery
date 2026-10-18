@@ -1,3 +1,6 @@
+/**
+ * Gemini 어댑터와 자격 정보 해석. 키는 환경 변수에서 읽고 공급자 응답을 공통 계약으로 변환한다.
+ */
 import process from 'node:process';
 import { GoogleGenAI } from '@google/genai';
 import type { TranslationProvider, TranslationProviderRequest, TranslationProviderResponse } from './translator.js';
@@ -52,6 +55,7 @@ const TRANSLATION_RESPONSE_SCHEMA = {
 
 /** Gemini SDK 응답을 공통 번역 응답으로 바꾼다. JSON 구조·최대 출력량·취소 신호도 함께 전달한다. */
 export class GeminiTranslationProvider implements TranslationProvider {
+  /** 공급자 한 번의 호출만 담당한다. 키 전환과 재시도 판단은 상위 번역기가 소유한다. */
   async generate(request: TranslationProviderRequest): Promise<TranslationProviderResponse> {
     // 키별 재시도·전환은 ModelTranslator에서 담당한다. SDK 내부 재시도는 하지 않는다.
     const ai = new GoogleGenAI({ apiKey: request.apiKey, httpOptions: { retryOptions: { attempts: 1 } } });

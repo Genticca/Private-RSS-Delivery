@@ -1,3 +1,6 @@
+/**
+ * 소스 전용 입력 경계. 생성 기본값과 수정 시 미입력 유지 규칙을 적용하고 URL·요청 옵션을 검증한다.
+ */
 import {
   requireObject,
   optionalString,
@@ -15,6 +18,7 @@ import { assertSafeFeedUrl, parseHttpUrl } from '../net/address.js';
 import type { FetchOptions } from '../net/fetch.js';
 import type { CreateSourceRequest, UpdateSourceRequest } from './service.js';
 
+/** 생성 입력의 필수 URL과 선택 옵션을 정규화한다. 업무 기본값은 서비스가 적용한다. */
 export function normalizeSourceCreate(value: unknown): Required<Pick<CreateSourceRequest, 'feedUrl'>> & CreateSourceRequest {
   const body = requireObject(value);
   return {
@@ -40,6 +44,7 @@ export function normalizeSourceCreate(value: unknown): Required<Pick<CreateSourc
   };
 }
 
+/** 제공된 필드만 수정 대상으로 남겨 빈 값과 미입력의 차이를 보존한다. */
 export function normalizeSourceUpdate(value: unknown): UpdateSourceRequest {
   // undefined는 기존 값 유지, null은 명시적 비우기다. 부분 수정에서 두 값을 구분한다.
   const body = requireObject(value);
@@ -49,7 +54,9 @@ export function normalizeSourceUpdate(value: unknown): UpdateSourceRequest {
     profile: parseSourceProfile(body.profile),
     pollIntervalSeconds: optionalInteger(body.pollIntervalSeconds, 'pollIntervalSeconds', 60, 86400),
     translate: optionalBoolean(body.translate),
-    templateId: body.templateId === null || body.templateId === '' ? null : optionalInteger(body.templateId, 'templateId', 1, Number.MAX_SAFE_INTEGER),
+    templateId: body.templateId === null || body.templateId === ''
+      ? null
+      : optionalInteger(body.templateId, 'templateId', 1, Number.MAX_SAFE_INTEGER),
     webhookName: optionalString(body.webhookName, 'webhookName', 80),
     webhookAvatarUrl: validateOptionalHttpUrl(body.webhookAvatarUrl, 'webhookAvatarUrl', 2048),
     fetchOptions: validateFetchOptions(body.fetchOptions),
@@ -66,6 +73,7 @@ export function normalizeSourceUpdate(value: unknown): UpdateSourceRequest {
   };
 }
 
+/** 수동 프로필과 auto만 허용하고 허용 목록을 필드 오류에 함께 안내한다. */
 export function parseSourceProfile(value: unknown): SourceProfile | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   const text = String(value).trim();
@@ -75,6 +83,7 @@ export function parseSourceProfile(value: unknown): SourceProfile | undefined {
   return text as SourceProfile;
 }
 
+/** 배정 그룹 ID를 양의 정수 목록으로 바꾸고 중복 제거 후 정렬한다. */
 export function parseGroupIds(value: unknown): number[] | undefined {
   if (value === undefined) return undefined;
   const raw = Array.isArray(value) ? value : String(value).split(',');
@@ -91,6 +100,7 @@ export function parseGroupIds(value: unknown): number[] | undefined {
   return Array.from(new Set(ids)).sort((a, b) => a - b);
 }
 
+/** URL 구문·리터럴 주소를 검증한다. 비동기 DNS 확인은 저장 전에 서비스가 수행한다. */
 export function validateFeedUrl(value: unknown): string {
   const feedUrl = requiredString(value, 'feedUrl', 2048);
   try {
@@ -113,6 +123,7 @@ export function validateOptionalHttpUrl(value: unknown, field: string, maxLength
   }
 }
 
+/** 문자셋·헤더·TLS·타임아웃을 허용된 구조로 정규화하고 범위를 벗어난 값은 거부한다. */
 export function validateFetchOptions(value: unknown): FetchOptions | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   if (typeof value === 'string') {
@@ -145,6 +156,7 @@ export function validateFetchOptions(value: unknown): FetchOptions | undefined {
   return output;
 }
 
+/** 헤더 개수·이름·값 길이를 제한하고 줄바꿈이 포함된 값은 허용하지 않는다. */
 function validateHeaders(value: unknown): Record<string, string> | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   if (typeof value !== 'object' || Array.isArray(value)) {

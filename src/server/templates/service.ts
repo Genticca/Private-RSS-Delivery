@@ -1,3 +1,6 @@
+/**
+ * 템플릿 관리 정책. 사용자 템플릿 생성·복제와 내장 템플릿의 변경 가능 범위를 제어한다.
+ */
 import { validationError, conflict, notFound } from '../core/errors.js';
 import { nowIso } from '../core/db.js';
 import { requireObject, optionalString, parseIdParam } from '../core/input.js';
@@ -57,6 +60,7 @@ export class TemplateService {
     return toTemplateDto(this.requireTemplate(id));
   }
 
+  /** 복제할 템플릿 또는 새 입력에서 사용자 템플릿을 만들고 이름 충돌을 피한다. */
   create(value: unknown): TemplateDto {
     const input = normalizeTemplateCreate(value);
     const clone = input.cloneFrom ? this.requireTemplate(input.cloneFrom) : null;
@@ -75,6 +79,7 @@ export class TemplateService {
     }));
   }
 
+  /** 내장 템플릿은 표시 이름 변경만 허용하고 본문 보호 규칙을 유지한다. */
   update(id: number, value: unknown): TemplateDto {
     const current = this.requireTemplate(id);
     const input = normalizeTemplateUpdate(value);
@@ -84,12 +89,14 @@ export class TemplateService {
     return toTemplateDto(this.options.repositories.templates.update(id, { ...input, updatedAt: this.now() }));
   }
 
+  /** 내장 프리셋 삭제를 막고 존재하는 사용자 템플릿만 삭제한다. */
   remove(id: number): void {
     const current = this.requireTemplate(id);
     if (current.isBuiltin) throw conflict('내장 템플릿은 삭제할 수 없습니다.');
     if (!this.options.repositories.templates.delete(id)) throw notFound('템플릿을 찾을 수 없습니다.');
   }
 
+  /** 생성할 내부 이름이 이미 쓰이면 순번을 붙여 고유하게 만든다. */
   private uniqueName(base: string): string {
     let candidate = slugify(base);
     if (!candidate) candidate = 'template-copy';
@@ -130,6 +137,7 @@ function normalizeTemplateUpdate(value: unknown): UpdateTemplateRequest {
   };
 }
 
+/** 표시 이름에서 내부 식별용 슬러그를 만든다. 표시 이름 자체는 별도로 보존한다. */
 function slugify(value: string): string {
   return value.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
 }

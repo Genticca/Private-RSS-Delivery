@@ -1,3 +1,6 @@
+/**
+ * 템플릿 저장소와 내장 프리셋 시드. 파일 프리셋을 읽는 경로는 빌드 결과에서도 유지되어야 한다.
+ */
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -69,7 +72,14 @@ export class TemplateRepository {
         `INSERT INTO templates (name, label, body, is_builtin, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?)`
       )
-      .run(input.name, input.label, input.body, toSqliteBoolean(input.isBuiltin ?? false), createdAt, updatedAt);
+      .run(
+        input.name,
+        input.label,
+        input.body,
+        toSqliteBoolean(input.isBuiltin ?? false),
+        createdAt,
+        updatedAt
+      );
     return this.requireById(Number(result.lastInsertRowid));
   }
 
@@ -91,6 +101,7 @@ export class TemplateRepository {
     return this.requireById(id);
   }
 
+  /** 내장 프리셋을 이름으로 찾아 시드해 부팅을 반복해도 중복 행이 생기지 않게 한다. */
   upsertBuiltin(name: string, label: string, body: string, updatedAt = nowIso()): TemplateRecord {
     // 같은 이름의 ID를 유지해 소스가 참조 중인 내장 프리셋을 갱신한다.
     this.db
@@ -103,7 +114,13 @@ export class TemplateRepository {
            is_builtin = 1,
            updated_at = excluded.updated_at`
       )
-      .run(name, label, body, updatedAt, updatedAt);
+      .run(
+        name,
+        label,
+        body,
+        updatedAt,
+        updatedAt
+      );
     const template = this.findByName(name);
     if (!template) throw new Error(`Template upsert failed: ${name}`);
     return template;
@@ -154,6 +171,7 @@ export const BUILTIN_PRESETS: readonly BuiltinPresetDefinition[] = [
 
 const DEFAULT_PRESETS_DIR = fileURLToPath(new URL('../../resources/presets/', import.meta.url));
 
+/** 패키지와 함께 배포된 프리셋 파일을 읽어 DB의 내장 템플릿으로 반영한다. */
 export function seedBuiltinPresets(templates: TemplateRepository, options: SeedBuiltinPresetOptions = {}): TemplateRecord[] {
   const presetsDir = options.presetsDir ?? DEFAULT_PRESETS_DIR;
   return BUILTIN_PRESETS.map((preset) =>
@@ -161,6 +179,7 @@ export function seedBuiltinPresets(templates: TemplateRepository, options: SeedB
   );
 }
 
+/** 파일 끝의 불필요한 공백만 제거하고 프리셋 본문 자체의 의미는 보존한다. */
 function readPresetBody(presetsDir: string, name: string): string {
   return readFileSync(join(presetsDir, `${name}.hbs`), 'utf8').trimEnd();
 }

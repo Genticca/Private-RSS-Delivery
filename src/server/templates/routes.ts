@@ -1,3 +1,6 @@
+/**
+ * 템플릿 관리 라우트. 저장 결과를 화면 행으로 렌더링하고 업무 판단은 서비스에 위임한다.
+ */
 import type { FastifyInstance } from 'fastify';
 import { mutationReply, requestBody, flash, renderPartial, type IdParam } from '../core/http.js';
 import { parseIdParam } from '../core/input.js';
@@ -9,7 +12,10 @@ export async function registerTemplateRoutes(app: FastifyInstance, services: { t
 
   app.get<{
     Params: IdParam
-  }>('/api/templates/:id', async (request) => services.templates.get(parseIdParam(request.params.id)));
+  }>(
+    '/api/templates/:id',
+    async (request) => services.templates.get(parseIdParam(request.params.id))
+  );
 
   // 조회는 JSON으로, 생성·수정은 관리 화면에서 사용할 HTML 조각으로 응답한다.
   app.post('/api/templates', async (request, reply) =>

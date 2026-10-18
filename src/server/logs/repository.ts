@@ -1,3 +1,6 @@
+/**
+ * event_log 저장소. 수집·발송·번역 이력을 단일 ID 순서로 저장하고 조회한다.
+ */
 import type Database from 'better-sqlite3';
 import { nullable, nowIso, subtractDaysIso } from '../core/db.js';
 
@@ -52,6 +55,7 @@ const MAX_DETAIL_LENGTH = 1000;
 export class EventLogRepository {
   constructor(private readonly db: Database.Database) { }
 
+  /** 종류별 결과를 같은 테이블에 기록한다. 소스가 생략되면 항목에서 추적하고 detail 길이를 제한한다. */
   append(input: AppendEventInput): number {
     const itemId = nullable(input.itemId);
     const result = this.db.prepare(`INSERT INTO event_log
@@ -72,6 +76,7 @@ export class EventLogRepository {
     return Number(result.lastInsertRowid);
   }
 
+  /** 최신 ID부터 조회하고 소스 이름을 JOIN해 서비스의 소스별 추가 조회를 피한다. */
   list(options: {
     kind?: EventKind;
     before?: number;
@@ -86,11 +91,16 @@ export class EventLogRepository {
     }) as EventLogRecord[];
   }
 
+  /** SSE 재연결·주기 조회가 같은 커서 이후 기록을 오래된 순서부터 이어받도록 한다. */
   listAfterId(afterId: number, limit = 100): EventLogRecord[] {
     return this.db.prepare(`SELECT ${LIST_COLUMNS} FROM event_log e LEFT JOIN sources s ON s.id = e.source_id WHERE e.id > ? ORDER BY e.id ASC LIMIT ?`)
-      .all(afterId, limit) as EventLogRecord[];
+      .all(
+        afterId,
+        limit
+      ) as EventLogRecord[];
   }
 
+  /** 목록 화면의 최근 수집 상태를 소스마다 쿼리하지 않고 일괄 조회한다. */
   latestFetchStatusBySourceIds(sourceIds: readonly string[]): Map<string, FetchEventStatus> {
     // 소스별로 쿼리를 반복하지 않고, 각 소스의 가장 최근 수집 결과만 한 번에 조회한다.
     const output = new Map<string, FetchEventStatus>();
@@ -121,6 +131,7 @@ export class EventLogRepository {
     return Object.fromEntries(rows.map((row) => [row.status, row.count]));
   }
 
+  /** 발송 판단 데이터와 분리된 운영 로그만 지정 보존 기간으로 정리한다. */
   pruneOlderThan(days: number, baseIso = nowIso()): number {
     return this.db.prepare('DELETE FROM event_log WHERE created_at < ?').run(subtractDaysIso(baseIso, days)).changes;
   }

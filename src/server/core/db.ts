@@ -1,3 +1,6 @@
+/**
+ * SQLite 공통 처리. 저장 형식 변환과 UTC 시각 계산, 순번 마이그레이션 적용을 담당한다.
+ */
 import { fileURLToPath } from 'node:url';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -15,6 +18,7 @@ export function nullable<T>(value: T | null | undefined): T | null {
   return value ?? null;
 }
 
+/** SQLite의 JSON 객체 컬럼을 복원한다. 빈 값의 기본 처리와 손상된 JSON 오류를 구분한다. */
 export function parseJsonObject<T extends object>(value: string | null, fallback: T, fieldName: string): T {
   // 값이 없는 경우만 기본값을 사용한다. 손상된 JSON은 필드명을 포함한 오류로 드러낸다.
   if (value === null || value.trim() === '') return fallback;
@@ -33,6 +37,7 @@ export function stringifyJsonObject(value: object): string {
   return JSON.stringify(value);
 }
 
+/** 문자열 배열 컬럼의 형식을 확인해 저장소 밖으로 잘못된 자료형이 퍼지는 것을 막는다. */
 export function parseJsonStringArray(value: string | null, fallback: string[], fieldName: string): string[] {
   if (value === null || value.trim() === '') return fallback;
   try {
@@ -63,6 +68,7 @@ export function nowIso(): string {
   return new Date().toISOString();
 }
 
+/** 초 단위 간격을 UTC ISO 시각에 더한다. 호출자는 문자열 비교가 가능한 동일 형식을 받는다. */
 export function addSecondsIso(baseIso: string, seconds: number): string {
   const base = Date.parse(baseIso);
   if (!Number.isFinite(base)) {
@@ -71,6 +77,7 @@ export function addSecondsIso(baseIso: string, seconds: number): string {
   return new Date(base + seconds * 1000).toISOString();
 }
 
+/** 보존 기간의 경계 시각을 일 단위로 계산한다. */
 export function subtractDaysIso(baseIso: string, days: number): string {
   const base = Date.parse(baseIso);
   if (!Number.isFinite(base)) {

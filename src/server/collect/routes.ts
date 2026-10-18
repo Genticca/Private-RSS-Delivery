@@ -1,3 +1,6 @@
+/**
+ * 수동 수집 라우트. 소스 존재를 확인한 뒤 예약 수집과 같은 워커가 처리 완료할 때까지 기다린다.
+ */
 import type { FastifyInstance } from 'fastify';
 import type { SourceRepository } from '../sources/repository.js';
 import { notFound } from '../core/errors.js';

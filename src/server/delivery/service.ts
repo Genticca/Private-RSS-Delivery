@@ -1,3 +1,6 @@
+/**
+ * 발송 한 건의 실행. 작업 획득 → payload 준비 → 전송 직전 재검증 → HTTP 요청 → 결과 저장 순서를 지킨다.
+ */
 import type Database from 'better-sqlite3';
 import type { ItemRepository, ItemRecord } from '../feed/repository.js';
 import type { SourceRepository, SourceGroupRepository, SourceRecord } from '../sources/repository.js';
@@ -67,9 +70,11 @@ export interface DeliveryRunResult {
   nextAttemptAt?: string | null;
 }
 
+/** 외부 발송과 DB 저장 사이의 경계를 관리한다. 실제 POST 결과가 불명확하면 자동 재발송하지 않는다. */
 export class DeliveryService {
   constructor(private readonly options: DeliveryServiceOptions) { }
 
+  /** 같은 작업을 중복 처리하지 않도록 먼저 획득하고 준비 중 설정 변화와 종료 신호를 전송 직전에 재확인한다. */
   async processJob(id: number, now = nowIso(), isStopping: () => boolean = () => false): Promise<DeliveryRunResult | null> {
     const { repositories } = this.options;
     // 1. 작업 소유권을 얻고 연결·버전·발송 이력이 여전히 유효한지 확인한다.
@@ -84,6 +89,7 @@ export class DeliveryService {
       const readyAt = this.latestCooldownUntil(context.binding.bucketKey);
       if (readyAt && readyAt > now) return this.finish(job, 'pending', now, 'Destination cooldown', readyAt);
       if (context.item.contentRevision !== job.revision) return this.superseded(job, context.item, context.source, now);
+      // 이미 적용된 버전은 재전송하지 않는다. 수정 작업에는 원본 메시지의 영수증도 필요하다.
       const receipt = repositories.itemDeliveries.get(job.itemId, job.bindingId);
       if (job.operation !== 'initial_post' && !receipt) return this.finish(job, 'uneditable', now, 'No original delivery receipt');
       if (receipt && receipt.appliedRevision >= job.revision) return this.finish(job, 'succeeded', now);
@@ -96,18 +102,28 @@ export class DeliveryService {
         const source = JSON.parse(job.sourceSnapshot) as SourceRecord;
         const original = JSON.parse(job.itemSnapshot) as ItemRecord;
         const item: TranslatedItem = source.translate && this.options.translationService
-          ? await this.options.translationService.translateItemForDispatch(original, source, now, { templateBody: job.templateBody, jobId: job.id })
+          ? await this.options.translationService.translateItemForDispatch(
+            original,
+            source,
+            now,
+            { templateBody: job.templateBody, jobId: job.id }
+          )
           : original;
-        const rendered = renderDiscordPayload(job.templateBody, buildPresetRenderContext(item, source, { useTranslationCache: source.translate }));
+        const rendered = renderDiscordPayload(
+          job.templateBody,
+          buildPresetRenderContext(item, source, { useTranslationCache: source.translate })
+        );
         payload = validateDiscordPayload({
           ...applySourceWebhookOptions(rendered, source, source.translate ? item.translatedTitle ?? item.title : item.title),
           username: context.destination.webhookName ?? rendered.username,
           avatar_url: context.destination.webhookAvatarUrl ?? rendered.avatar_url
         });
         if (job.operation === 'edit') {
+          // 스레드 생성 옵션은 최초 POST에만 쓴다. 기존 메시지 PATCH에는 포함하지 않는다.
           delete payload.thread_name;
           delete payload.applied_tags;
         }
+        // HTTP 전에 저장해 재시도 시 같은 번역·렌더 결과를 사용한다. 소유권을 잃었으면 전송도 중단한다.
         if (!repositories.deliveryJobs.savePayload(job, payload)) return null;
       }
       // 번역 중 연결이나 항목이 바뀔 수 있으므로 실제 전송 직전에 다시 확인한다.
@@ -139,6 +155,7 @@ export class DeliveryService {
     }
   }
 
+  /** 웹훅별 대기와 Discord 전역 대기 중 더 늦은 시각을 선택한다. */
   private latestCooldownUntil(bucketKey: string): string | undefined {
     const jobs = this.options.repositories.deliveryJobs;
     const destinationCooldown = jobs.cooldownUntil(bucketKey);
@@ -149,6 +166,7 @@ export class DeliveryService {
       .at(-1);
   }
 
+  /** 계획 당시 연결이 현재도 활성이고 목적지가 여전히 유효한지 확인한다. */
   private resolveActiveContext(job: DeliveryJobRecord) {
     const repositories = this.options.repositories;
     const binding = repositories.deliveryBindings.getById(job.bindingId);
@@ -164,6 +182,7 @@ export class DeliveryService {
     } : null;
   }
 
+  /** HTTP 전의 오래된 최초 작업은 새 내용으로 준비하고, 갱신 작업은 취소 후 최신 버전을 다시 계획한다. */
   private superseded(job: DeliveryJobRecord, item: ItemRecord, source: SourceRecord, now: string): DeliveryRunResult {
     if (job.operation === 'initial_post') {
       this.options.repositories.deliveryJobs.refreshInitial(job, item, source);
@@ -180,11 +199,14 @@ export class DeliveryService {
     return result;
   }
 
+  /** rate limit·서버 오류·메시지 소실을 구분한다. 성공 영수증과 작업 완료는 같은 트랜잭션에 저장한다. */
   private commitResponse(job: DeliveryJobRecord, response: WebhookPostResponse, now: string): DeliveryRunResult {
     const repositories = this.options.repositories;
     const binding = repositories.deliveryBindings.getById(job.bindingId);
-    if (binding && response.cooldownMs) repositories.deliveryJobs.cooldown(binding.bucketKey, new Date(Date.parse(now) + response.cooldownMs).toISOString());
+    if (binding && response.cooldownMs)
+      repositories.deliveryJobs.cooldown(binding.bucketKey, new Date(Date.parse(now) + response.cooldownMs).toISOString());
     if (response.statusCode === 429) {
+      // rate limit은 실패 횟수를 늘리지 않는다. 지정 시각까지 같은 버킷과 필요 시 전역 발송을 늦춘다.
       const until = new Date(Date.parse(now) + Math.max(1000, response.retryAfterMs ?? 1000)).toISOString();
       if (binding) repositories.deliveryJobs.cooldown(binding.bucketKey, until);
       if (response.globalRateLimit) repositories.deliveryJobs.cooldown('__discord_global__', until);
@@ -194,10 +216,13 @@ export class DeliveryService {
       if (job.operation === 'edit') return this.retry(job, now, 'network');
       return this.finish(job, 'unknown', now, 'POST server result is unknown');
     }
-    if (response.statusCode === 404 && job.operation === 'edit') return this.finish(job, 'uneditable', now, 'Message no longer exists', null, job.attemptCount, 404);
-    if (response.statusCode < 200 || response.statusCode >= 300) return this.finish(job, 'failed', now, 'webhook_rejected', null, job.attemptCount, response.statusCode);
+    if (response.statusCode === 404 && job.operation === 'edit')
+      return this.finish(job, 'uneditable', now, 'Message no longer exists', null, job.attemptCount, 404);
+    if (response.statusCode < 200 || response.statusCode >= 300)
+      return this.finish(job, 'failed', now, 'webhook_rejected', null, job.attemptCount, response.statusCode);
     const prior = repositories.itemDeliveries.get(job.itemId, job.bindingId);
     const messageId = response.messageId ?? (job.operation === 'edit' ? prior?.messageId : null);
+    // 성공 상태만으로는 후속 수정을 추적할 수 없다. ID가 없으면 재발송 대신 관리자 확인을 기다린다.
     if (!messageId) return this.finish(job, 'unknown', now, 'POST succeeded but message ID is unavailable');
     return this.options.db.transaction(() => {
       if (!repositories.deliveryJobs.finish(job, 'succeeded', now)) return this.result(job, 'skipped');
@@ -226,12 +251,14 @@ export class DeliveryService {
     })();
   }
 
+  /** PATCH의 재시도 횟수와 다음 시각을 계산하며 허용 횟수에 도달하면 실패로 종료한다. */
   private retry(job: DeliveryJobRecord, now: string, error: string): DeliveryRunResult {
     const failures = job.attemptCount + 1;
     return failures >= 5 ? this.finish(job, 'failed', now, 'max_retries', null, failures)
       : this.finish(job, 'pending', now, error, retryAt(now, failures), failures);
   }
 
+  /** 작업 소유권이 유지될 때만 상태와 필요한 운영 로그를 함께 기록한다. */
   private finish(
     job: DeliveryJobRecord,
     state: DeliveryJobState,
