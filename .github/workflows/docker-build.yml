@@ -1,0 +1,97 @@
+name: Docker Build
+
+on:
+  push:
+    branches:
+      - main
+      - 'codex/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 같은 브랜치의 새 커밋이 오면 이전 검증을 취소한다.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Test and build Docker image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          # Dockerfile의 런타임과 같은 Node 메이저 버전으로 검증한다.
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck, test and smoke
+        run: |
+          npm run typecheck
+          npm test
+          npm run smoke
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+
+      - name: Build Docker image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          tags: rss-discord-bridge:local
+          # 완성된 이미지를 같은 러너에서 실행해 확인한다.
+          load: true
+          push: false
+          provenance: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Prepare Compose environment
+        id: prepare
+        run: |
+          # 실제 API 키 없이 새 러너의 임시 DB와 검증용 포트만 사용한다.
+          cp default.env.example .env
+          sed -i 's/^PORT=.*/PORT=18080/' .env
+          mkdir -p data
+          sudo chown 1000:1000 data
+
+      - name: Verify Docker deployment
+        run: |
+          docker compose -p rdb-ci up -d --no-build --wait --wait-timeout 60
+          test "$(curl --fail --silent --show-error http://127.0.0.1:18080/healthz)" = '{"status":"ok"}'
+          test "$(curl --fail --silent --show-error http://127.0.0.1:18080/ready)" = '{"status":"ready"}'
+          test "$(docker compose -p rdb-ci port rss-discord-bridge 18080)" = '127.0.0.1:18080'
+          test "$(docker compose -p rdb-ci exec -T rss-discord-bridge id -u)" = '1000'
+          test -s data/rss-discord-bridge.sqlite
+          docker run --rm rss-discord-bridge:local node -e \
+            "import('./dist/server/core/config.js').then(({ loadConfig }) => { if (loadConfig().host !== '127.0.0.1') process.exit(1); })"
+          docker compose -p rdb-ci stop
+          container_id=$(docker compose -p rdb-ci ps -aq)
+          test -n "$container_id"
+          test "$(docker inspect --format '{{.State.ExitCode}}' "$container_id")" = '0'
+
+      - name: Show container logs and clean up
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        run: |
+          docker compose -p rdb-ci logs --no-color
+          docker compose -p rdb-ci down --timeout 60 --volumes
