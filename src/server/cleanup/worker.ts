@@ -1,6 +1,8 @@
 /**
  * 보존 기간 정리. 부팅 직후와 KST 자정에 소유 저장소의 정리 메서드를 같은 트랜잭션으로 실행한다.
+ * 빈 공간이 많으면 정리 뒤 VACUUM으로 파일을 줄인다.
  */
+import { performance } from 'node:perf_hooks';
 import type Database from 'better-sqlite3';
 import type { EventLogRepository } from '../logs/repository.js';
 import type { TranslationCacheRepository } from '../translation/cache.js';
@@ -44,6 +46,39 @@ export class CleanupService {
   }
 }
 
+export interface CompactionThresholds {
+  minFreeRatio: number;
+  minFreeBytes: number;
+}
+
+export interface CompactionResult {
+  beforeBytes: number;
+  afterBytes: number;
+  durationMs: number;
+}
+
+// 큰 삭제 뒤에만 파일을 줄인다. 평소의 하루치 빈 공간은 다음 데이터가 다시 쓴다.
+const DEFAULT_COMPACTION: CompactionThresholds = { minFreeRatio: 0.25, minFreeBytes: 8 * 1024 * 1024 };
+
+/** 빈 페이지가 기준을 넘을 때만 VACUUM으로 파일을 줄이고, WAL도 비운다. 실행하지 않으면 null. */
+export function compactIfFragmented(db: Database.Database, thresholds: CompactionThresholds): CompactionResult | null {
+  if (db.memory || db.inTransaction) return null;
+  const pageSize = db.pragma('page_size', { simple: true }) as number;
+  const pageCount = db.pragma('page_count', { simple: true }) as number;
+  const freePages = db.pragma('freelist_count', { simple: true }) as number;
+  if (pageCount === 0) return null;
+  if (freePages / pageCount < thresholds.minFreeRatio || freePages * pageSize < thresholds.minFreeBytes) return null;
+  const started = performance.now();
+  db.exec('VACUUM');
+  db.pragma('wal_checkpoint(TRUNCATE)');
+  const afterPages = db.pragma('page_count', { simple: true }) as number;
+  return {
+    beforeBytes: pageCount * pageSize,
+    afterBytes: afterPages * pageSize,
+    durationMs: Math.round(performance.now() - started)
+  };
+}
+
 export interface CleanupWorkerOptions {
   db: Database.Database;
   repositories: CleanupRepositories;
@@ -53,6 +88,8 @@ export interface CleanupWorkerOptions {
   setTimer?: typeof setTimeout;
   clearTimer?: typeof clearTimeout;
   onError?: (error: unknown) => void;
+  compaction?: CompactionThresholds;
+  onCompacted?: (result: CompactionResult) => void;
 }
 
 const DEFAULT_LOG_RETENTION_DAYS = 30;
@@ -94,10 +131,22 @@ export class CleanupWorker {
       return await this.tracker.track(async () => {
         if (this.tracker.stopped) return { events: 0 };
         const service = new CleanupService(this.options.db, this.options.repositories);
-        return service.run(baseIso, this.logRetentionDays(), this.options.itemContentRetentionDays);
+        const result = service.run(baseIso, this.logRetentionDays(), this.options.itemContentRetentionDays);
+        if (!this.tracker.stopped) this.compact();
+        return result;
       });
     } finally {
       this.running = false;
+    }
+  }
+
+  /** 정리 결과와 별개로 파일 축소를 시도한다. 실패는 보고만 하고 다음 정리 때 다시 판단한다. */
+  private compact(): void {
+    try {
+      const result = compactIfFragmented(this.options.db, this.options.compaction ?? DEFAULT_COMPACTION);
+      if (result) this.options.onCompacted?.(result);
+    } catch (error) {
+      this.reportError(error);
     }
   }
 
