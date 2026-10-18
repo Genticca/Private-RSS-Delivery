@@ -6,7 +6,7 @@
 
 [Unit]
 Description=RSS to Discord Bridge (rss-discord-bridge)
-Documentation=file:///opt/rss-discord-bridge/deploy/DEPLOY.md
+Documentation=file:///opt/rss-discord-bridge/Docs/배포.md
 After=network-online.target
 Wants=network-online.target
 

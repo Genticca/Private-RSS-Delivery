@@ -4,8 +4,8 @@ import Database from 'better-sqlite3';
 import { expect, describe, it } from 'vitest';
 import { runMigrations } from '../../src/server/core/db.js';
 
-// Docs/db-schema.md must describe exactly the schema the migrations produce.
-const DOC_PATH = fileURLToPath(new URL('../../Docs/db-schema.md', import.meta.url));
+// Docs/DB-스키마.md must describe exactly the schema the migrations produce.
+const DOC_PATH = fileURLToPath(new URL('../../Docs/DB-스키마.md', import.meta.url));
 
 interface SchemaObject {
   type: 'table' | 'index' | 'trigger';
@@ -47,7 +47,7 @@ function documentedTables(doc: string): Map<string, string[]> {
   return tables;
 }
 
-describe('Docs/db-schema.md', () => {
+describe('Docs/DB-스키마.md', () => {
   const doc = readFileSync(DOC_PATH, 'utf8');
   const { objects, columns } = migratedSchema();
   const documented = documentedTables(doc);
