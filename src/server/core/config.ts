@@ -23,12 +23,13 @@ export interface LoadConfigOptions {
   envFilePath?: string;
 }
 
-/** 네트워크 노출과 저장 경로를 부팅 시 검증한다. production은 loopback 주소만 허용한다. */
+/** 네트워크 노출과 저장 경로를 부팅 시 검증한다. production은 loopback 주소만 허용한다(컨테이너는 ALLOW_NON_LOOPBACK_HOST로 모든 인터페이스 허용). */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env, options: LoadConfigOptions = {}): AppConfig {
   const effectiveEnv = loadEnvironment(env, options);
   const isProduction = effectiveEnv.NODE_ENV === 'production';
   const host = readString(effectiveEnv.HOST, DEFAULT_HOST, 'HOST');
-  if (isProduction && !isLoopbackHost(host)) {
+  const allowAllInterfaces = readBoolean(effectiveEnv.ALLOW_NON_LOOPBACK_HOST, 'ALLOW_NON_LOOPBACK_HOST');
+  if (isProduction && !isLoopbackHost(host) && !(allowAllInterfaces && isAllInterfacesHost(host))) {
     throw new Error('HOST must be loopback-only in production.');
   }
 
@@ -82,6 +83,19 @@ function readInt(
 /** 관리 화면을 외부 인터페이스에 직접 노출하지 않도록 허용 주소를 명시한다. */
 function isLoopbackHost(host: string): boolean {
   return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
+}
+
+/** 빈 값은 비활성으로 두고 true·false만 허용해 의도하지 않은 외부 바인딩을 막는다. */
+function readBoolean(value: string | undefined, name: string): boolean {
+  const candidate = value?.trim() ?? '';
+  if (candidate === '' || candidate === 'false') return false;
+  if (candidate === 'true') return true;
+  throw new Error(`${name} must be true or false.`);
+}
+
+/** 컨테이너용 예외는 모든 인터페이스 주소만 허용하며 특정 외부 주소까지 허용하지 않는다. */
+function isAllInterfacesHost(host: string): boolean {
+  return host === '0.0.0.0' || host === '::' || host === '[::]';
 }
 
 export interface LoadEnvironmentOptions {

@@ -181,6 +181,9 @@ export function createContainer(options: CreateContainerOptions = {}): Container
       db,
       repositories,
       itemContentRetentionDays: limits.itemContentRetentionDays,
+      onCompacted: (result) => console.info(
+        `SQLite compacted: ${(result.beforeBytes / 1048576).toFixed(1)}MiB -> ${(result.afterBytes / 1048576).toFixed(1)}MiB in ${result.durationMs}ms`
+      ),
       onError: (error) => report(error, 'cleanup')
     })
   };

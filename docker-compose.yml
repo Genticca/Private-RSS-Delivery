@@ -1,0 +1,21 @@
+# 직접 설치(systemd) 대신 쓰는 Docker 배포. 관리 화면은 서버의 127.0.0.1에만 열린다.
+services:
+  rss-discord-bridge:
+    build: .
+    image: rss-discord-bridge:local
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      # 컨테이너 안에서는 모든 인터페이스로 열고, 바깥 노출은 아래 ports가 127.0.0.1로 제한한다.
+      HOST: 0.0.0.0
+      ALLOW_NON_LOOPBACK_HOST: "true"
+      PORT: "${PORT:-8080}"
+      DATABASE_PATH: /app/data/rss-discord-bridge.sqlite
+    ports:
+      # 관리 화면의 Origin 검사가 앱 포트를 기준으로 하므로 호스트 포트와 컨테이너 포트를 같게 둔다.
+      - "127.0.0.1:${PORT:-8080}:${PORT:-8080}"
+    volumes:
+      - ./data:/app/data
+    # 앱은 종료 시 진행 중인 발송을 최대 SHUTDOWN_TIMEOUT_MS(기본 30초) 기다린다. Docker 기본 10초보다 길게 둔다.
+    stop_grace_period: 60s

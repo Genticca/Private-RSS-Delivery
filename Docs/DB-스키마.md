@@ -333,6 +333,7 @@ Discord rate limit 대기. `__discord_global__`은 전역 제한이다. 지난 �
 | `delivery_jobs` | 완료·취소 후 90일 지난 행의 사본·payload만 비움 |
 | `items` 본문 | 피드에서 사라지고 `ITEM_CONTENT_RETENTION_DAYS`(180일) 지나면 `summary` · `image`를 비움 |
 | `destination_cooldowns` | 지난 행 삭제 |
+| DB 파일 | 정리 뒤 빈 공간이 25% 이상이고 8MiB 이상이면 `VACUUM`과 WAL 비우기로 파일을 줄인다 |
 
 ## 7. 마이그레이션 이력
 
