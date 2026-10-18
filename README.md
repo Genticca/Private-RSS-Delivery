@@ -1,11 +1,11 @@
 <div align="center">
 
-# rss-discord-bridge
+# RSS-Discord-Bridge
 
-**RSS·Atom 피드를 Discord 웹훅으로 전달하는 셀프호스트 도구**
+**RSS 및 Atom Feed를 Discord Webhook으로 전달하는 도구**
 
-서비스 장애 공지(status page) 피드를 안정적으로 전달하도록 만들었습니다.<br/>
-소스를 등록하거나 웹훅을 바꿔도 **지난 글을 다시 보내지 않습니다.**
+여러 RSS 및 Atom Feed를 한 곳에서 관리하며 Discord Webhook으로 전달하는 도구입니다.
+
 
 ![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A520-339933?logo=nodedotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-ESM-3178C6?logo=typescript&logoColor=white)
@@ -21,7 +21,6 @@
 | 기능 | 설명 |
 | --- | --- |
 | **피드 수집** | RSS 2.0·Atom을 소스별 주기로 수집합니다. 바뀌지 않은 피드는 조건부 요청으로 건너뜁니다 |
-| **재전송 방지** | 처음 등록한 소스나 새로 연결한 웹훅에는 지난 글을 보내지 않습니다. 결과가 불확실한 전송은 관리자가 확인합니다 |
 | **장애 공지 지원** | incident.io, Atlassian Statuspage 형식을 자동으로 알아보고 장애 단계를 표시합니다 |
 | **템플릿** | 내장 템플릿 4종과 직접 만든 템플릿. 실제 전송과 같은 결과로 미리 봅니다 |
 | **Discord 옵션** | 조용히 보내기, 멘션, 스레드·포럼 게시, 내용이 바뀌면 기존 메시지 수정 |
