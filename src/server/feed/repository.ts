@@ -57,6 +57,8 @@ export interface UpdateContentHashInput {
   author?: string | null;
   commentsUrl?: string | null;
   image?: string | null;
+  /** 정규화 규칙만 바뀐 같은 내용이면 false로 지정해 발송 버전을 유지한다. 생략하면 해시 차이로 판단한다. */
+  contentChanged?: boolean;
 }
 
 interface ItemRow {
@@ -141,13 +143,13 @@ export class ItemRepository {
 
   /** 내용·표시 필드를 갱신하고 실제 해시 변화에 맞춰 내용 버전을 관리한다. */
   updateContentHash(id: number, input: UpdateContentHashInput): ItemRecord {
-    // 내용 해시가 달라진 경우만 revision을 올린다. 본문 복원은 발송할 새 버전이 아니다.
+    // 실제 내용 변화만 revision을 올린다. 본문 복원·동등한 정규화 해시 교체는 발송할 새 버전이 아니다.
     const result = this.db
       .prepare(
         `UPDATE items
          SET title = ?, link = ?, summary = ?, content_hash = ?, incident_stage = ?,
              published_at = ?, updated_at = ?, author = ?, comments_url = ?, image = ?,
-             content_revision = content_revision + CASE WHEN content_hash != ? THEN 1 ELSE 0 END,
+             content_revision = content_revision + CASE WHEN content_hash != ? AND ? THEN 1 ELSE 0 END,
              content_pruned = 0
          WHERE id = ?`
       )
@@ -163,6 +165,7 @@ export class ItemRepository {
         nullable(input.commentsUrl),
         nullable(input.image),
         input.contentHash,
+        toSqliteBoolean(input.contentChanged ?? true),
         id
       );
     if (result.changes === 0) throw new Error(`Item not found: ${id}`);

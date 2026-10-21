@@ -149,6 +149,61 @@ describe('normalize Stage 2', () => {
     expect('rawBody' in item).toBe(false);
   });
 
+  it('keeps incident.io component-order changes out of the summary and content hash', () => {
+    const first = normalize('incident-io', incidentEnvelope(['Responses', 'Files', 'Images']));
+    const second = normalize('incident-io', incidentEnvelope(['Images', 'Responses', 'Files']));
+
+    expect(first.summary).toBe('We are monitoring recovery.\nAffected components\n· Files (Degraded performance)\n· Images (Degraded performance)\n· Responses (Degraded performance)');
+    expect(second.summary).toBe(first.summary);
+    expect(second.contentHash).toBe(first.contentHash);
+  });
+
+  it.each([
+    ['component addition', ['Files', 'Images', 'Responses']],
+    ['component removal', ['Files']],
+    ['component status change', ['Files', 'Images (Operational)']]
+  ] as const)('still detects an incident.io %s', (_label, components) => {
+    const first = normalize('incident-io', incidentEnvelope(['Files', 'Images']));
+    const changed = normalize('incident-io', incidentEnvelope(components));
+
+    expect(changed.contentHash).not.toBe(first.contentHash);
+  });
+
+  it('preserves narrative and other list ordering around incident.io components', () => {
+    const first = normalize('incident-io', {
+      ...incidentEnvelope(['Images', 'Files']),
+      rawBody: '<b>Status: Monitoring</b><p>Follow these steps.</p><ol><li>Restart the service</li><li>Check recovery</li></ol>'
+        + '<b>Affected components</b><ul><li>Images (Degraded performance)</li><li>Files (Degraded performance)</li></ul><p>Next update soon.</p>'
+    });
+    const changed = normalize('incident-io', {
+      ...incidentEnvelope(['Images', 'Files']),
+      rawBody: '<b>Status: Monitoring</b><p>Follow these steps.</p><ol><li>Check recovery</li><li>Restart the service</li></ol>'
+        + '<b>Affected components</b><ul><li>Files (Degraded performance)</li><li>Images (Degraded performance)</li></ul><p>Next update soon.</p>'
+    });
+
+    expect(first.summary).toContain('· Restart the service\n· Check recovery');
+    expect(changed.summary).toContain('· Check recovery\n· Restart the service');
+    expect(first.summary.endsWith('Next update soon.')).toBe(true);
+    expect(changed.contentHash).not.toBe(first.contentHash);
+  });
+
+  it('orders incident.io components before truncating a long summary', () => {
+    const components = Array.from({ length: 180 }, (_, index) => `Component ${String(index).padStart(3, '0')}`);
+    const first = normalize('incident-io', incidentEnvelope(components));
+    const reversed = normalize('incident-io', incidentEnvelope([...components].reverse()));
+
+    expect(first.summary.length).toBeLessThanOrEqual(4000);
+    expect(first.summary.endsWith('…')).toBe(true);
+    expect(reversed.summary).toBe(first.summary);
+    expect(reversed.contentHash).toBe(first.contentHash);
+  });
+
+  it('preserves component-list presentation for generic feeds', () => {
+    const item = normalize('generic', incidentEnvelope(['Images', 'Files']));
+
+    expect(item.summary).toContain('· Images (Degraded performance)\n· Files (Degraded performance)');
+  });
+
   it('extracts only the latest Atlassian Statuspage paragraph and ignores older cumulative history', async () => {
     const claude = parseFeed(await readFeedFixture('Claude.atom'))[0]!;
     const item = normalize('atlassian-statuspage', claude);
@@ -195,3 +250,15 @@ describe('normalize Stage 2', () => {
     expect(effectiveProfile('generic', 'incident-io')).toBe('generic');
   });
 });
+
+function incidentEnvelope(components: readonly string[]): FeedEnvelope {
+  return {
+    atomId: 'incident-one',
+    title: 'File Download errors',
+    link: 'https://example.com/incidents/one',
+    rawBody: '<b>Status: Monitoring</b><p>We are monitoring recovery.</p><b>Affected components</b><ul>'
+      + components.map((name) => `<li>${name.includes('(') ? name : `${name} (Degraded performance)`}</li>`).join('')
+      + '</ul>',
+    categories: []
+  };
+}

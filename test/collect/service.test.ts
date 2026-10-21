@@ -3,6 +3,7 @@ import { harness, BASE, rss, WEBHOOK_B } from '../mocks/runtime.js';
 import { readFeedFixture } from '../mocks/fixtures.js';
 import { addSecondsIso } from '../../src/server/core/db.js';
 import { PollWorker } from '../../src/server/collect/worker.js';
+import { computeIncidentContentHash } from '../../src/server/feed/normalize.js';
 
 describe('polling and delivery planning', () => {
   it('keeps the real status feed baseline historical and detects its profile', async () => {
@@ -26,6 +27,76 @@ describe('polling and delivery planning', () => {
     await h.poll([{ id: 'one', title: 'Title', summary: 'Second' }]);
     expect(h.item()).toMatchObject({ summary: 'Second', contentRevision: 1 });
     expect(h.jobs()).toHaveLength(1); expect(h.jobs()[0].state).toBe('succeeded');
+  });
+
+  it('does not edit or translate an incident again when only component order changes on each poll', async () => {
+    const { h, provider } = await translatedIncidentHarness();
+    const first = await h.pollBody(incidentFeed(['Files', 'Images', 'Responses']));
+    expect(first.itemsNew).toBe(1);
+    await h.run();
+    const translations = h.r.eventLog.countByStatus('translation');
+
+    for (const [index, components] of [
+      ['Responses', 'Images', 'Files'],
+      ['Images', 'Files', 'Responses'],
+      ['Files', 'Responses', 'Images']
+    ].entries()) {
+      const now = addSecondsIso(BASE, (index + 1) * 60);
+      const result = await h.pollBody(incidentFeed(components), now);
+      await h.run(now);
+
+      expect(result).toMatchObject({ itemsChanged: 0, itemsSkipped: 1 });
+      expect(h.item().contentRevision).toBe(1);
+    }
+    expect(h.jobs()).toHaveLength(1);
+    expect(h.post).toHaveBeenCalledTimes(1);
+    expect(h.edit).not.toHaveBeenCalled();
+    expect(provider.generate).toHaveBeenCalledTimes(1);
+    expect(h.r.eventLog.countByStatus('translation')).toEqual(translations);
+  });
+
+  it('adopts a legacy order-sensitive hash without editing, translating or incrementing the revision', async () => {
+    const { h, provider } = await translatedIncidentHarness();
+    await h.pollBody(incidentFeed(['Files', 'Images', 'Responses']));
+    await h.run();
+    const legacySummary = 'We are monitoring recovery.\nAffected components\n· Responses (Degraded performance)\n· Files (Degraded performance)\n· Images (Degraded performance)';
+    const legacyHash = computeIncidentContentHash({ stage: 'Monitoring', summary: legacySummary });
+    h.container.db.prepare('UPDATE items SET summary = ?, content_hash = ? WHERE id = ?').run(legacySummary, legacyHash, h.item().id);
+
+    const result = await h.pollBody(incidentFeed(['Images', 'Responses', 'Files']), addSecondsIso(BASE, 60));
+    await h.run(addSecondsIso(BASE, 60));
+
+    expect(result).toMatchObject({ itemsChanged: 0, itemsSkipped: 1 });
+    expect(h.item().contentHash).not.toBe(legacyHash);
+    expect(h.item().contentRevision).toBe(1);
+    expect(h.jobs()).toHaveLength(1);
+    expect(h.edit).not.toHaveBeenCalled();
+    expect(provider.generate).toHaveBeenCalledTimes(1);
+
+    await h.pollBody(incidentFeed(['Files', 'Images', 'Responses'], 'Resolved', 'All impacted services have recovered.'), addSecondsIso(BASE, 120));
+    await h.run(addSecondsIso(BASE, 120));
+    expect(h.item()).toMatchObject({ contentRevision: 2, incidentStage: 'Resolved' });
+    expect(h.edit).toHaveBeenCalledTimes(1);
+    expect(provider.generate).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    ['body update', ['Images', 'Files'], 'Monitoring', 'Recovery is taking longer than expected.'],
+    ['component status update', ['Images (Operational)', 'Files'], 'Monitoring', 'We are monitoring recovery.'],
+    ['resolution', ['Images (Operational)', 'Files (Operational)'], 'Resolved', 'All impacted services have recovered.']
+  ] as const)('still edits and translates a genuine incident %s', async (_label, components, stage, summary) => {
+    const { h, provider } = await translatedIncidentHarness();
+    await h.pollBody(incidentFeed(['Files', 'Images']));
+    await h.run();
+
+    const result = await h.pollBody(incidentFeed(components, stage, summary), addSecondsIso(BASE, 60));
+    await h.run(addSecondsIso(BASE, 60));
+
+    expect(result.itemsChanged).toBe(1);
+    expect(h.item().contentRevision).toBe(2);
+    expect(h.post).toHaveBeenCalledTimes(1);
+    expect(h.edit).toHaveBeenCalledTimes(1);
+    expect(provider.generate).toHaveBeenCalledTimes(2);
   });
 
   it('keeps changed historical items historical', async () => {
@@ -163,3 +234,21 @@ describe('polling and delivery planning', () => {
     expect(onError).toHaveBeenCalledWith(error);
   });
 });
+
+async function translatedIncidentHarness() {
+  const provider = { generate: vi.fn(async () => ({ text: '{"title":"파일 다운로드 오류","summary":"서비스 복구 상태입니다."}' })) };
+  const h = await harness({ profile: 'incident-io', translate: true }, {
+    env: { DATABASE_PATH: ':memory:', PRIMARY_MODEL_API_KEY: 'fixture-key' },
+    translationProvider: provider
+  });
+  await h.container.services.sources.update(h.source().id, { templateId: h.r.templates.findByName('incident-active')!.id });
+  await h.baseline();
+  return { h, provider };
+}
+
+function incidentFeed(components: readonly string[], stage = 'Monitoring', summary = 'We are monitoring recovery.'): string {
+  const componentHtml = components.map((name) => `<li>${name.includes('(') ? name : `${name} (Degraded performance)`}</li>`).join('');
+  return `<feed xmlns="http://www.w3.org/2005/Atom"><entry><id>one</id><title>File Download errors</title>`
+    + `<link href="https://example.com/incidents/one"/><updated>${BASE}</updated>`
+    + `<content type="html"><![CDATA[<b>Status: ${stage}</b><p>${summary}</p><b>Affected components</b><ul>${componentHtml}</ul>]]></content></entry></feed>`;
+}

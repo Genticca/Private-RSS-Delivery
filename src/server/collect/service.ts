@@ -13,7 +13,7 @@ import { shouldHoldNewItems, type DeliveryPlanService } from '../delivery/plan.j
 import { fetchFeed, type FeedFetchSource, type FetchFeedOptions, type FeedFetchResult } from '../net/fetch.js';
 import { nowIso } from '../core/db.js';
 import { SecurityError } from '../core/errors.js';
-import { detectProfile, effectiveProfile, normalize } from '../feed/normalize.js';
+import { detectProfile, effectiveProfile, normalize, canonicalizeIncidentIoSummary } from '../feed/normalize.js';
 
 /** 소스 초기화와 cutoff를 적용해 첫 수집·과거 공지를 발송 후보에서 제외한다. */
 export function shouldQueueNewItem(source: SourceRecord, item: NormalizedItem): boolean {
@@ -192,11 +192,18 @@ export class PollService {
         }
         db.prepare('UPDATE items SET last_seen_at = ? WHERE id = ?').run(now, inserted.id);
       } else {
-        const changed = existing.contentHash !== item.contentHash;
+        // 기존 DB의 순서 의존 해시는 같은 의미의 본문이면 조용히 교체한다. 실제 단계·본문 변경은 계속 발송한다.
+        const equivalentIncident = existing.contentHash !== item.contentHash
+          && profile === 'incident-io'
+          && item.incidentStage !== undefined
+          && existing.incidentStage === item.incidentStage
+          && existing.summary !== null
+          && canonicalizeIncidentIoSummary(existing.summary) === item.summary;
+        const changed = existing.contentHash !== item.contentHash && !equivalentIncident;
         const displayChanged = Object.entries(fields).some(([key, value]) => (existing[key as keyof typeof fields] ?? null) !== (value ?? null));
         const needsContentRefresh = changed || displayChanged || existing.contentPruned;
         const updated = needsContentRefresh
-          ? repositories.items.updateContentHash(existing.id, fields)
+          ? repositories.items.updateContentHash(existing.id, { ...fields, contentChanged: changed })
           : existing;
         db.prepare('UPDATE items SET last_seen_at = ? WHERE id = ?').run(now, existing.id);
         // 표시 필드 복원만으로는 재발송하지 않는다. 내용 해시가 달라진 경우만 계획한다.

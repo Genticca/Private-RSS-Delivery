@@ -196,9 +196,27 @@ function extractIncidentIo(rawBody: string): IncidentUpdate | undefined {
   if (!stage) return undefined;
 
   const afterMarker = rawBody.slice(match.index + match[0].length);
-  const summary = cleanSummary(afterMarker || rawBody);
+  // 영향 목록은 공급자가 매 요청마다 순서를 바꿀 수 있다. 자르기 전에 정렬해야 긴 목록도 같은 본문이 된다.
+  const summary = truncateAtWordBoundary(
+    canonicalizeIncidentIoSummary(htmlToText(afterMarker || rawBody)),
+    DEFAULT_SUMMARY_MAX_CHARS
+  );
   if (!summary) return undefined;
   return { stage, summary };
+}
+
+/** incident.io의 영향 컴포넌트 목록만 정렬한다. 안내 문장과 다른 목록의 순서는 그대로 보존한다. */
+export function canonicalizeIncidentIoSummary(summary: string): string {
+  const lines = summary.split('\n');
+  for (let index = 0; index < lines.length; index += 1) {
+    if (lines[index] !== 'Affected components') continue;
+    let end = index + 1;
+    while (lines[end]?.startsWith('· ')) end += 1;
+    const components = lines.slice(index + 1, end).sort();
+    lines.splice(index + 1, components.length, ...components);
+    index = end - 1;
+  }
+  return lines.join('\n');
 }
 
 /** 누적 공지에서 맨 앞 문단의 상태·요약만 최신 업데이트로 사용한다. */
