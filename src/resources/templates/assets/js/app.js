@@ -60,7 +60,19 @@
         input.form.elements.webhookUrl.disabled = input.checked;
       }
     });
+    // 내부에서 텍스트를 드래그해 배경에서 놓아도 click의 대상은 dialog가 될 수 있다.
+    // 같은 포인터가 배경에서 누르고 배경에서 놓은 클릭만 닫기 동작으로 처리한다.
+    let dialogBackdropPress = null;
+    document.addEventListener('pointerdown', (event) => {
+      dialogBackdropPress = event.isPrimary && event.button === 0 &&
+        event.target instanceof HTMLDialogElement && isOutsideDialog(event.target, event)
+        ? { dialog: event.target, pointerId: event.pointerId }
+        : null;
+    });
+    document.addEventListener('pointercancel', () => { dialogBackdropPress = null; });
     document.addEventListener('click', (event) => {
+      const backdropPress = dialogBackdropPress;
+      dialogBackdropPress = null;
       const open = event.target.closest('[data-open-dialog]');
       if (open?.dataset.openDialog === 'new-group-modal') void openGroupDialog().catch(showError);
       else if (open) document.getElementById(open.dataset.openDialog)?.showModal();
@@ -71,10 +83,9 @@
       }
       const close = event.target.closest('[data-close-dialog]');
       if (close) close.closest('dialog')?.close();
-      if (event.target instanceof HTMLDialogElement) {
-        const rect = event.target.getBoundingClientRect();
-        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)
-          event.target.close();
+      if (backdropPress?.dialog === event.target && backdropPress.pointerId === event.pointerId &&
+        isOutsideDialog(event.target, event)) {
+        event.target.close();
       }
       document.querySelectorAll('.row-menu[open]').forEach((menu) => {
         if (!menu.contains(event.target) || event.target.closest('.row-menu-content')) menu.open = false;
@@ -113,6 +124,13 @@
       document.getElementById('source-table') || document.createElement('div'),
       { childList: true }
     );
+  }
+
+  /** dialog 자체가 클릭 대상이어도 창 안의 여백과 배경은 실제 표시 범위로 구분한다. */
+  function isOutsideDialog(dialog, event) {
+    const rect = dialog.getBoundingClientRect();
+    return event.clientX < rect.left || event.clientX > rect.right ||
+      event.clientY < rect.top || event.clientY > rect.bottom;
   }
 
   /** 모바일 메뉴의 표시·포커스·접근성 상태를 함께 바꾼다. */
